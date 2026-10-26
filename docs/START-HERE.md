@@ -1,6 +1,6 @@
 # ZGTA V 2.0 beta — by zema
 
-A GTA V port with a Pure Black launcher, solo play, private multiplayer, local saves, compatible mods and controller settings. **Bring your own matching prepared game files.** No commercial game data is included.
+Solo Story, Free Roam, and Private Multiplayer, with saves, compatible mods, and controller support. **Bring your own matching prepared game files.** No commercial game data is included.
 
 ## Choose your download
 
@@ -42,15 +42,33 @@ The launcher validates the matching pinned build. A folder with only `GTA5.exe`,
 1. Check that your device already supports and runs [official TrollStore](https://github.com/opa334/TrollStore). This app cannot make an unsupported iOS version compatible.
 2. Download the iOS `.ipa` from this release and open it in TrollStore. Existing users should update the same app **without deleting it**. The bundle identifier remains `com.zemabinks.gtamp.enginelanlab`.
 3. Open **ZGTA V**. Tap **Game files** at the top right. Choose the containing folder in Files, allow access, then select the discovered archive and **Unpack**. Or use **Choose an archive…** to select the archive directly.
-4. If you already have extracted matching files, select their folder and recheck. Only a validated usable folder is marked ready. External archives are retained; consuming app-owned archives is an explicit separate choice.
-5. Choose **On my own → Story mode / Free roam**, then press the green Play button. Or use **With friends**, configure a lobby, then press the green **Play Multiplayer / Host Multiplayer** button.
+4. If you already have extracted matching files, select their folder and recheck. Wait for the folder to be marked ready.
+5. For Solo Story or Free Roam, choose **On my own → Story mode / Free roam**, then **Play**. For Private Multiplayer, follow [Playing with friends](#playing-with-friends).
 
-A `.tipa`, if supplied, contains the exact same ZIP/IPA bytes under a TrollStore file extension; it is not a different build. The owner-confirmed archive test used the Build 91 update; no separate `.tipa` installation test is claimed.
+### Sideloadly, AltStore Classic, and SideStore
+
+**Can I use the same IPA?** These tools accept IPA files, but this exact Build 91 release has not been verified with them. The download is the TrollStore build; there is no separately tested standard-sideloading IPA in this release.
+
+The project's TrollStore signing configuration requests **Increased Memory Limit** and **Extended Virtual Addressing**. Re-signing may change which permissions the app receives. A successful installation alone does not establish that game startup, available memory, or gameplay will work. A paid developer account alone is not proof of compatibility either.
+
+If you want to test the existing IPA:
+
+1. Back up any existing ZGTA V saves first. Keep a working TrollStore installation intact; changing signing methods is not a verified in-place update.
+2. Download the `.ipa` linked above, not the `.tipa` alias.
+3. Choose one installer:
+   - **[Sideloadly](https://sideloadly.io/):** install it on your Mac or PC, connect and trust your iPhone, select the device and IPA, sign in with your Apple account, then start installation.
+   - **[AltStore Classic](https://faq.altstore.io/):** complete its official setup with AltServer, then import the IPA from **My Apps** using **+**. This refers to Classic.
+   - **[SideStore](https://sidestore.io/):** complete its official setup, including its pairing/network requirements, then import the IPA through its app-install action.
+4. Follow the installer's instructions for trusting your developer profile and enabling Developer Mode when required by your iOS version.
+5. If installation succeeds, open ZGTA V and follow the game-file steps above. Start with low graphics settings. Report signing errors or crashes with your device, iOS version, installer, and account type.
+6. With a free Apple account, refresh the app before its seven-day signature expires. Keep the same Apple account and signing identity when updating, and back up saves first. See the [Sideloadly FAQ](https://sideloadly.io/faq) and [AltStore refresh guide](https://faq.altstore.io/altstore-classic/your-altstore).
+
+Until this build has been tested through those installers, TrollStore remains the documented tested route.
 
 ### Install / update with Sileo
 
 1. In Sileo → Sources, add `https://zemabinks.github.io/repo/` and refresh.
-2. Install **ZGTA V (TrollStore installer)**, wrapper **0.91-1**, with existing compatible TrollStore / TrollStore Lite. It verifies the IPA byte count and SHA-256 before calling the native helper.
+2. Install **ZGTA V (TrollStore installer)**, wrapper **0.91-1**, with existing compatible TrollStore / TrollStore Lite. 
 3. Open ZGTA V and follow the game-file steps above. Removing the small Sileo installer wrapper does not remove your app or its game data.
 
 If Sileo says Reinstall, cannot find the package, or reports **Install Identifier Mismatch**, clear that queued attempt, refresh Sources and reopen the package. This resolved the owner's earlier stale selection. Do not remove the app or saves to fix the queue.
@@ -101,12 +119,32 @@ It asks before installing Termux Python if missing. Open `http://127.0.0.1:18887
 
 ## Playing with friends
 
-- **Join or create** opens Join a friend / Create a lobby. Configuring an address or role does not start the game. The last step is always the green **Play Multiplayer** or **Host Multiplayer** button.
-- Same Wi-Fi / LAN uses the host's reachable private LAN address. The host must keep the app or local host running. Share the generated invite and use the same room.
-- The current **Remote / Tailscale** option uses a reachable Tailscale address. If an existing FritzBox/WireGuard connection routes you onto the host LAN, use that reachable LAN address under **Same Wi-Fi / LAN**. This release does not configure WireGuard, Tailscale, router forwarding or a public matchmaking service.
-- **Find lobby → Online** lists fresh compatible advertised rooms. A recent address or responding relay is not proof that a room exists.
-- Tap the heart or add an invite to **Favorites**. Saved offline rooms stay there, with Join disabled. Saving a favorite does not grant network access.
-- Each device needs its own multiplayer character identity. A network reconnection is not a promise of seamless game-world recovery. No GTA menu automation is used.
+### Create a lobby
+
+1. Open **With friends → Join or create → Create a lobby**.
+2. Choose **Same Wi-Fi / LAN** for devices on the same local network, or **Remote / Tailscale** when using a configured Tailscale connection.
+3. Complete the host settings, return to the launcher, and press **Host Multiplayer**.
+4. Share the generated invite with your friends. Keep the host app or browser host running while you play.
+
+For remote play, everyone must be able to reach the host through the private network. Set up Tailscale and grant the required network access first; ZGTA V does not configure it for you. An existing WireGuard connection that reaches the host's LAN can use **Same Wi-Fi / LAN** with that reachable LAN address.
+
+### Join with an invite
+
+1. Open **With friends → Join or create → Join a friend**.
+2. Enter the host's invite/address and use the same room.
+3. Return to the launcher and press **Play Multiplayer**.
+
+Use the host's reachable LAN or Tailscale address, not `127.0.0.1` from another device.
+
+### Join from the lobby list
+
+1. Open **Find lobby → Online**.
+2. Select an available room and use **Join**.
+3. If returned to the launcher, press **Play Multiplayer** to start.
+
+Use the heart to save a room to **Favorites**. An offline favorite cannot be joined. If a friend's room is missing, confirm that the host is running and reachable, then try their invite directly.
+
+Each device needs its own multiplayer character identity. Two-device gameplay and recovery after connection loss are still being tested.
 
 ## Saves, mods and controls
 
@@ -114,7 +152,35 @@ It asks before installing Termux Python if missing. Open `http://127.0.0.1:18887
 
 **Saves:** use Settings → Saves on browser or Settings → Saves & support on iOS. Story, free roam and multiplayer profiles are separate. New backups use `.zgtasave`; legacy `.mugoatsave` imports remain supported for existing owners. Import checks structure and backs up matching existing files; it does not convert newer GTA save versions or guarantee that every save loads. Close the game before imports. Do not share one imported multiplayer identity between simultaneously playing devices.
 
-**Mods:** open Mods, import a compatible pack and inspect the validation result. Only formats supported by the current mod manager are accepted; this is not support for arbitrary Windows `.asi`/DLL/ScriptHook mods. Changes requiring restart are queued. Keep original packs; a pack's success on desktop GTA does not prove compatibility here.
+### Importing mods
+
+Import mods before starting a game and keep a copy of the original pack.
+
+**iOS**
+
+1. Open **Mods → Import Mod from file**.
+2. Select the mod or archive in Files.
+3. Read **Mod Import Results** and check that the mod appears in the list.
+4. Select the mod to enable or disable it. Restart the app when a change is marked for the next launch.
+
+You can also copy supported files into **Files → On My iPhone → ZGTA V → mods**, then refresh the mod list. A file appearing in the manager does not prove that its code or content is supported; arbitrary Windows DLL/ASI/ScriptHook mods are not compatible just because they can be imported.
+
+**Browser**
+
+1. Open **Mods → Import DLC pack**.
+2. Select an open GTA V Legacy vehicle/character DLC `.rpf`, or a ZIP containing compatible DLC packs (up to 256 MiB per import).
+3. Wait for validation, then enable the pack in the list.
+4. Start a new game session to apply it.
+
+Browser mods apply to Solo Story and Free Roam; private multiplayer uses the original assets. Encrypted/Enhanced packs, ASI/script plugins, loose-file replacements, and non-ZIP archives are unsupported by the browser importer.
+
+### Graphics
+
+1. Open **Settings → Graphics & FPS** on iOS, or **Settings → Graphics** in the browser launcher.
+2. Choose a detail preset, resolution, and frame-rate cap. Start with the recommended preset on iOS; reduce detail or resolution if play is slow.
+3. On iOS, resolution changes apply immediately, while preset and frame-rate changes apply the next time you start the game. Browser graphics changes apply on the next launch.
+
+Higher resolution and detail require more memory and GPU power. A 60 FPS cap does not guarantee 60 FPS. In the browser, use **Check this GPU** if the game reports unsupported graphics.
 
 **Controls:** browser supports keyboard/mouse and standard Gamepad API controllers; iOS retains touch and supported controller settings. Pair controllers in the OS first. Controller feel, audio, performance and two-device multiplayer need real-device beta feedback.
 
@@ -129,6 +195,6 @@ It asks before installing Termux Python if missing. Open `http://127.0.0.1:18887
 
 Use [TEST-REPORT.md](TEST-REPORT.md) for a report. Include platform, OS, GPU/device, package/version, steps and exact error. Attach the current app log or launcher diagnostics after reviewing personal paths/addresses. State whether the issue is setup, game start, saves, mods, input or multiplayer. Do not upload game data or private saves publicly.
 
-## Verification scope
+## Test status
 
-This is a public **beta**, not full platform certification. iOS version2.0 / Build 91 is the unchanged, byte-verified archive-access candidate now owner-confirmed for that workflow. Browser source/packages use revision92 and preserve the existing engine/renderer byte set. Windows/Android/Linux hardware gameplay, full upgrade/save retention, two-device multiplayer, performance comparisons and reboot persistence are still open. See [VERIFICATION.md](VERIFICATION.md). No paid GitHub Actions are used.
+This is a beta. See [VERIFICATION.md](VERIFICATION.md) for tested platforms and remaining checks.
