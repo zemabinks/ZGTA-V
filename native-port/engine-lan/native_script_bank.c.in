@@ -1,0 +1,32 @@
+/* Scoped missing optional bank compatibility from Glue 5 a62e56a5.
+ * Engine audio and all actual bank state remain owned by the original functions.
+ * No retry, files, memory offsets, network or generic function-pointer casts.
+ */
+#include "ZemaNativeScriptBank.h"
+#include <stdbool.h>
+#include <stdatomic.h>
+#include <stdio.h>
+extern void pg_log(const char* message);
+static _Thread_local bool in_script_bank_request;
+static atomic_bool noted_fallback;
+
+u32 w2c_game_f21855(w2c_game* instance,u32 bank,u32 over_network,u32 players) {
+  const bool previous=in_script_bank_request;
+  in_script_bank_request=true;
+  const u32 result=w2c_game_f21855_zema_script_bank_original(instance,bank,over_network,players);
+  in_script_bank_request=previous;
+  return result;
+}
+u32 w2c_game_f7226(w2c_game* instance,u64 slot,u32 bank) {
+  const u32 status=w2c_game_f7226_zema_script_bank_original(instance,slot,bank);
+  if(status!=2||!in_script_bank_request)return status;
+  if(!atomic_exchange_explicit(&noted_fallback,true,memory_order_relaxed)) {
+    char line[128];
+    snprintf(line,sizeof line,"Script audio: failed optional bank %u bypassed inside script request; audio data remains unavailable.",bank);
+    pg_log(line);
+  }
+  /* Pinned engine enum: 0=LOADED, 1=LOADING, 2=FAILED. This query-only
+   * compatibility answer lets the original script request finish. It never
+   * changes the stored bank state, creates audio bytes, or hides outside failures. */
+  return 0;
+}

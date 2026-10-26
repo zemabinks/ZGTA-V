@@ -1,0 +1,21 @@
+<!doctype html><meta charset="utf-8"><title>Disposable browser reconnect check</title>
+<button id="run">Test browser reconnect</button><pre id="result">No game or save database will be opened.</pre>
+<script src="/browser.js"></script><script>
+document.getElementById('run').onclick=async()=>{
+ const out=document.getElementById('result'),workers=[],lans=[],identities=[];document.getElementById('run').disabled=true;
+ const assert=(v,m)=>{if(!v)throw Error(m);},wait=ms=>new Promise(r=>setTimeout(r,ms));
+ const api=async name=>{const r=await fetch('/fixture/'+name,{method:'POST',headers:{'X-Zema-Lab':'1','Content-Type':'application/json'},body:'{}'});if(!r.ok)throw Error('Fixture refused '+name);return r.json();};
+ const event=(worker,type)=>new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error(type+' timed out')),75000);worker.onmessage=e=>{if(e.data.type==='error'){clearTimeout(timer);reject(Error(e.data.message));}else if(e.data.type===type){clearTimeout(timer);resolve(e.data);}};worker.onerror=e=>{clearTimeout(timer);reject(Error(e.message));};});
+ async function transfer(from,to,text){assert(lans[from].send(6672,lans[to].vip,6672,new TextEncoder().encode(text)),'send refused');const end=performance.now()+5000;while(performance.now()<end){const data=lans[to].receive(6672);if(data){assert(new TextDecoder().decode(data.data)===text,'wrong payload');return;}await wait(10);}throw Error('Datagram timed out');}
+ try{
+  const host=await api('start');
+  for(let i=0;i<2;i++){const worker=new Worker('/network-worker.js');workers.push(worker);const ready=event(worker,'joined');worker.postMessage({type:'connect',url:host.join,room:'QA-RECONNECT',name:'QA'+i});const joined=await ready,lan=new ZemaEngineLan.SharedLan(joined.context.buffer),handle=lan.bind(6672).handle;lans.push(lan);identities.push({buffer:lan.buffer,vip:lan.vip,handle});}
+  await transfer(0,1,'before restart');out.textContent='Connected two real browser workers. Restarting only the disposable relay…';
+  const restarting=await api('restart');
+  await Promise.all(workers.map(async worker=>{const ready=event(worker,'resumed');worker.postMessage({type:'resume'});await ready;}));
+  for(let i=0;i<2;i++){assert(lans[i].buffer===identities[i].buffer,'buffer replaced');assert(lans[i].vip===identities[i].vip,'address changed');assert(lans[i].port(identities[i].handle)===6672,'engine handle lost');}
+  await transfer(0,1,'after restart');await transfer(1,0,'reply after restart');
+  out.textContent='PASS: two real Chromium network workers reconnected after a '+restarting.delay+'-second relay restart delay, keeping the same shared buffers, game addresses and socket handles. Bidirectional datagrams passed afterward. This page was not reloaded. No GTA engine or save database was opened.';
+ }catch(error){out.textContent='FAIL: '+error.stack;}finally{for(const worker of workers)worker.terminate();}
+};
+</script>

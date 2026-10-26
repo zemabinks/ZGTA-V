@@ -1,0 +1,817 @@
+{
+  "format": "zema-engine-lan-hook-contract-v1",
+  "upstream_repository": "https://github.com/mempage4k/glue5",
+  "upstream_revision": "a62e56a5b6423071c2f32c9c3446bca74734d9c3",
+  "declared_license": "MIT OR Apache-2.0",
+  "upstream_files": {
+    "Cargo.toml": "e0076d1815abc55fa9077aba8351f5ac65d8008c5ed114ae0f6637116d0380b8",
+    "README.md": "ced2f39f24a6e555b71864935255d0460421c34fe2e264381e3b6a9af23a9bf0",
+    "crates/glue5-game/build/main.rs": "46f9986b29ceaabe39b1d33f3dfc2f008f6417f668437974f57c2011002e7351",
+    "crates/glue5-game/hooks/vnet.rs": "450576c43b2c918579b6ab204bb64f2b6a2d98827679059f8328e7f52ed81153",
+    "crates/glue5-runtime/src/vnet.rs": "a494d3f929629f45bdd364e2bbfcd845571459239d076c928f37057e55d0d135",
+    "crates/glue5-game/hooks/online.rs": "98099b5657e4420f49c010025f81df8257e5e3f30366a519a4aa1c6ccb9275a7",
+    "crates/glue5-runtime/src/online.rs": "5c692b8fdf8ff14ea7fe04e197c97455c3c60d0307354a7d59fa62addde026eb",
+    "crates/glue5-game/hooks/cloud.rs": "3175c13ca41d5d662fcc010eaa8a04b0173cf4024893c003f2b5af0694ea8495",
+    "crates/glue5-runtime/src/cloud.rs": "23bc86e7cb7e7f3ae406989b90a400542633e0beb11636781d60d30d6c95d798",
+    "crates/glue5-game/hooks/stats.rs": "5bfe21cd4d00ea592ab5b3238cad04d6de0ddb740a03528e88bb84c338249cc8",
+    "crates/glue5-runtime/src/stats.rs": "ec182ea1e981cedf66c22782cbe73eafd92089d672cb725f1ad886a76423c988",
+    "crates/glue5-runtime/src/p2p.rs": "ccc658a4979702a2ed159ee45cb1d2d716fe51e1cabc11d26afdd0254686e5a3",
+    "crates/glue5-runtime/src/dht.rs": "dc3119805e0e8fa8e6693e76886f4548f1b52ac573c14df419275b8c884d4e73"
+  },
+  "game_build": "8b0b5899ed",
+  "engine_sha256": "11ca8d2c04c5e843d18ff4aea4899d72c86973c6b031df334e67c446b2ae83e0",
+  "hooks": [
+    {
+      "group": "vnet",
+      "field": "profiler_push",
+      "name": "rage::netFunctionProfiler::PushProfiler(char const*, bool)",
+      "index": 13579,
+      "params": [
+        "i64",
+        "i64",
+        "i32"
+      ],
+      "results": [
+        "i32"
+      ]
+    },
+    {
+      "group": "vnet",
+      "field": "create_socket",
+      "name": "rage::netHardware::CreateSocket(rage::netSocket*, unsigned short, rage::netProtocol, rage::netSocketBlockingType, rage::netAddressFamily, unsigned int, unsigned int)",
+      "index": 13822,
+      "params": [
+        "i64",
+        "i32",
+        "i32",
+        "i32",
+        "i32"
+      ],
+      "results": [
+        "i32"
+      ]
+    },
+    {
+      "group": "vnet",
+      "field": "socket_bind",
+      "name": "rage::netSocket::NativeBind()",
+      "index": 185,
+      "params": [
+        "i64"
+      ],
+      "results": [
+        "i32"
+      ]
+    },
+    {
+      "group": "vnet",
+      "field": "socket_close",
+      "name": "rage::netSocket::NativeShutdown()",
+      "index": 184,
+      "params": [
+        "i64"
+      ],
+      "results": [],
+      "body_sha256": "06dad1d71648b7b639f74e144454fc9e7756ade58209086d325a7f1de769be17",
+      "provenance": "zema lifecycle extension; exact pinned engine, not an upstream glue5 hook"
+    },
+    {
+      "group": "vnet",
+      "field": "socket_send",
+      "name": "rage::netSocket::Send(rage::netSocketAddress const&, void const*, unsigned int, rage::netSocketError*)",
+      "index": 13571,
+      "params": [
+        "i64",
+        "i64",
+        "i64",
+        "i32",
+        "i64"
+      ],
+      "results": [
+        "i32"
+      ]
+    },
+    {
+      "group": "vnet",
+      "field": "socket_receive",
+      "name": "rage::netSocket::Receive(rage::netSocketAddress*, void*, int, rage::netSocketError*)",
+      "index": 13829,
+      "params": [
+        "i64",
+        "i64",
+        "i64",
+        "i32",
+        "i64"
+      ],
+      "results": [
+        "i32"
+      ]
+    },
+    {
+      "group": "vnet",
+      "field": "socket_select",
+      "name": "rage::netSocket::Select(int, fd_set*, fd_set*, fd_set*, timeval*)",
+      "index": 13828,
+      "params": [
+        "i32",
+        "i64",
+        "i64",
+        "i64",
+        "i64"
+      ],
+      "results": [
+        "i32"
+      ]
+    },
+    {
+      "group": "vnet",
+      "field": "local_ip_address",
+      "name": "rage::netHardware::GetLocalIpAddress(rage::netIpAddress*)",
+      "index": 13408,
+      "params": [
+        "i64"
+      ],
+      "results": [
+        "i32"
+      ]
+    },
+    {
+      "group": "vnet",
+      "field": "public_ip_address",
+      "name": "rage::netHardware::GetPublicIpAddress(rage::netIpAddress*)",
+      "index": 13619,
+      "params": [
+        "i64"
+      ],
+      "results": [
+        "i32"
+      ]
+    },
+    {
+      "group": "online",
+      "field": "rl_gamer_handle",
+      "name": "rage::internal::GetGamerHandle(int, rage::rlGamerHandle*)",
+      "index": 14442,
+      "params": [
+        "i64"
+      ],
+      "results": [
+        "i32"
+      ]
+    },
+    {
+      "group": "online",
+      "field": "rl_offline_name",
+      "name": "rage::internal::GetOfflineName(int, char*, unsigned int)",
+      "index": 14465,
+      "params": [
+        "i64"
+      ],
+      "results": [
+        "i32"
+      ]
+    },
+    {
+      "group": "online",
+      "field": "rl_pc_initialized",
+      "name": "rage::rlPc::IsInitialized()",
+      "index": 14320,
+      "params": [],
+      "results": [
+        "i32"
+      ]
+    },
+    {
+      "group": "online",
+      "field": "live_manager_init",
+      "name": "CLiveManager::Init(unsigned int)",
+      "index": 82863,
+      "params": [
+        "i32"
+      ],
+      "results": []
+    },
+    {
+      "group": "online",
+      "field": "live_manager_update",
+      "name": "CLiveManager::Update(unsigned int)",
+      "index": 82896,
+      "params": [
+        "i32"
+      ],
+      "results": []
+    },
+    {
+      "group": "online",
+      "field": "presence_online",
+      "name": "rage::rlPresence::IsOnline(int)",
+      "index": 14354,
+      "params": [
+        "i32"
+      ],
+      "results": [
+        "i32"
+      ]
+    },
+    {
+      "group": "online",
+      "field": "bail_on_multiplayer",
+      "name": "CLiveManager::BailOnMultiplayer(eBailReason, int)",
+      "index": 82918,
+      "params": [
+        "i32",
+        "i32"
+      ],
+      "results": []
+    },
+    {
+      "group": "online",
+      "field": "ros_privilege",
+      "name": "rage::rlRosCredentials::HasPrivilege(rage::rlRosPrivilegeId) const",
+      "index": 14836,
+      "params": [
+        "i64",
+        "i32"
+      ],
+      "results": [
+        "i32"
+      ]
+    },
+    {
+      "group": "online",
+      "field": "ros_privilege_end_date",
+      "name": "rage::rlRosCredentials::HasPrivilegeEndDate(rage::rlRosPrivilegeId, bool*, unsigned long*) const",
+      "index": 14886,
+      "params": [
+        "i64",
+        "i32",
+        "i64",
+        "i64"
+      ],
+      "results": [
+        "i32"
+      ]
+    },
+    {
+      "group": "online",
+      "field": "profile_setting_int",
+      "name": "CProfileSettings::GetInt(CProfileSettings::ProfileSettingId)",
+      "index": 36364,
+      "params": [
+        "i64",
+        "i32"
+      ],
+      "results": [
+        "i32"
+      ]
+    },
+    {
+      "group": "online",
+      "field": "can_access_network_features",
+      "name": "CNetwork::CanAccessNetworkFeatures(eNetworkAccessArea, eNetworkAccessCode*)",
+      "index": 82943,
+      "params": [
+        "i32",
+        "i64"
+      ],
+      "results": [
+        "i32"
+      ]
+    },
+    {
+      "group": "online",
+      "field": "can_enter_multiplayer",
+      "name": "CNetworkSession::CanEnterMultiplayer()",
+      "index": 85869,
+      "params": [
+        "i64"
+      ],
+      "results": [
+        "i32"
+      ]
+    },
+    {
+      "group": "online",
+      "field": "populate_store_data",
+      "name": "cCommerceManager::PopulateThinData(bool)",
+      "index": 83640,
+      "params": [],
+      "results": []
+    },
+    {
+      "group": "online",
+      "field": "photo_to_jpeg",
+      "name": "CHighQualityScreenshot::StoreScreenShotInBuffer(unsigned char*, unsigned int*, unsigned int, void*, int, int, int, unsigned int, CPhotoBuffer*)",
+      "index": 43759,
+      "params": [
+        "i64",
+        "i64",
+        "i32",
+        "i64",
+        "i32",
+        "i32",
+        "i32",
+        "i64"
+      ],
+      "results": [
+        "i32"
+      ]
+    },
+    {
+      "group": "online",
+      "field": "script_program_loaded",
+      "name": "rage::scrProgram::scrProgram(rage::datResource&)",
+      "index": 16924,
+      "params": [
+        "i64",
+        "i64"
+      ],
+      "results": [
+        "i64"
+      ]
+    },
+    {
+      "group": "online",
+      "field": "profanity_valid",
+      "name": "socialclub_commands::SetupScriptCommands()::scrWrapped_SC_PROFANITY_GET_CHECK_IS_VALID::Call(rage::scrThread::Info&)",
+      "index": 59554,
+      "params": [
+        "i64"
+      ],
+      "results": []
+    },
+    {
+      "group": "online",
+      "field": "profanity_pending",
+      "name": "socialclub_commands::SetupScriptCommands()::scrWrapped_SC_PROFANITY_GET_CHECK_IS_PENDING::Call(rage::scrThread::Info&)",
+      "index": 59555,
+      "params": [
+        "i64"
+      ],
+      "results": []
+    },
+    {
+      "group": "online",
+      "field": "profanity_status",
+      "name": "socialclub_commands::SetupScriptCommands()::scrWrapped_SC_PROFANITY_GET_STRING_STATUS::Call(rage::scrThread::Info&)",
+      "index": 59557,
+      "params": [
+        "i64"
+      ],
+      "results": []
+    },
+    {
+      "group": "online",
+      "field": "savemigration_mp_enabled",
+      "name": "savemigration_commands::SetupScriptCommands()::scrWrapped_SAVEMIGRATION_IS_MP_ENABLED::Call(rage::scrThread::Info&)",
+      "index": 59300,
+      "params": [
+        "i64"
+      ],
+      "results": []
+    },
+    {
+      "group": "online",
+      "field": "bad_pack_order",
+      "name": "dlc_commands::SetupScriptCommands()::scrWrapped_GET_EVER_HAD_BAD_PACK_ORDER::Call(rage::scrThread::Info&)",
+      "index": 51368,
+      "params": [
+        "i64"
+      ],
+      "results": []
+    },
+    {
+      "group": "cloud",
+      "field": "xml_bool_attribute",
+      "name": "rage::parElement::FindAttributeBoolValue(char const*, bool, bool) const",
+      "index": 2203,
+      "params": [
+        "i64",
+        "i64",
+        "i32"
+      ],
+      "results": [
+        "i32"
+      ]
+    },
+    {
+      "group": "cloud",
+      "field": "stats_init",
+      "name": "CStatsSavesMgr::Init(unsigned int)",
+      "index": 77403,
+      "params": [
+        "i32"
+      ],
+      "results": []
+    },
+    {
+      "group": "cloud",
+      "field": "stats_update",
+      "name": "CStatsDataMgr::Update()",
+      "index": 77189,
+      "params": [],
+      "results": []
+    },
+    {
+      "group": "cloud",
+      "field": "stats_queue_load",
+      "name": "CStatsSavesMgr::QueueLoad(eStatsLoadType)",
+      "index": 77406,
+      "params": [],
+      "results": [
+        "i32"
+      ]
+    },
+    {
+      "group": "cloud",
+      "field": "stats_queue_save",
+      "name": "CStatsSavesMgr::QueueSave(eStatsSaveType, unsigned int)",
+      "index": 77407,
+      "params": [],
+      "results": []
+    },
+    {
+      "group": "cloud",
+      "field": "stats_load_failed",
+      "name": "StatsInterface::CloudFileLoadFailed(int)",
+      "index": 77340,
+      "params": [
+        "i32"
+      ],
+      "results": [
+        "i32"
+      ]
+    },
+    {
+      "group": "cloud",
+      "field": "stats_save",
+      "name": "CStatsSavesMgr::Save(eStatsSaveType, unsigned int, eSaveTypes, unsigned int, int)",
+      "index": 77414,
+      "params": [
+        "i32",
+        "i32",
+        "i32",
+        "i32"
+      ],
+      "results": [
+        "i32"
+      ]
+    },
+    {
+      "group": "cloud",
+      "field": "stats_load",
+      "name": "CStatsSavesMgr::Load(eStatsLoadType, int)",
+      "index": 77417,
+      "params": [
+        "i32"
+      ],
+      "results": [
+        "i32"
+      ]
+    },
+    {
+      "group": "cloud",
+      "field": "cloud_available",
+      "name": "NetworkInterface::IsCloudAvailable(int)",
+      "index": 83008,
+      "params": [
+        "i32"
+      ],
+      "results": [
+        "i32"
+      ]
+    },
+    {
+      "group": "cloud",
+      "field": "profile_stats_failed",
+      "name": "CProfileStats::SynchronizedFailed(CProfileStats::eSyncType, int&) const",
+      "index": 84423,
+      "params": [
+        "i64"
+      ],
+      "results": [
+        "i32"
+      ]
+    },
+    {
+      "group": "cloud",
+      "field": "profile_stats_synced",
+      "name": "CProfileStats::Synchronized(CProfileStats::eSyncType) const",
+      "index": 84424,
+      "params": [
+        "i32"
+      ],
+      "results": [
+        "i32"
+      ]
+    },
+    {
+      "group": "cloud",
+      "field": "mpstats_load_update",
+      "name": "CSavegameQueuedOperation_MPStats_Load::Update()",
+      "index": 45381,
+      "params": [
+        "i64"
+      ],
+      "results": [
+        "i32"
+      ]
+    },
+    {
+      "group": "cloud",
+      "field": "mpstats_save_update",
+      "name": "CSavegameQueuedOperation_MPStats_Save::Update()",
+      "index": 45383,
+      "params": [
+        "i64"
+      ],
+      "results": [
+        "i32"
+      ]
+    },
+    {
+      "group": "cloud",
+      "field": "ros_credentials_valid",
+      "name": "rage::rlRosCredentials::IsValid() const",
+      "index": 14362,
+      "params": [
+        "i64"
+      ],
+      "results": [
+        "i32"
+      ]
+    },
+    {
+      "group": "cloud",
+      "field": "post_member_file",
+      "name": "rage::rlCloud::PostMemberFile(int, rage::rlCloudOnlineService, char const*, void const*, unsigned int, rage::rlCloud::PostType, rage::rlCloudFileInfo*, rage::sysMemAllocator*, rage::netStatus*)",
+      "index": 15050,
+      "params": [
+        "i32",
+        "i32",
+        "i64",
+        "i64",
+        "i32",
+        "i64",
+        "i64",
+        "i64"
+      ],
+      "results": [
+        "i32"
+      ]
+    },
+    {
+      "group": "cloud",
+      "field": "get_member_file",
+      "name": "rage::rlCloud::GetMemberFile(int, rage::rlCloudMemberId const&, rage::rlCloudOnlineService, char const*, rage::rlRosSecurityFlags, unsigned long, rage::netHttpOptions, rage::fiDevice const*, fiHandle__*, rage::rlCloudFileInfo*, rage::sysMemAllocator*, rage::netStatus*)",
+      "index": 15048,
+      "params": [
+        "i32",
+        "i64",
+        "i32",
+        "i64",
+        "i32",
+        "i64",
+        "i32",
+        "i64",
+        "i64",
+        "i64",
+        "i64",
+        "i64"
+      ],
+      "results": [
+        "i32"
+      ]
+    },
+    {
+      "group": "cloud",
+      "field": "ugc_query_content",
+      "name": "rage::rlUgc::QueryContent(int, rage::rlUgcContentType, char const*, char const*, int, int, int*, int*, rage::atDelegate<void (int, char const*, rage::rlUgcMetadata const*, rage::rlUgcRatings const*, char const*, unsigned int, unsigned int, rage::rlUgcPlayer const*)> const&, rage::sysMemAllocator*, rage::netStatus*)",
+      "index": 14971,
+      "params": [
+        "i32",
+        "i32",
+        "i64",
+        "i64",
+        "i32",
+        "i32",
+        "i64",
+        "i64",
+        "i64",
+        "i64",
+        "i64"
+      ],
+      "results": [
+        "i32"
+      ]
+    },
+    {
+      "group": "cloud",
+      "field": "grow_buffer_append",
+      "name": "rage::datGrowBuffer::Append(void const*, unsigned int)",
+      "index": 1130,
+      "params": [
+        "i64",
+        "i64",
+        "i32"
+      ],
+      "results": [
+        "i32"
+      ]
+    },
+    {
+      "group": "cloud",
+      "field": "grow_buffer_file_name",
+      "name": "rage::fiDevice::MakeGrowBufferFileName(char*, int, rage::datGrowBuffer*)",
+      "index": 1605,
+      "params": [
+        "i64",
+        "i32",
+        "i64"
+      ],
+      "results": []
+    },
+    {
+      "group": "stats",
+      "field": "stat_find",
+      "name": "CStatsDataMgr::StatIterFind(StatId const&, rage::atInBinaryMap<sStatDataPtr, StatId>::Iterator&)",
+      "index": 77200,
+      "params": [
+        "i64",
+        "i64"
+      ],
+      "results": [
+        "i32"
+      ]
+    },
+    {
+      "group": "stats",
+      "field": "packed_key",
+      "name": "packed_stats::GetStatKey(StatId&, int, int)",
+      "index": 86226,
+      "params": [
+        "i64",
+        "i32",
+        "i32"
+      ],
+      "results": [
+        "i32"
+      ]
+    },
+    {
+      "group": "stats",
+      "field": "packed_get",
+      "name": "packed_stats::GetPackedValue(int&, int, int)",
+      "index": 86276,
+      "params": [
+        "i64",
+        "i32",
+        "i32"
+      ],
+      "results": [
+        "i32"
+      ]
+    },
+    {
+      "group": "stats",
+      "field": "packed_set",
+      "name": "packed_stats::SetPackedValue(int, int, int)",
+      "index": 86277,
+      "params": [
+        "i32",
+        "i32",
+        "i32"
+      ],
+      "results": []
+    },
+    {
+      "group": "stats",
+      "field": "stat_get_int",
+      "name": "stats_commands::CommandStatGetInt(int, int&, int)",
+      "index": 59629,
+      "params": [
+        "i32",
+        "i64",
+        "i32"
+      ],
+      "results": [
+        "i32"
+      ]
+    },
+    {
+      "group": "stats",
+      "field": "stat_get_float",
+      "name": "stats_commands::CommandStatGetFloat(int, float&, int)",
+      "index": 59630,
+      "params": [
+        "i32",
+        "i64",
+        "i32"
+      ],
+      "results": [
+        "i32"
+      ]
+    },
+    {
+      "group": "stats",
+      "field": "stat_get_bool",
+      "name": "stats_commands::CommandStatGetBool(int, int&, int)",
+      "index": 59631,
+      "params": [
+        "i32",
+        "i64",
+        "i32"
+      ],
+      "results": [
+        "i32"
+      ]
+    },
+    {
+      "group": "stats",
+      "field": "stat_get_masked_int",
+      "name": "stats_commands::CommandStatGetMaskedInt(int, int&, int, int, int)",
+      "index": 59635,
+      "params": [
+        "i32",
+        "i64",
+        "i32",
+        "i32",
+        "i32"
+      ],
+      "results": [
+        "i32"
+      ]
+    },
+    {
+      "group": "stats",
+      "field": "stat_set_int",
+      "name": "stats_commands::CommandStatSetInt(int, int, bool)",
+      "index": 59619,
+      "params": [
+        "i32",
+        "i32",
+        "i32"
+      ],
+      "results": [
+        "i32"
+      ]
+    },
+    {
+      "group": "stats",
+      "field": "stat_set_float",
+      "name": "stats_commands::CommandStatSetFloat(int, float, bool)",
+      "index": 59620,
+      "params": [
+        "i32",
+        "f32",
+        "i32"
+      ],
+      "results": [
+        "i32"
+      ]
+    },
+    {
+      "group": "stats",
+      "field": "stat_set_bool",
+      "name": "stats_commands::CommandStatSetBool(int, bool, bool)",
+      "index": 59621,
+      "params": [
+        "i32",
+        "i32",
+        "i32"
+      ],
+      "results": [
+        "i32"
+      ]
+    },
+    {
+      "group": "stats",
+      "field": "stat_set_masked_int",
+      "name": "stats_commands::CommandStatSetMaskedInt(int, int, int, int, bool)",
+      "index": 59626,
+      "params": [
+        "i32",
+        "i32",
+        "i32",
+        "i32",
+        "i32"
+      ],
+      "results": [
+        "i32"
+      ]
+    },
+    {
+      "group": "stats",
+      "field": "stat_delete_slot",
+      "name": "stats_commands::CommandStatDeleteSlot(int)",
+      "index": 59763,
+      "params": [
+        "i32"
+      ],
+      "results": []
+    }
+  ],
+  "runtime_enabled": false,
+  "browser_integration": "NOT_IMPLEMENTED",
+  "network_policy": "Offline inspection only. Future experimental transport: explicit local peers, no DHT or LAN sweep by default."
+}

@@ -1,0 +1,22 @@
+'use strict';
+const fs=require('node:fs'),assert=require('node:assert/strict'),path=require('node:path');
+const root=process.argv[2],aux=JSON.parse(fs.readFileSync(process.argv[3],'utf8'));
+const fix=require(path.join(root,'blip_sprites.js'));
+const memory=new WebAssembly.Memory({initial:300}),v=new DataView(memory.buffer),messages=[];
+let originalResult=0n,calls=0;
+const cb=fix.callback(memory,reference=>{assert.equal(typeof reference,'bigint');calls++;return originalResult;},m=>messages.push(m));
+const bridge=new WebAssembly.Instance(new WebAssembly.Module(Uint8Array.from(aux)),{zema:{blip_asset_name:cb}}).exports.blip_asset_name;
+const pointer=64n;
+v.setInt32(Number(pointer),739,true);v.setUint16(fix.TABLE_COUNT_ADDRESS,445,true);
+originalResult=777n;assert.equal(bridge(pointer),777n);assert.equal(messages.length,0);
+originalResult=0n;assert.equal(bridge(pointer),0n);assert.deepEqual(messages,['[blip-missing] sprite 739 table 445']);
+assert.equal(bridge(pointer),0n);assert.equal(messages.length,1);
+assert.equal(bridge(0n),0n);assert.equal(bridge(BigInt(memory.buffer.byteLength-3)),0n);assert.equal(bridge(-1n),0n);assert.equal(messages.length,1);
+v.setUint16(fix.TABLE_COUNT_ADDRESS,0,true);v.setInt32(Number(pointer),740,true);assert.equal(bridge(pointer),0n);assert.equal(messages.length,1);
+v.setUint16(fix.TABLE_COUNT_ADDRESS,445,true);assert.equal(bridge(pointer),0n);assert.equal(messages.length,2);
+for(let sprite=1000;sprite<1300;sprite++){v.setInt32(Number(pointer),sprite,true);assert.equal(bridge(pointer),0n);}
+assert.equal(messages.length,128);assert(calls>300);
+let attempts=0;const fails=fix.callback(memory,()=>0n,()=>{attempts++;throw Error('reporter offline');});
+assert.equal(fails(pointer),0n);assert.equal(fails(pointer),0n);assert.equal(attempts,1);
+const small=new WebAssembly.Memory({initial:1});assert.equal(fix.callback(small,()=>0n,()=>assert.fail('smallmemory'))(64n),0n);
+console.log('BLIP_TYPED_ORIGINAL_FIRST_BOUNDED_OBSERVATION_PASS');

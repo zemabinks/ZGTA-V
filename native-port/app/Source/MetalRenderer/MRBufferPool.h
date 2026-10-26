@@ -1,0 +1,40 @@
+#pragma once
+#include <cstddef>
+#include <cstdint>
+#include <utility>
+#include <vector>
+
+inline uint32_t PGMetalBufferBytes(uint32_t size,uint64_t deviceLimit) {
+ uint64_t rounded=(uint64_t(size)+3)&~uint64_t(3);
+ if (rounded<4) rounded=4;
+ return rounded<=deviceLimit&&rounded<=UINT32_MAX?uint32_t(rounded):0;
+}
+
+// Renderer-thread only. Completion callbacks publish a serial; they never
+// mutate this pool. Exact sizes avoid changing view lengths or binding offsets.
+template<class Resource> class PGSharedBufferPool {
+ struct Entry { Resource resource; uint64_t bytes, lastUse; };
+ std::vector<Entry> entries;
+ uint64_t held = 0;
+ const uint64_t maxBytes;
+ const size_t maxEntries;
+public:
+ uint64_t hits = 0, misses = 0;
+ explicit PGSharedBufferPool(uint64_t bytes = 32ull << 20, size_t count = 128)
+ : maxBytes(bytes), maxEntries(count) { entries.reserve(count); }
+ void retire(Resource resource, uint64_t bytes, uint64_t lastUse) {
+  if (!resource || !bytes || bytes > maxBytes || held > maxBytes - bytes || entries.size() >= maxEntries) return;
+  entries.push_back({std::move(resource), bytes, lastUse}); held += bytes;
+ }
+ Resource acquire(uint64_t bytes, uint64_t completed) {
+  for (size_t i = 0; i < entries.size(); ++i) {
+   if (entries[i].bytes != bytes || entries[i].lastUse > completed) continue;
+   Resource resource = std::move(entries[i].resource); held -= bytes;
+   if (i + 1 != entries.size()) entries[i] = std::move(entries.back());
+   entries.pop_back(); ++hits; return resource;
+  }
+  ++misses; return {};
+ }
+ uint64_t bytes() const { return held; }
+ size_t count() const { return entries.size(); }
+};

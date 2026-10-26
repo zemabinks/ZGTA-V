@@ -1,0 +1,10 @@
+'use strict';
+const assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs'),S=require('../launch-settings.js'),F=require('../browser-features.js'),T=require('../browser-trainer.js'),P=require('../browser-performance.js');
+async function scenario({mode='sandbox',lock=true,gpu=true,adapter=true,lan=false,supported=true}={}){
+ const events={},nodes=[];let admit,ready=false,admitted;const c={location:{search:'?fps=30&preset=performance&cores=2',pathname:'/play/'+mode},innerWidth:1920,innerHeight:1080,ZemaBrowserPerformance:{...P,engineSupport:()=>({memory64:supported,typedFunctions:supported})},ZemaLaunchSettings:S,ZemaBrowserFeatures:F,ZemaTrainer:T,crossOriginIsolated:true,navigator:{gpu:gpu?{requestAdapter:async()=>adapter?{}:null}:null,locks:{request:async(name,opts,f)=>f(lock?{}:null)}},addEventListener:(k,f)=>(events[k]??=[]).push(f),document:{createElement:tag=>({tag,style:{},append(...n){nodes.push(...n)}}),body:{append(...n){nodes.push(...n)}},getElementById:()=>({style:{cssText:''}})}};c.window=c;c.ZemaLanReady=new Promise(r=>admit=r);
+ vm.runInNewContext(fs.readFileSync(process.argv[2],'utf8'),c);assert.equal(c.ZemaRuntime.query.get('cores'),'4');c.ZemaRuntimeAdmission.then(value=>admitted=value);c.ZemaRuntimeReady.then(()=>ready=true);assert(!ready);for(const f of events.DOMContentLoaded)f();await new Promise(r=>setImmediate(r));assert.equal(ready,lock&&gpu&&adapter&&supported&&mode!=='lan');assert.equal(admitted,lock&&gpu&&adapter&&supported);
+ if(mode==='lan'&&lock&&gpu&&adapter&&supported){admit({});await new Promise(r=>setImmediate(r));assert(ready);}
+ for(const f of events.pagehide||[])f();assert(!F.read(c.ZemaRuntime.features.pad).active);
+ return nodes;
+}
+(async()=>{await scenario();await scenario({mode:'story'});await scenario({mode:'lan'});for(const settings of [{lock:false},{gpu:false},{adapter:false},{supported:false}])assert((await scenario(settings)).length);console.log('RUNTIME_GPU_LEASE_AND_LAN_ADMISSION_GATE_PASS');})().catch(e=>{console.error(e);process.exit(1);});

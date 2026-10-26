@@ -1,0 +1,12 @@
+(module
+  (import "env" "memory" (memory i64 1 3 shared))
+  (func (export "wait32") (param i64 i32 i64) (result i32)
+    local.get 0 local.get 1 local.get 2 memory.atomic.wait32)
+  (func (export "wait64") (param i64 i64 i64) (result i32)
+    local.get 0 local.get 1 local.get 2 memory.atomic.wait64)
+  (func (export "notify") (param i64 i32) (result i32)
+    local.get 0 local.get 1 memory.atomic.notify)
+  (func (export "writeVector") (param i64 i32)
+    local.get 0 local.get 1 i32x4.splat v128.store)
+  (func (export "readVector") (param i64) (result i32)
+    local.get 0 v128.load i32x4.extract_lane 2))

@@ -1,0 +1,41 @@
+<!doctype html><meta charset="utf-8"><title>Disposable profile audit</title>
+<script src="/online.js"></script><script src="/profile-rpc.js"></script><script src="/browser-saves.js"></script>
+<script>
+'use strict';
+const phase=new URLSearchParams(location.search).get('phase'),owners=[];
+const request=(worker,message)=>new Promise((resolve,reject)=>{
+ const timer=setTimeout(()=>reject(Error('Fixture worker timeout')),30000);
+ worker.onmessage=event=>{clearTimeout(timer);const m=event.data;if(m.ok===false||m.type==='error')reject(Error(m.error||m.message));else resolve(m);};worker.onerror=event=>{clearTimeout(timer);reject(Error(event.message));};worker.postMessage(message);
+});
+async function owner(name){const worker=new Worker('/profile-worker.js');owners.push(worker);const reply=await request(worker,{buffer:new SharedArrayBuffer(ZemaProfileRPC.SIZE),name});return {worker,context:reply.context};}
+async function operation(context,action,extra={}){const worker=new Worker('/tests/chrome_profile_worker.js');try{return await request(worker,{context,action,...extra});}finally{worker.terminate();}}
+async function current(){const store=await ZemaProfileRPC.IndexedStore.open();try{return await store.load();}finally{store.db.close();}}
+async function digest(bytes){return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),x=>x.toString(16).padStart(2,'0')).join('');}
+(async()=>{
+ if(!crossOriginIsolated)throw Error('Fixture not isolated');let result;
+ if(phase==='seed'){
+  const first=await owner('MacAudit'),stale=await owner('Ignored');
+  await Promise.all([1,2,3,4].map(slot=>operation(first.context,'write',{slot})));
+  await operation(first.context,'fallback');
+  const deadline=Date.now()+5000;let automatic=false;
+  while(Date.now()<deadline){if(ZemaOnline.Profile.decode(await current()).stat('h12345678')===98765n){automatic=true;break;}await new Promise(resolve=>setTimeout(resolve,25));}
+  if(!automatic)throw Error('Fallback stats were not checkpointed');
+  const saved=await operation(first.context,'inspect');if(saved.stat!=='3007'||saved.file.join(',')!=='0,255,3,128'||saved.mask!==30)throw Error('Shared workers disagreed');
+  const before=await current();await operation(stale.context,'stale');const after=await current();if(await digest(before)!==await digest(after))throw Error('Conflict changed disk');
+  const store=await ZemaProfileRPC.IndexedStore.open();const backup=await new Promise((resolve,reject)=>{const r=store.db.transaction('profiles','readonly').objectStore('profiles').get('previous');r.onsuccess=()=>resolve(r.result);r.onerror=reject;});store.db.close();if(!backup)throw Error('Missing previous snapshot');ZemaOnline.Profile.decode(backup);
+  for(const worker of owners)worker.terminate();
+  const info=await ZemaBrowserSaves.lanInfo(),exported=await ZemaBrowserSaves.lanBytes();if(info.name!=='MacAudit'||info.files.length!==4||info.stats!==257||await digest(exported)!==saved.sha256)throw Error('LAN inspection or native-format export mismatch');
+  let refused=false;await navigator.locks.request('zema-browser-game-v1',async()=>{try{await ZemaBrowserSaves.restoreLan(exported);}catch{refused=true;}});if(!refused)throw Error('Active-game restore allowed');
+  const damaged=exported.slice();damaged[damaged.length-1]^=1;refused=false;try{await ZemaBrowserSaves.restoreLan(damaged);}catch{refused=true;}if(!refused||await digest(await current())!==saved.sha256)throw Error('Bad import changed profile');
+  const changed=ZemaOnline.Profile.decode(exported);changed.setStat('h12345678',111n);await ZemaBrowserSaves.restoreLan(changed.encode());if(await digest(await ZemaBrowserSaves.lanBytes(true))!==saved.sha256)throw Error('Restore lost previous snapshot');await ZemaBrowserSaves.restoreLan(exported);
+  result={...saved,automatic_checkpoint:true,stale_owner_refused:true,valid_previous:true,native_format_export_restore:true,active_game_restore_refused:true,corrupt_import_preserved_current:true};
+ }else if(phase==='resume'){
+  const first=await owner('DifferentName');result=await operation(first.context,'inspect');if(result.name!=='MacAudit'||result.stat!=='3007'||result.fallback!=='98765'||result.file.join(',')!=='0,255,3,128')throw Error('Restart lost profile data');
+ }else if(phase==='corrupt'){
+  const good=await current(),bad=good.slice();bad[bad.length-1]^=1;const store=await ZemaProfileRPC.IndexedStore.open();
+  await new Promise((resolve,reject)=>{const t=store.db.transaction('profiles','readwrite',{durability:'strict'});t.objectStore('profiles').put(bad,'current');t.oncomplete=resolve;t.onabort=reject;});store.db.close();
+  let refused=false;try{await owner('MacAudit');}catch{refused=true;}if(!refused)throw Error('Corrupt current accepted');refused=false;try{await ZemaBrowserSaves.restoreLan(good);}catch{refused=true;}if(!refused)throw Error('Corrupt current overwritten by restore');if(await digest(await current())!==await digest(bad))throw Error('Corrupt current was replaced');result={corruption_refused:true,corrupt_current_preserved:true};
+ }else throw Error('Unknown phase');
+ for(const worker of owners)worker.terminate();await fetch('/result',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ok:true,phase,...result,user_agent:navigator.userAgent})});document.body.textContent='PASS '+phase;
+})().catch(async error=>{for(const worker of owners)worker.terminate();document.body.textContent=String(error.stack||error);await fetch('/result',{method:'POST',body:JSON.stringify({ok:false,phase,error:String(error.stack||error)})});});
+</script>

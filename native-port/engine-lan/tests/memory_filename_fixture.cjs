@@ -1,0 +1,32 @@
+/* Typed synthetic WASM call only; no GTA instance or production memory. */
+'use strict';
+const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
+// Match Chromium's stricter Web Encoding binding, which Node does not enforce.
+const NativeEncoder=TextEncoder;global.TextEncoder=class extends NativeEncoder{encodeInto(text,destination){assert(!(destination.buffer instanceof SharedArrayBuffer),'encodeInto must never receive shared memory');return super.encodeInto(text,destination);}};
+const root=process.argv[2],aux=JSON.parse(fs.readFileSync(process.argv[3],'utf8'));
+const helper=require(path.join(root,'memory_filename.js'));
+const memory=new WebAssembly.Memory({initial:1,maximum:2,shared:true});
+const bytes=new Uint8Array(memory.buffer),encoder=new TextEncoder(),decoder=new TextDecoder();
+const callback=helper.create(memory);
+const typed=new WebAssembly.Instance(new WebAssembly.Module(Uint8Array.from(aux)),{zema:{memory_file_name:callback}}).exports.memory_file_name;
+const string=(p)=>decoder.decode(bytes.subarray(p,bytes.indexOf(0,p)));
+bytes.set(encoder.encode('headblend texture\0'),256);
+typed(1024n,256,0x123456789abcdef0n,0x1ffffffffn,0x101,256n);
+assert.equal(string(1024),'memory:$123456789abcdef0,-1,1:headblend texture');
+assert(!string(1024).includes('0x'));
+bytes.fill(0x5a,1000,1024);bytes.fill(0x5a,1280,1300);
+typed(1024n,8,0x1234n,42n,0,0n);assert.equal(string(1024),'memory:');
+assert(bytes.subarray(1000,1024).every(b=>b===0x5a));assert(bytes.subarray(1280,1300).every(b=>b===0x5a));
+typed(65535n,1,0n,0n,0,0n);assert.equal(bytes[65535],0);
+const old=bytes.slice();typed(99999999999999999n,0,0n,0n,0,99999999n);assert.deepEqual(bytes,old);
+assert.throws(()=>typed(1024n,100000,0n,0n,0,0n),/capacity/);
+assert.throws(()=>typed(0n,64,0n,0n,0,0n),/null output/);
+assert.throws(()=>typed(65530n,20,0n,0n,0,0n),/range/);
+bytes.fill(65,3000,7096);const before=bytes.slice(1024,1280);
+assert.throws(()=>typed(1024n,256,0n,0n,0,3000n),/unterminated/);assert.deepEqual(bytes.slice(1024,1280),before);
+bytes.set(encoder.encode('é🟢\0'),256);
+typed(1024n,21,0n,0n,0,256n);assert.equal(string(1024),'memory:$0,0,0:é🟢');
+typed(1024n,18,0n,0n,0,256n);assert.equal(string(1024),'memory:$0,0,0:é');
+memory.grow(1);typed(70000n,64,0n,4294967295n,255,0n);
+const grown=new Uint8Array(memory.buffer);assert.equal(decoder.decode(grown.subarray(70000,grown.indexOf(0,70000))),'memory:$0,-1,255:');
+console.log(JSON.stringify({result:'MEMORY_FILENAME_TYPED_ADDRESS_AND_BOUNDS_PASS',checks:12,gtaInstantiated:false,graphicsVerified:false}));

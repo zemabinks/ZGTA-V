@@ -1,0 +1,51 @@
+{
+  "engine_sha256": "11ca8d2c04c5e843d18ff4aea4899d72c86973c6b031df334e67c446b2ae83e0",
+  "upstream_revision": "ed3d31bf3c84eddbc6fab39227490db6f0b097de",
+  "hooks": [
+    {
+      "field": "allocate",
+      "name": "rage::sysMemGrowBuddyAllocator::TryAllocate(unsigned long, unsigned long, int)",
+      "index": 3038,
+      "params": [
+        "i64",
+        "i64",
+        "i64",
+        "i32"
+      ],
+      "results": [
+        "i64"
+      ],
+      "body_sha256": "b27cd1023ff1d4c1087b7894f1c9bab1570fd097b56a98aeae092a175b9c2a6d",
+      "generated_sha256": "631cea0f3a93d9fed61e81a3ab4f6505aedad93844118afda41dc5798b3a676e",
+      "group": "native_resource_memory"
+    },
+    {
+      "field": "free",
+      "name": "rage::sysMemGrowBuddyAllocator::Free(void const*)",
+      "index": 3039,
+      "params": [
+        "i64",
+        "i64"
+      ],
+      "results": [],
+      "body_sha256": "ad8f9f45bc2c7575100e52088313d1ce7a46a147604c39da82ed0817a8c77d5d",
+      "generated_sha256": "ab426d284141264f7a13ad3f6d073d011c4a48f7eb13dd7098ec80684bb4f0ff",
+      "group": "native_resource_memory"
+    },
+    {
+      "field": "block_size",
+      "name": "rage::sysMemGrowBuddyAllocator::GetSize(void const*) const",
+      "index": 3046,
+      "params": [
+        "i64",
+        "i64"
+      ],
+      "results": [
+        "i64"
+      ],
+      "body_sha256": "a27d693155caaf735c20b375f2e524629a3d53591411624ff5b4143f72d20df4",
+      "generated_sha256": "ae87b9dcce46cd77bcd1a7a7df4d9b83e9e0d77433d17dbc778544183275306e",
+      "group": "native_resource_memory"
+    }
+  ]
+}

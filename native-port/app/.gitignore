@@ -1,0 +1,7 @@
+Tools/
+Generated/
+Build/
+*.xcuserstate
+xcuserdata/
+GeneratedResources/
+__pycache__/

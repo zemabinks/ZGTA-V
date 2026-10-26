@@ -1,0 +1,3 @@
+# Release workflow
+
+Build and test locally; no paid hosted runners. Freeze the source first. Every installer/package has a SHA-256 checksum and source/build manifest. Compare remote asset bytes and sizes after upload. Keep the README download link, guide, platform matrix and release notes consistent. Preserve game files, saves, original installers and previous private history. Mark untested device behavior as beta/alpha; never infer reboot persistence from an install or launcher check. The native release currently reuses validated generated inputs; fresh-machine native reproducibility remains unverified.

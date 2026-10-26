@@ -1,0 +1,122 @@
+name: PlayGTA5Native
+options:
+  deploymentTarget:
+    iOS: "15.0"
+settings:
+  base:
+    # Your Apple team only matters for signing on a Mac (scripts/build_ipa.sh
+    # builds an unsigned IPA that AltStore/SideStore signs with your Apple ID).
+    DEVELOPMENT_TEAM: ""
+    SWIFT_VERSION: "5.0"
+    CODE_SIGN_STYLE: Automatic
+    GCC_C_LANGUAGE_STANDARD: c11
+    CLANG_CXX_LANGUAGE_STANDARD: c++20
+    CLANG_ENABLE_OBJC_ARC: YES
+    OTHER_CPLUSPLUSFLAGS: []
+    GCC_OPTIMIZATION_LEVEL: "0"
+    GCC_PREPROCESSOR_DEFINITIONS:
+      - $(inherited)
+      - WASM_RT_USE_MMAP=0
+      - WASM_RT_MEMCHECK_BOUNDS_CHECK=1
+      - PG_UNCHECKED_MEMORY=1
+      - WASM_RT_SKIP_SIGNAL_RECOVERY=1
+      - WASM_RT_MAX_CALL_STACK_DEPTH=10000
+    HEADER_SEARCH_PATHS:
+      - $(SRCROOT)/Source
+      - $(SRCROOT)/Generated
+      - $(SRCROOT)/Tools/wabt-1.0.42/include
+      - $(SRCROOT)/Tools/wabt-1.0.42/share/wabt/wasm2c
+      - $(SRCROOT)/Tools/simde
+      - $(SRCROOT)/App/GameInstaller
+      - $(SRCROOT)/Vendor/libarchive.xcframework/ios-arm64/Headers
+    LIBRARY_SEARCH_PATHS:
+      - $(inherited)
+      - $(SRCROOT)/Build/Online
+    OTHER_CFLAGS:
+      - $(inherited)
+      - -include
+      - $(SRCROOT)/Source/NativeRuntime.h
+      - -fno-optimize-sibling-calls
+      - -frounding-math
+    SWIFT_OBJC_BRIDGING_HEADER: $(SRCROOT)/Source/Native-Bridging-Header.h
+    ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+targets:
+  PlayGTA5Native:
+    type: application
+    platform: iOS
+    sources:
+      - path: App
+        excludes:
+          - Info.plist
+      - Source
+      - path: Generated
+        compilerFlags: -w
+        excludes:
+          - "*.h"
+          - "*.wasm"
+          - "*.json"
+      - path: Tools/wabt-1.0.42/share/wabt/wasm2c/wasm-rt-impl.c
+      - path: Tools/wabt-1.0.42/share/wabt/wasm2c/wasm-rt-mem-impl.c
+      - path: Tools/wabt-1.0.42/share/wabt/wasm2c/wasm-rt-exceptions-impl.c
+      - path: Resources
+        buildPhase: resources
+      - path: GeneratedResources
+        buildPhase: resources
+        optional: true
+    dependencies:
+      - sdk: QuartzCore.framework
+      - sdk: Metal.framework
+      - sdk: IOSurface.framework
+      - sdk: UIKit.framework
+      - sdk: MetalKit.framework
+      - sdk: GameController.framework
+      - sdk: AVFAudio.framework
+      # Unpacking game archives on the device (libarchive, BSD license: Vendor/LICENSE-libarchive.txt).
+      - framework: Vendor/libarchive.xcframework
+        embed: false
+      - sdk: libz.tbd
+      - sdk: libbz2.tbd
+      - framework: Build/Online/libmugoat_online.a
+        embed: false
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: vn.iosvn.mugoat
+        PRODUCT_NAME: PlayGTA5Native
+        TARGETED_DEVICE_FAMILY: "1,2"
+        # Paid Apple developer accounts can use App/Full.entitlements (more
+        # memory); free Apple IDs cannot, so the default asks for nothing.
+        CODE_SIGN_ENTITLEMENTS: App/Free.entitlements
+    info:
+      path: App/Info.plist
+      properties:
+        CFBundleDisplayName: ZGTA V
+        CFBundleShortVersionString: "2.0"
+        # Your game-file server may be a plain-http address on your tailnet.
+        NSAppTransportSecurity:
+          NSAllowsArbitraryLoads: true
+        # Filled in by the cloud build so you don't have to type it.
+        PGDefaultAssetServer: ""
+        NSLocalNetworkUsageDescription: "Connect to your Mac multiplayer server and optional game-file server on the same local network."
+        NSMicrophoneUsageDescription: "ZGTA V uses the microphone for optional in-game voice chat (Speaker & Mic)."
+        # The app folder (logs) is visible in the Files app.
+        UIFileSharingEnabled: true
+        LSSupportsOpeningDocumentsInPlace: true
+        CFBundleVersion: "20"
+        UILaunchScreen: {}
+        UIRequiresFullScreen: true
+        # Lets the game present above 60 FPS on ProMotion iPhones when the frame rate is unlocked.
+        CADisableMinimumFrameDurationOnPhone: true
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        GCSupportsControllerUserInteraction: true
+        # A game: iOS turns on Game Mode while it plays (more CPU/GPU priority, lower controller latency).
+        LSApplicationCategoryType: public.app-category.action-games
+        GCSupportsGameMode: true
+        GCSupportedGameControllers:
+          - ProfileName: ExtendedGamepad
+schemes:
+  PlayGTA5Native:
+    build:
+      targets:
+        PlayGTA5Native: all

@@ -1,0 +1,255 @@
+{
+  "format": "zgta-engine-safety-pins-v1",
+  "engine_sha256": "11ca8d2c04c5e843d18ff4aea4899d72c86973c6b031df334e67c446b2ae83e0",
+  "upstream_native": "8e2e46281159d09005fea4748b5b9926e919fc0a",
+  "upstream_glue5": "3c422f43560ad6e2abfe5d2ef07ab83d5d3729c6",
+  "functions": [
+    {
+      "name": "rage::sysDependencyScheduler::DependencyWorkerThread(void*)",
+      "index": 2861,
+      "params": [
+        "i64"
+      ],
+      "results": [],
+      "wasm_body_sha256": "4c793fcd86b3ccb062c4726bd2b2c466d678a336be0dfa92d8bdbdd29b22f20b",
+      "bytes": 708,
+      "c_part": "game_14.c",
+      "c_body_sha256": "5ca784258fe42c7f6e28f77d0f90b32bfba70b2bd0c2e9faf7b7651ad648bfa9",
+      "c_length": 13204,
+      "lan_body_sha256": "440a7da0d9139cf37fd382ff8b205d8c13dc7b3fe4dc22fd0dd0fd3d7248d452"
+    },
+    {
+      "name": "rage::fwRenderListBuilder::AddToDrawListEntityListCore(int, int, int, int, int, rage::fwRenderListBuilder::AddEntityFlags const&, unsigned int)",
+      "index": 5273,
+      "params": [
+        "i32",
+        "i32",
+        "i32",
+        "i32",
+        "i32",
+        "i64",
+        "i32"
+      ],
+      "results": [
+        "i32"
+      ],
+      "wasm_body_sha256": "6e1e354f71059a2068701be5d9e4083598d1085cc32e447a2b6182a6fcbf5759",
+      "bytes": 1023,
+      "c_part": "game_33.c",
+      "c_body_sha256": "3e5246289502d27d756f668ce2f70682acebc3c245467c51baf56c37431c163e",
+      "c_length": 19471,
+      "lan_body_sha256": "677c2f864bf9d02644700239f13ea3b08db5c094a25dad1879513532ba8bd6a9"
+    },
+    {
+      "name": "rage::fwRenderThreadInterface::Flush(bool)",
+      "index": 5315,
+      "params": [
+        "i32"
+      ],
+      "results": [],
+      "wasm_body_sha256": "a3439c9c519ec73fceecbebca57ebee6fc79a95e867dce6600dd9dfa15f0baa4",
+      "bytes": 1955,
+      "c_part": "game_33.c",
+      "c_body_sha256": "e3ba9b1ade44f8af61e696b607442f1e5791ce325f28593835d0879ab3ef9c40",
+      "c_length": 34233,
+      "lan_body_sha256": "6a937fb95eaec28388a15fbe37f3db2780083ad3bbaaba9a0230921a47df0185"
+    },
+    {
+      "name": "rage::fwRenderThreadInterface::FlushAndDeviceCheck()",
+      "index": 5316,
+      "params": [],
+      "results": [],
+      "wasm_body_sha256": "4bfe8e507b1a5b9a6b5f7a8054802356cbc9cd759627dbc05a92674dde9521ca",
+      "bytes": 56,
+      "c_part": "game_33.c",
+      "c_body_sha256": "7acc867f006fc708943facf6ee1ecbf24bce86faecc81968db16b034c467c72d",
+      "c_length": 1061,
+      "lan_body_sha256": "7724366f91a2f13b514301c4aed95b1a68d9abd79df5ddbd274240201d66d510"
+    },
+    {
+      "name": "rage::grcDevice::LockContext()",
+      "index": 9997,
+      "params": [],
+      "results": [],
+      "wasm_body_sha256": "b67f77061682adb9658f55747ccbd359d0781c6ed9d37b9c6d90a5fba5b2e15c",
+      "bytes": 71,
+      "c_part": "game_63.c",
+      "c_body_sha256": "353fb45148e91986cea3b50d30bebe426ca43275bacbd08eb59b18c23e084ba8",
+      "c_length": 1564,
+      "lan_body_sha256": "b67f77061682adb9658f55747ccbd359d0781c6ed9d37b9c6d90a5fba5b2e15c"
+    },
+    {
+      "name": "rage::grcDevice::LockDeviceResetAvailability()",
+      "index": 10000,
+      "params": [],
+      "results": [],
+      "wasm_body_sha256": "9fd7c400d36ebfd9191f9e03193fb028e20aa0c8a990023ef8cc408885482ce4",
+      "bytes": 38,
+      "c_part": "game_0.c",
+      "c_body_sha256": "af2fad02b81045b0a75676598a5075bba462a0cdbc59b100fe5cb8d9d0467b9b",
+      "c_length": 823,
+      "lan_body_sha256": "9fd7c400d36ebfd9191f9e03193fb028e20aa0c8a990023ef8cc408885482ce4"
+    },
+    {
+      "name": "rage::grcDevice::CheckDeviceStatus()",
+      "index": 10019,
+      "params": [],
+      "results": [
+        "i32"
+      ],
+      "wasm_body_sha256": "fb0684ece2b0bc42dd977fec8584d8992ce3471e014c7aef9b303f22ef9ed6a3",
+      "bytes": 705,
+      "c_part": "game_0.c",
+      "c_body_sha256": "a27c1e7b5fba37d0fd4c84640e996e188bda24a374a93bdd41587e48682b49d8",
+      "c_length": 11556,
+      "lan_body_sha256": "b4f188cff45fa73685959b10bab1f7758b3964fb7626cadee09e952c489154a8"
+    },
+    {
+      "name": "CApp::UpdateState(int, int, rage::fwFsm::Event)",
+      "index": 29099,
+      "params": [
+        "i64",
+        "i32",
+        "i32",
+        "i32"
+      ],
+      "results": [
+        "i32"
+      ],
+      "wasm_body_sha256": "9af97eff27415b537df118acee22f9aac2e38f0afd140fb4859d2a1df38c1883",
+      "bytes": 540779,
+      "c_part": "game_14.c",
+      "c_body_sha256": "0c5d38b7fedc1fa329bde4d160cd00c8bdf89783b1113af2ec7adc09f419ed02",
+      "c_length": 8221404,
+      "lan_body_sha256": "b7cc73207a4203309f527cd3b35255bef56066e37b51ff13742b73ca0640e2eb"
+    },
+    {
+      "name": "CEntityDrawHandler::ShouldSkipEntity(CEntity const*)",
+      "index": 44489,
+      "params": [
+        "i64"
+      ],
+      "results": [
+        "i32"
+      ],
+      "wasm_body_sha256": "d8767464092c2fbc5a8f3467d1f73219a626a2695965ecad3eb80a62e6cbda4f",
+      "bytes": 534,
+      "c_part": "game_26.c",
+      "c_body_sha256": "c02cf4ef0dbe019e0c6296d4f4d3187c662dd52020cd350e9127ff721b3f9a08",
+      "c_length": 7501,
+      "lan_body_sha256": "d8767464092c2fbc5a8f3467d1f73219a626a2695965ecad3eb80a62e6cbda4f"
+    },
+    {
+      "name": "CGameScan::KickVisibilityJobs()",
+      "index": 47953,
+      "params": [],
+      "results": [],
+      "wasm_body_sha256": "e4dc733eda558bf7417f615f18e5c3967c7edf70c9ca1ca70af2517f30078f85",
+      "bytes": 13723,
+      "c_part": "game_29.c",
+      "c_body_sha256": "2b49a01de24085703fe4f1c09a317173fa4c78db1a0dfc6aaa8bb910104e0e5c",
+      "c_length": 231013,
+      "lan_body_sha256": "ad03b233204d4919496e05814c31be1120b163a97f2bb657c20e5375440f7636"
+    },
+    {
+      "name": "CSystem::EndRender()",
+      "index": 65693,
+      "params": [],
+      "results": [],
+      "wasm_body_sha256": "ed23998736b1d584f091ad24020f5879ef77013a3b055e5e061601a10994ff78",
+      "bytes": 3720,
+      "c_part": "game_43.c",
+      "c_body_sha256": "4cfd6bd72078d18e23a70aa8ca7722ee706eab5bc4458abac8d019e561a2a0ee",
+      "c_length": 62314,
+      "lan_body_sha256": "8020c6e985c087201699d728677b57e8f8a1df93be7bb30fc20aa075f29a2e71"
+    },
+    {
+      "name": "rage::audEngine::ThreadEntryProc(void*)",
+      "index": 6968,
+      "params": [
+        "i64"
+      ],
+      "results": [],
+      "wasm_body_sha256": "0332194da6538a9a645647d2724adbc3631030ec863d4beedd128e3dcb8d69b3",
+      "bytes": 24983,
+      "c_part": "game_46.c",
+      "c_body_sha256": "274602727f134170e110d9f76ff5c74579dc68893a4db7ef9f0b02fb9cc3f34b",
+      "c_length": 497379,
+      "lan_body_sha256": "74450fc7771c043a270c5108edeea93c1c901d30a9eb044bd2d6f47ade1dc383"
+    },
+    {
+      "name": "rage::grcSetup::EndDraw()",
+      "index": 9695,
+      "params": [
+        "i64"
+      ],
+      "results": [],
+      "wasm_body_sha256": "c8043bfcbfae040d5863ee78bbbcf4289393fc87d5d3b7840b1fe8cb47ea5797",
+      "bytes": 40493,
+      "c_part": "game_63.c",
+      "c_body_sha256": "3b9e9361b82bdfca87a8ca71524e113399a6d6dc3f27f6d753193e1d061e283c",
+      "c_length": 829433,
+      "lan_body_sha256": "a2aff4d4f3aa65c71acb60c9a7890f9319c956387e7b844af42f8d6bca710339"
+    },
+    {
+      "name": "rage::sysIpcPollEvent(rage::sysIpcEventTag*)",
+      "index": 126,
+      "params": [
+        "i64"
+      ],
+      "results": [
+        "i32"
+      ],
+      "wasm_body_sha256": "30989f512fb107bd196a05208175b6e718bb4201ddbcf498dbec2d262e53c0f3",
+      "bytes": 13,
+      "c_part": "game_2.c",
+      "c_body_sha256": "bbf43cfc85d6bccceded39ecbc30167ed88db5be73efb17b8414c457b89ac50f",
+      "c_length": 523,
+      "lan_body_sha256": "30989f512fb107bd196a05208175b6e718bb4201ddbcf498dbec2d262e53c0f3"
+    },
+    {
+      "name": "rage::sysIpcSetEvent(rage::sysIpcEventTag*)",
+      "index": 127,
+      "params": [
+        "i64"
+      ],
+      "results": [],
+      "wasm_body_sha256": "2ef94b9947ec6b9573d56497eb993dfa57f46b221e970eb1d7b3999e230b99d9",
+      "bytes": 27,
+      "c_part": "game_2.c",
+      "c_body_sha256": "625596daaf6ef6c431b04ea0535e380d39f45e50c0fdd04f8cd4dc117fe1fa16",
+      "c_length": 724,
+      "lan_body_sha256": "2ef94b9947ec6b9573d56497eb993dfa57f46b221e970eb1d7b3999e230b99d9"
+    },
+    {
+      "name": "CViewportManager::BuildRenderLists()",
+      "index": 28266,
+      "params": [],
+      "results": [],
+      "wasm_body_sha256": "1737fcc3d4e62377b2a62207d55b265e6a61e96bddc9f7291de53f5b5bd3f745",
+      "bytes": 114083,
+      "c_part": "game_14.c",
+      "c_body_sha256": "9f37f6b81217489614b431512c80e2f19ce7b55e3ff52f36f280a85c6282f039",
+      "c_length": 2058266,
+      "lan_body_sha256": "bf8e9077eaae6889437022899960c5eef98aa6bf5c2ce5092ff4459a40895240"
+    }
+  ],
+  "browser_inputs": {
+    "game.features.offline.wasm": "27b4c33ad62ef12e2c18bb33c081c28511c64c5d7911771565b4d3f92875a0af",
+    "game.engine-lan.wasm": "b3f22e87030b882ff8131140c21e83c4275322aaaccff46ce529562579c66919"
+  },
+  "lan_job_resolution": {
+    "89428": 89428,
+    "89429": 89438,
+    "89430": 89439,
+    "89431": 89431
+  },
+  "visibility_scan": {
+    "event_pointer": 11497192,
+    "poll": 126,
+    "signal": 127,
+    "caller": 28266,
+    "maximum_wait_ns": 1000000,
+    "scope": "only BuildRenderLists scan call; original poll function and all other event callers remain unchanged"
+  }
+}

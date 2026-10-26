@@ -1,0 +1,13 @@
+{
+  "version": "1791169379-5814",
+  "manifest_sha256": "c5d7b041dbcde22e54f97dc271a52690ea6101391bfda3fb9ecd13d8ef748c1a",
+  "trace_sha256": "9e52c0fa0a6354c5d827ecad0f1c86aa4e0b4a5d32978200c619599a025a0a13",
+  "reads": 18021,
+  "files": 2921,
+  "ranges": 3891,
+  "bytes": 3751208257,
+  "additional_neighborhood_bytes": 222689280,
+  "world_metadata_bytes": 562398631,
+  "common_travel_bytes": 2265425920,
+  "recording": "native game startup and controller movement; demand reads plus engine prefetch hints"
+}

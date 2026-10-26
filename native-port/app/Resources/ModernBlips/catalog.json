@@ -1,0 +1,182 @@
+{
+  "reference": "https://docs.fivem.net/docs/game-references/blips/",
+  "reference_sha256": "7dacc1e57643f844b49fe4d3279f3233f9831b834848b2a91100aed9feb00a97",
+  "icons": [
+    {
+      "id": 428,
+      "name": "radar_mp_heist",
+      "file": "radar_mp_heist.png",
+      "url": "https://docs-backend.fivem.net/blips/radar_mp_heist.png",
+      "bytes": 762,
+      "sha256": "d35c881a321279e7bf1dd4cef86ee24a1e55533bfeb12bc72f1143b1a3484951"
+    },
+    {
+      "id": 430,
+      "name": "radar_temp_2",
+      "file": "radar_temp_2.png",
+      "url": "https://docs-backend.fivem.net/blips/radar_temp_2.png",
+      "bytes": 1967,
+      "sha256": "429facba9a9bdd950a3b918eff41ff0acac57894f4d312ad000f95e8b3f911d3"
+    },
+    {
+      "id": 445,
+      "name": "radar_mp_lamar",
+      "file": "radar_mp_lamar.png",
+      "url": "https://docs-backend.fivem.net/blips/radar_mp_lamar.png",
+      "bytes": 1335,
+      "sha256": "9f24db319a01a1f54d8d84eff92888dac122ac350de46db131613fbaf4df2fcb"
+    },
+    {
+      "id": 671,
+      "name": "radar_comic_store",
+      "file": "radar_comic_store.png",
+      "url": "https://docs-backend.fivem.net/blips/radar_comic_store.png",
+      "bytes": 1575,
+      "sha256": "b6170da655641a47e470725bb8b585037c3d25444d043cb912c6707d8ab8195a"
+    },
+    {
+      "id": 673,
+      "name": "radar_rc_time_trials",
+      "file": "radar_rc_time_trials.png",
+      "url": "https://docs-backend.fivem.net/blips/radar_rc_time_trials.png",
+      "bytes": 1624,
+      "sha256": "95b8f2c2d6d74b6328e0a1e64e6992cd3eef20dc4e1058251f484fee22be7674"
+    },
+    {
+      "id": 679,
+      "name": "radar_casino",
+      "file": "radar_casino.png",
+      "url": "https://docs-backend.fivem.net/blips/radar_casino.png",
+      "bytes": 1072,
+      "sha256": "9deb4e54c162da871eb5e6156893c2d7716b2b321755d39382d037bcdcb9d459"
+    },
+    {
+      "id": 739,
+      "name": "radar_ron",
+      "file": "radar_ron.png",
+      "url": "https://docs-backend.fivem.net/blips/radar_ron.png",
+      "bytes": 1213,
+      "sha256": "5b9f951e84e2a67efa274cf999e8dd2cead4c5126e68d67946f1f84c348e1ffe"
+    },
+    {
+      "id": 765,
+      "name": "radar_island_heist_prep",
+      "file": "radar_island_heist_prep.png",
+      "url": "https://docs-backend.fivem.net/blips/radar_island_heist_prep.png",
+      "bytes": 1413,
+      "sha256": "d3b25a21df69b8aaa749a525987888b37190eadf11b7f619cc45ca2058648f07"
+    },
+    {
+      "id": 777,
+      "name": "radar_car_meet",
+      "file": "radar_car_meet.png",
+      "url": "https://docs-backend.fivem.net/blips/radar_car_meet.png",
+      "bytes": 1719,
+      "sha256": "9c0a298e62c803c130d63cbe7269d13b8b4da03e6c6a2daca271a9054daef725"
+    },
+    {
+      "id": 788,
+      "name": "radar_securoserv",
+      "file": "radar_securoserv.png",
+      "url": "https://docs-backend.fivem.net/blips/radar_securoserv.png",
+      "bytes": 1291,
+      "sha256": "81d06650421c901124d9f77c7bd6a79ee6275b5457696bd16ae104f54119632f"
+    },
+    {
+      "id": 789,
+      "name": "radar_bounty_collectibles",
+      "file": "radar_bounty_collectibles.png",
+      "url": "https://docs-backend.fivem.net/blips/radar_bounty_collectibles.png",
+      "bytes": 1467,
+      "sha256": "be844341108613a87965ca75705468c5057e8e404d43bd3e52dce6a76b0873cd"
+    },
+    {
+      "id": 790,
+      "name": "radar_movie_collectibles",
+      "file": "radar_movie_collectibles.png",
+      "url": "https://docs-backend.fivem.net/blips/radar_movie_collectibles.png",
+      "bytes": 1042,
+      "sha256": "7a81a7bd7ee2bd0e4b73b47fe0f81e642e1c3c2a016b447e0ccfffd0553f570c"
+    },
+    {
+      "id": 796,
+      "name": "radar_heist_diamond",
+      "file": "radar_heist_diamond.png",
+      "url": "https://docs-backend.fivem.net/blips/radar_heist_diamond.png",
+      "bytes": 1042,
+      "sha256": "22ab76eb02d4f22db918e6504441884fe5b8148c58d5f4e6b1964491aea28435"
+    },
+    {
+      "id": 797,
+      "name": "radar_heist_doomsday",
+      "file": "radar_heist_doomsday.png",
+      "url": "https://docs-backend.fivem.net/blips/radar_heist_doomsday.png",
+      "bytes": 1252,
+      "sha256": "2ce4404caa78e23a95dbce75e4af866692c5d5787353acafa82680ec2eb1580f"
+    },
+    {
+      "id": 798,
+      "name": "radar_heist_island",
+      "file": "radar_heist_island.png",
+      "url": "https://docs-backend.fivem.net/blips/radar_heist_island.png",
+      "bytes": 1325,
+      "sha256": "2ea2ecc5d69c082819a9572c828581b4565f3987eefd332fa4183296dfdab479"
+    },
+    {
+      "id": 803,
+      "name": "radar_heist_island_unavailable",
+      "file": "radar_heist_island_unavailable.png",
+      "url": "https://docs-backend.fivem.net/blips/radar_heist_island_unavailable.png",
+      "bytes": 1331,
+      "sha256": "a332daab7a8ef119489d0b3d627af1e18bcba8b844689bcb79edabfba8dbee68"
+    },
+    {
+      "id": 804,
+      "name": "radar_heist_diamond_unavailable",
+      "file": "radar_heist_diamond_unavailable.png",
+      "url": "https://docs-backend.fivem.net/blips/radar_heist_diamond_unavailable.png",
+      "bytes": 1048,
+      "sha256": "d67c15d367051f89afe9fe4cee82558a114f1b919ca82f88346e1f23c7e22b04"
+    },
+    {
+      "id": 805,
+      "name": "radar_heist_doomsday_unavailable",
+      "file": "radar_heist_doomsday_unavailable.png",
+      "url": "https://docs-backend.fivem.net/blips/radar_heist_doomsday_unavailable.png",
+      "bytes": 1244,
+      "sha256": "fe9e091f34f47f2d53f0199d8c1a98f6cd7486de60b719f43cf7173c45e8dae9"
+    },
+    {
+      "id": 829,
+      "name": "radar_junk_skydive",
+      "file": "radar_junk_skydive.png",
+      "url": "https://docs-backend.fivem.net/blips/radar_junk_skydive.png",
+      "bytes": 1139,
+      "sha256": "fa613e7e0d4095214160a79a0f373b2a4fb5c027d125c23138fa45c63a67fd75"
+    },
+    {
+      "id": 830,
+      "name": "radar_luxury_car_showroom",
+      "file": "radar_luxury_car_showroom.png",
+      "url": "https://docs-backend.fivem.net/blips/radar_luxury_car_showroom.png",
+      "bytes": 743,
+      "sha256": "d03a70dd2c425e7f37b9b44b4e85f9240a6d9a7899ceb2853b514a15da698768"
+    },
+    {
+      "id": 832,
+      "name": "radar_car_showroom_simeon",
+      "file": "radar_car_showroom_simeon.png",
+      "url": "https://docs-backend.fivem.net/blips/radar_car_showroom_simeon.png",
+      "bytes": 885,
+      "sha256": "41ae9ef9467dd36bb62b2ef460fee5b6a0f40b1684a019546482efab5575b14c"
+    },
+    {
+      "id": 892,
+      "name": "radar_maude_eccles",
+      "file": "radar_maude_eccles.png",
+      "url": "https://docs-backend.fivem.net/blips/radar_maude_eccles.png",
+      "bytes": 759,
+      "sha256": "dbd7c9c4bdfcf9535fb184b47401f2576ec485aae3225e859afb936e22a234b7"
+    }
+  ]
+}

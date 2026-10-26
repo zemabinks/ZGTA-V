@@ -1,0 +1,24 @@
+<!doctype html><meta charset="utf-8"><title>Disposable save adapter test</title><button id="run">Run disposable save checks</button><pre id="result">Not run. No game will start.</pre><script src="/browser-saves.js"></script><script>
+document.getElementById('run').onclick=async()=>{
+ const S=ZemaBrowserSaves,out=document.getElementById('result'),names=['story','sandbox'].map(S.database);document.getElementById('run').disabled=true;
+ const assert=(ok,message)=>{if(!ok)throw Error(message);};
+ const db=()=>new Promise((resolve,reject)=>{const r=indexedDB.open(S.database('story'),1);r.onupgradeneeded=()=>r.result.createObjectStore('files');r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});
+ const write=async(data)=>{const d=await db();await new Promise((resolve,reject)=>{const t=d.transaction('files','readwrite');t.objectStore('files').put({data:new Uint8Array(data),mtime:123},'/userdata/Documents/test.sav');t.oncomplete=resolve;t.onerror=()=>reject(t.error);});d.close();};
+ const inspect=async()=>{const d=await db();const rows=await new Promise((resolve,reject)=>{const t=d.transaction('files','readonly'),r=t.objectStore('files').getAll();r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});d.close();return rows;};
+ try{
+  assert(names.every(n=>n.startsWith('zema-disposable-')),'refuse production namespace');
+  await write([1,2,3]);const backup=await S.exportSaves('story');assert(backup.entries[0].sha256===await S.digest(new Uint8Array([1,2,3])),'export checksum');assert((await S.list('sandbox')).length===0,'mode isolation');
+  const phoneExport=await S.exportNative('story');assert(phoneExport.schema===1&&phoneExport.entries[0].path==='userdata/Documents/test.sav'&&phoneExport.entries[0].sha256===backup.entries[0].sha256,'iPhone export retains exact bytes and native path');
+  const replacement=await S.archive('story',[{path:'/userdata/Documents/test.sav',data:new Uint8Array([4,5,6]),mtime:456}]);
+  const phoneImport=await S.nativeArchive('story',replacement);phoneImport.entries.push({...phoneImport.entries[0],path:'sandbox/Documents/test.sav'});
+  await S.restore('story',JSON.stringify(phoneImport));let rows=await inspect();assert(rows.some(r=>r.format==='zema-browser-rollback-v1'&&r.entries[0].data[0]===1),'atomic safety backup');assert((await S.exportSafety('story')).entries[0].sha256===backup.entries[0].sha256,'safety backup export');assert((await S.list('story'))[0].data[0]===4,'iPhone restore bytes');assert((await S.list('sandbox')).length===0,'unselected iPhone mode is not imported');
+  const bad=structuredClone(replacement);bad.entries[0].sha256='0'.repeat(64);let rejected=false;try{await S.restore('story',JSON.stringify(bad));}catch(_){rejected=true;}assert(rejected,'corrupt import rejected');assert((await S.list('story'))[0].data[0]===4,'corrupt import preserved bytes');
+  rejected=false;await navigator.locks.request('zema-browser-game-v1',async()=>{try{await S.list('story');}catch(_){rejected=true;}});assert(rejected,'active game lease refused');
+  const count=rows.length,put=IDBObjectStore.prototype.put;IDBObjectStore.prototype.put=function(value,key){if(key==='/userdata/Documents/test.sav')throw Error('fixture write failure');return put.apply(this,arguments);};
+  rejected=false;try{await S.restore('story',JSON.stringify(backup));}catch(_){rejected=true;}finally{IDBObjectStore.prototype.put=put;}
+  assert(rejected,'failed write rejected');rows=await inspect();assert(rows.length===count,'backup and writes rolled back together');assert((await S.list('story'))[0].data[0]===4,'failed write preserved current save');
+  for(const path of ['/userdata/Documents/../bad','/userdata/Documents/a\\b','/userdata/Documents/settings.xml','/userdata/Documents/.','/elsewhere/test'])assert(!S.safe(path),'unsafe path rejected');
+  out.textContent='PASS: actual IndexedDB export, iPhone .mugoatsave import/export, checksums, atomic safety backup, rollback on injected write failure, active-game refusal, Story/Free Roam isolation and invalid paths. No GTA game or production saves accessed.';
+ }catch(e){out.textContent='FAIL: '+e.stack;}finally{try{for(const name of names)if(name.startsWith('zema-disposable-'))await new Promise((resolve,reject)=>{const r=indexedDB.deleteDatabase(name);r.onsuccess=resolve;r.onerror=()=>reject(r.error);r.onblocked=()=>reject(Error('Disposable database cleanup blocked'));});out.textContent+=' Disposable database cleanup: PASS.';}catch(e){out.textContent+=' CLEANUP FAILED: '+e.message;}}
+};
+</script>

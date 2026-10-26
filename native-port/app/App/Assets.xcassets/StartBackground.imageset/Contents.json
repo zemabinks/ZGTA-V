@@ -1,0 +1,7 @@
+{
+  "images" : [
+    { "filename" : "start-bg-iphone.jpg", "idiom" : "iphone" },
+    { "filename" : "start-bg-ipad.jpg", "idiom" : "ipad" }
+  ],
+  "info" : { "author" : "xcode", "version" : 1 }
+}

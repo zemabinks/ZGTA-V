@@ -1,0 +1,2 @@
+module ZemaLanFixture { header "ZemaLanFixture.h" export * }
+module OnlineFixture { header "OnlineFixture.h" export * }

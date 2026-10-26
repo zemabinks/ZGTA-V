@@ -1,0 +1,106 @@
+{
+  "format": "zgta-app-icons-v1",
+  "source": "Zema-V-original.png",
+  "source_sha256": "3359eb1fbd1eca7ab3590b3370dc5dd5bbd2393d2de6c899091c03675285d83d",
+  "source_pixels": 1254,
+  "asset_catalog_1024_sha256": "0c31ba8eeb5ca9cd39dcff5b3ef68756230b4c7d73f42644d4652495b5e31a63",
+  "files": {
+    "ZGTAIcon20x20.png": {
+      "pixels": 20,
+      "sha256": "c63436bae976c10ae629f678035a17879b4083ad768ffb7c3e74b93978425d23",
+      "bytes": 1561
+    },
+    "ZGTAIcon20x20@2x.png": {
+      "pixels": 40,
+      "sha256": "1fe7ecdd9d32d82e54ee41691cd7efa9b4778836a84032691f1fe7f7e6314f0c",
+      "bytes": 2548
+    },
+    "ZGTAIcon20x20@3x.png": {
+      "pixels": 60,
+      "sha256": "ec345463ba4053cb371b4bee3f4383495ed8ce0dba77e58e4757cbcc1c46ed6b",
+      "bytes": 3902
+    },
+    "ZGTAIcon29x29.png": {
+      "pixels": 29,
+      "sha256": "8fe33b46dbd74125fe0ad1086cce5787a3ffa25b40b48ce1b5d69b2187193f7d",
+      "bytes": 1930
+    },
+    "ZGTAIcon29x29@2x.png": {
+      "pixels": 58,
+      "sha256": "4c85b39742d5e3d19b1eb0be491b2c16d78afa3adc091c285f8105093e22557b",
+      "bytes": 3771
+    },
+    "ZGTAIcon29x29@3x.png": {
+      "pixels": 87,
+      "sha256": "ff1c7fc27f8e507a36056ebdea3f860c23f8eb8311edd1353ccbbca78ffdf44f",
+      "bytes": 6224
+    },
+    "ZGTAIcon40x40.png": {
+      "pixels": 40,
+      "sha256": "1fe7ecdd9d32d82e54ee41691cd7efa9b4778836a84032691f1fe7f7e6314f0c",
+      "bytes": 2548
+    },
+    "ZGTAIcon40x40@2x.png": {
+      "pixels": 80,
+      "sha256": "37cd56e6e27792d6d616891945fd8503fd37ac3b6bef1e3ac0a8f750fadfa329",
+      "bytes": 5587
+    },
+    "ZGTAIcon40x40@3x.png": {
+      "pixels": 120,
+      "sha256": "e94b60afd724d57e1ad4d7e0ea0fc569da10f3c16f8da18245fd9c63ab295fa7",
+      "bytes": 9803
+    },
+    "ZGTAIcon60x60@2x.png": {
+      "pixels": 120,
+      "sha256": "e94b60afd724d57e1ad4d7e0ea0fc569da10f3c16f8da18245fd9c63ab295fa7",
+      "bytes": 9803
+    },
+    "ZGTAIcon60x60@3x.png": {
+      "pixels": 180,
+      "sha256": "b48da4189142e635481b8beae2d9599cf959fb53b28d81a4225a5b1b6eb8b621",
+      "bytes": 19227
+    },
+    "ZGTAIcon76x76.png": {
+      "pixels": 76,
+      "sha256": "2eb5dba295d4e83c2fcc395e517159a39d662f4c41cb9e9209a6fc0049f2eae8",
+      "bytes": 5199
+    },
+    "ZGTAIcon76x76@2x.png": {
+      "pixels": 152,
+      "sha256": "53c907344ac73f2893858c8e8249eb856262eaec07eaa39956c74c46c304b977",
+      "bytes": 14371
+    },
+    "ZGTAIcon83.5x83.5@2x.png": {
+      "pixels": 167,
+      "sha256": "b94794c1564a25f1e48c2275e13f9f5605e1a6b8f0bd25b58b468b9a35eb8f32",
+      "bytes": 16774
+    }
+  },
+  "info_properties": {
+    "CFBundleIcons": {
+      "CFBundlePrimaryIcon": {
+        "CFBundleIconFiles": [
+          "ZGTAIcon20x20",
+          "ZGTAIcon29x29",
+          "ZGTAIcon40x40",
+          "ZGTAIcon60x60"
+        ],
+        "UIPrerenderedIcon": true
+      }
+    },
+    "CFBundleIcons~ipad": {
+      "CFBundlePrimaryIcon": {
+        "CFBundleIconFiles": [
+          "ZGTAIcon20x20",
+          "ZGTAIcon29x29",
+          "ZGTAIcon40x40",
+          "ZGTAIcon60x60",
+          "ZGTAIcon76x76",
+          "ZGTAIcon83.5x83.5"
+        ],
+        "UIPrerenderedIcon": true
+      }
+    }
+  },
+  "documentation": "https://developer.apple.com/documentation/bundleresources/information-property-list/cfbundleicons/cfbundleprimaryicon/cfbundleiconfiles"
+}

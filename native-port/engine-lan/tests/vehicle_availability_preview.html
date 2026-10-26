@@ -1,0 +1,11 @@
+<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Vehicle availability UI preview</title>
+<style>body{margin:0;background:radial-gradient(at 10% 90%,#183d36,transparent),linear-gradient(120deg,#0b121b,#253249);color:#e6f9ed;font:15px/1.5 system-ui}main{max-width:520px;margin:30px auto;padding:24px;background:#172923f5;border:1px solid #638c79;border-radius:18px}h1{font-size:24px;margin:0}.fixture{font-size:12px;color:#b3c9be}.scenario{padding:10px;border:1px solid #638c79;background:#243e33;color:inherit;border-radius:10px;margin:10px 5px 0 0}button:focus-visible{outline:2px solid #46e7c2;outline-offset:3px}@media(max-width:600px){main{margin:12px;padding:18px}}</style>
+<main><h1>Mod Manager</h1><p class="fixture">Layout preview · simulated availability · no running game</p><button class="scenario" id="missing">Show missing files</button><button class="scenario" id="unknown">Show unknown availability</button><div id="catalog"></div></main>
+<script src="/zema-lab/vehicle-catalog.js"></script><script src="/zema-lab/vehicle-ui.js"></script>
+<script>
+const original=ZemaVehicleCatalog;
+window.ZemaVehicleCatalog={...original,vehicles:original.vehicles.filter(v=>['zentorno','krieger'].includes(v.model))};
+let state='missing';const ui=ZemaVehicleUI.mount(document.querySelector('#catalog'),{select:()=>{},availability:model=>model==='zentorno'?'available':state});
+const search=document.querySelector('input[type=search]');search.value='Super';search.dispatchEvent(new Event('input'));
+document.querySelector('#missing').onclick=()=>{state='missing';ui.refreshAvailability();};document.querySelector('#unknown').onclick=()=>{state='unknown';ui.refreshAvailability();};
+</script>

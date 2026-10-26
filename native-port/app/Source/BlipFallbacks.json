@@ -1,0 +1,21 @@
+[
+  [428,59,"radar_heist","Heist: existing heist symbol"],
+  [430,309,"radar_race","Time Trial: existing racing symbol"],
+  [445,77,"radar_lester_family","Lamar: existing L contact symbol"],
+  [671,374,"radar_business","Comic store: existing business symbol"],
+  [673,309,"radar_race","RC Time Trial: existing racing symbol"],
+  [679,374,"radar_business","Casino: existing business symbol"],
+  [739,280,"radar_friend","Ron: existing contact symbol"],
+  [765,363,"radar_heist_prep","Island heist preparation: existing preparation symbol"],
+  [777,357,"radar_garage","Car Meet: existing car/garage symbol"],
+  [788,374,"radar_business","SecuroServ: existing business symbol"],
+  [789,303,"radar_bounty_hit","Bounty contact: existing bounty symbol"],
+  [790,135,"radar_cinema","Movie collectibles: existing cinema symbol"],
+  [796,59,"radar_heist","Casino heist: existing heist symbol"],
+  [797,59,"radar_heist","Doomsday heist: existing heist symbol"],
+  [798,59,"radar_heist","Island heist: existing heist symbol"],
+  [829,377,"radar_parachute","Junk Energy Skydive: existing parachute symbol"],
+  [830,357,"radar_garage","Luxury Autos: existing car/garage symbol"],
+  [832,293,"radar_simeon_family","Simeon showroom: existing S"],
+  [892,303,"radar_bounty_hit","Maude: existing bounty symbol"]
+]

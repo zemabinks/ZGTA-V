@@ -1,0 +1,36 @@
+name: MugoatPreview
+options:
+  deploymentTarget:
+    iOS: '15.0'
+targets:
+  MugoatPreview:
+    type: application
+    platform: iOS
+    sources:
+      - PreviewApp.swift
+      - ../App/HomeView.swift
+      - ../App/Theme.swift
+      - ../App/Assets.xcassets
+      - ../App/Localization.swift
+      - ../App/LocalizationUI.swift
+      - ../App/OnlineSettingsViewController.swift
+      - path: ../Resources/Localizations.json
+        buildPhase: resources
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: vn.iosvn.mugoat.preview
+        SWIFT_VERSION: '5.0'
+        TARGETED_DEVICE_FAMILY: '1,2'
+        CODE_SIGNING_ALLOWED: NO
+    info:
+      path: Info.plist
+      properties:
+        CFBundleDisplayName: Mugoat
+        CFBundleShortVersionString: '1.1.7'
+        CFBundleVersion: '17'
+        UILaunchScreen: {}
+        UIRequiresFullScreen: true
+        UIStatusBarHidden: true
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight

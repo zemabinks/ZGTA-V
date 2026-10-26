@@ -1,0 +1,10 @@
+**/Build/
+**/DerivedData/
+**/__pycache__/
+.DS_Store
+*.ipa
+*.tipa
+*.deb
+*.xcresult/
+Game/
+Runtime/
