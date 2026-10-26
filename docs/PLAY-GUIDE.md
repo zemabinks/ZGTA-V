@@ -37,6 +37,8 @@ On iOS, resolution can change during play; preset and frame-rate changes require
 
 Every player needs matching prepared game files. The host must remain online with ZGTA V open; iOS hosting stops when the app leaves the foreground.
 
+For remote setup, start with the **[Tailscale download, host and join guide](REMOTE-PLAY.md)**.
+
 ### Choose your network
 
 - **LAN / Same Wi-Fi:** use the host's local network address. Both players must be able to reach that network.

@@ -117,6 +117,8 @@ The script asks before installing Python if it is missing. Open `http://127.0.0.
 
 ## Using ZGTA V
 
+For playing from different networks, follow **[Remote play with Tailscale](REMOTE-PLAY.md)** for downloads and setup on both devices.
+
 See the [host and join steps](PLAY-GUIDE.md#private-multiplayer), [mod imports](PLAY-GUIDE.md#import-mods) and [graphics settings](PLAY-GUIDE.md#change-graphics).
 
 ## Update without losing saves

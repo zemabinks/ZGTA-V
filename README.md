@@ -27,6 +27,7 @@ Read the **[installation guide](docs/START-HERE.md)** before downloading. It cov
 - [Import mods](docs/PLAY-GUIDE.md#import-mods)
 - [Change graphics](docs/PLAY-GUIDE.md#change-graphics)
 - [Host or join a lobby](docs/PLAY-GUIDE.md#private-multiplayer)
+- [Remote play with Tailscale](docs/REMOTE-PLAY.md)
 - [Back up saves](docs/PLAY-GUIDE.md#back-up-saves)
 - [Report a problem](docs/TEST-REPORT.md)
 
