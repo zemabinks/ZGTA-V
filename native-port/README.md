@@ -1,6 +1,6 @@
 # Native iOS source
 
-Current install guide: ../docs/START-HERE.md. Native version2.0 / Build91 is the byte-verified owner archive-access candidate. App UI is English-only.
+Native iOS app: version 2.0 / Build 91, minimum iOS / iPadOS 15.0. See [installation](../docs/START-HERE.md) and [sideloading options](../docs/IOS-SIDELOADING.md).
 
 The App/Source trees and EngineLAN adapters are staged by engine-lan/prepare_experimental.py and compiled by build_experimental.py. Build tools require pinned external/generated engine, shader and toolchain inputs; a fresh-machine native build is not yet validated. Do not treat Scripts/build_native.sh alone as a command that reproduces the EngineLAN release. Existing inputs/source are preserved privately, with their build hashes in the release receipts. No commercial game files are included.
 

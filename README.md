@@ -2,38 +2,36 @@
 
 ### By zema · zemabinks
 
-Solo Story, Free Roam, and Private Multiplayer. **Your own matching prepared game files are required; no commercial game content is included.**
+**Solo Story · Free Roam · Private Multiplayer — Join or Create.**
 
-**[Download 2.0 beta](https://github.com/zemabinks/ZGTA-V/releases/tag/v2.0.0-beta.1)** · **[Start here: installation guide](docs/START-HERE.md)** · **[Add Zema's Sileo Repo](https://zemabinks.github.io/repo/)**
+Your own matching prepared game files are required. No commercial game content is included.
 
-![Actual browser launcher](docs/images/Home-final.png)
+**[Download](https://github.com/zemabinks/ZGTA-V/releases/tag/v2.0.0-beta.1)** · **[Installation](docs/START-HERE.md)** · **[Mods, graphics & multiplayer](docs/PLAY-GUIDE.md)**
 
-## Pick your platform
+![ZGTA V launcher](docs/images/Home-final.png)
+
+## Downloads
 
 | Platform | Package | Status |
 |---|---|---|
-| iOS with compatible TrollStore / TrollStore Lite | [Native IPA](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.1/ZGTA-V-Build91-Archive-Access-TrollStore.ipa); Sileo installer also available | Beta; tested with TrollStore on a RootHide iPhone |
-| Windows x64 | [Windows ZIP](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.1/ZGTA-V-Build92-Windows-x64.zip) with bundled Python | Alpha; hardware execution/gameplay need community testing |
-| Mac / Linux | [Mac/Linux ZIP](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.1/ZGTA-V-Build92-Browser-Mac-Linux.zip) using Python 3.9+ | Beta; macOS host checked, Linux/gameplay testing pending |
-| Android | [Termux ZIP](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.1/ZGTA-V-Build92-Android-Termux.zip) | Experimental alpha, not an APK; GPU compatibility often limited |
+| iPhone / iPad — **iOS / iPadOS 15.0 or later** | [IPA](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.1/ZGTA-V-Build91-Archive-Access-TrollStore.ipa) | Beta. TrollStore route tested; [other sideloaders](docs/IOS-SIDELOADING.md) experimental. |
+| Windows x64 | [Windows ZIP](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.1/ZGTA-V-Build92-Windows-x64.zip) | Browser version · alpha |
+| Mac / Linux | [Mac/Linux ZIP](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.1/ZGTA-V-Build92-Browser-Mac-Linux.zip) | Browser version · beta host; Linux testing pending |
+| Android | [Termux ZIP](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.1/ZGTA-V-Build92-Android-Termux.zip) | Experimental browser version; no APK |
 
-**[Full installation instructions](docs/START-HERE.md)** explain game-folder layout, first launch, updates, local networking, saves, mods, controls and troubleshooting. An ordinary retail GTA install folder alone does not satisfy the prepared mirror format. This release does not provide a retail-game converter, native Windows game.exe or Android APK.
+Read the **[installation guide](docs/START-HERE.md)** before downloading. It covers the required game files, device requirements and updates. Sileo users can add **[Zema's Repo](https://zemabinks.github.io/repo/)**.
 
-## Play and setup
+## Guides
 
-- **Solo Story**
-- **Free Roam**
-- **Private Multiplayer — Join or Create**
-- Saves, compatible mods, graphics settings, and controller support.
+- [Install and update](docs/START-HERE.md)
+- [Import mods](docs/PLAY-GUIDE.md#import-mods)
+- [Change graphics](docs/PLAY-GUIDE.md#change-graphics)
+- [Host or join a lobby](docs/PLAY-GUIDE.md#private-multiplayer)
+- [Back up saves](docs/PLAY-GUIDE.md#back-up-saves)
+- [Report a problem](docs/TEST-REPORT.md)
 
-See the guide for [iOS installation and other sideloading options](docs/START-HERE.md#2-iphone--ipad), [hosting and joining](docs/START-HERE.md#playing-with-friends), [importing mods](docs/START-HERE.md#importing-mods), and [changing graphics](docs/START-HERE.md#graphics).
-
-This is a beta. Windows, Linux, Android, and two-device multiplayer still need hardware gameplay testing. [Detailed test status](docs/VERIFICATION.md).
-
-Found a problem? [Report it here](docs/TEST-REPORT.md).
+This is a beta. Device compatibility, gameplay and multiplayer testing are still in progress. See [test results and known limits](docs/VERIFICATION.md).
 
 ## Source and credits
 
-Source is included for the native iOS app, browser host, and multiplayer components. A fresh native build requires additional generated engine/shader inputs and has not yet been validated. See the [source audit](docs/SOURCE-AUDIT.json) and [verification notes](docs/VERIFICATION.md).
-
-Upstream authorship and licenses remain in [LICENSE](LICENSE), [native-port/LICENSE](native-port/LICENSE), the bundled Licenses resources, and [third-party notices](native-port/engine-lan/THIRD_PARTY_NOTICES.md).
+[Build information](docs/DEVELOPMENT.md) · [License](LICENSE) · [Native source license](native-port/LICENSE) · [Third-party notices](native-port/engine-lan/THIRD_PARTY_NOTICES.md)

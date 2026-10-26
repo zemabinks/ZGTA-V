@@ -4,7 +4,7 @@
 - Device / CPU / GPU / RAM:
 - Package filename and SHA-256 (if checked):
 - iOS build / Sileo wrapper version, or browser revision:
-- Installation route (TrollStore/Sileo/Windows/Mac/Linux/Termux):
+- Installation route (TrollStore/Sileo/Sideloadly/AltStore Classic/other; Windows/Mac/Linux/Termux):
 - Existing install updated, or first install:
 - Matching prepared files already available (yes/no; no game files attached):
 - Mode (Story/free roam/join/host):
