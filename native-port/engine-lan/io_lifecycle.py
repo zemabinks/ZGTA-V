@@ -1,7 +1,8 @@
 """Pinned IO startup failures and close-during-cache-open ownership.
 
 Apply once to the original IO worker, before UI refresh and storage namespaces.
-No engine/saves, new timers, retries, or synthetic IO completion are introduced.
+Engine and save storage are unchanged. Cache recovery retries actual source reads;
+it never supplies synthetic data or deletes an existing cache.
 """
 import hashlib
 PIN='d91c89e64f7f280666b5c9d1669ed6d65d66605077264569a49146ed79fe0bae'
@@ -42,4 +43,5 @@ function reportIoStartupFailure(error) {
 }''')
     text=once(text,'if (m.init) { ready = init(m); return; }', 'if (m.init) { ready = init(m); ready.catch(reportIoStartupFailure); return; }')
     text=once(text,'await ready;\t\t// the store is open and the manifest is loaded', 'try { await ready; } catch (error) { reportIoStartupFailure(error); return; }\t\t// Never start IO against failed initialization.\n\tif (storeClosing) return;')
-    return text
+    import io_cache_recovery
+    return io_cache_recovery.apply(text)
