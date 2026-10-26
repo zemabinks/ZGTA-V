@@ -1,0 +1,10 @@
+{
+  "format": "zgta-desktop-icons-v1",
+  "source": "native-port/app/App/Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png",
+  "source_sha256": "0c31ba8eeb5ca9cd39dcff5b3ef68756230b4c7d73f42644d4652495b5e31a63",
+  "files": {
+    "zgta-v.ico": "a2cc0bdbef2cac77af29e113d79e32ee6853fe2ffe36ccbc35edee1e4a94becd",
+    "zgta-v.icns": "ec16422b9fef1395cb089f37e811a4f58718c750dbfb95c4de3c349c0ec86f67"
+  },
+  "icns_1024_png": "EXACT_IOS_APP_ICON_BYTES"
+}

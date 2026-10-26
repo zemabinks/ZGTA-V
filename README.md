@@ -6,7 +6,7 @@
 
 Your own matching prepared game files are required. No commercial game content is included.
 
-**[Download](https://github.com/zemabinks/ZGTA-V/releases/tag/v2.0.0-beta.1)** · **[Installation](docs/START-HERE.md)** · **[Mods, graphics & multiplayer](docs/PLAY-GUIDE.md)**
+**[Download](https://github.com/zemabinks/ZGTA-V/releases/tag/v2.0.0-beta.2)** · **[Installation](docs/START-HERE.md)** · **[Mods, graphics & multiplayer](docs/PLAY-GUIDE.md)**
 
 ![ZGTA V launcher](docs/images/Home-final.png)
 
@@ -14,10 +14,10 @@ Your own matching prepared game files are required. No commercial game content i
 
 | Platform | Package | Status |
 |---|---|---|
-| iPhone / iPad — **iOS / iPadOS 15.0 or later** | [IPA](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.1/ZGTA-V-Build91-Archive-Access-TrollStore.ipa) | Beta. TrollStore route tested; [other sideloaders](docs/IOS-SIDELOADING.md) experimental. |
-| Windows x64 | [Windows ZIP](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.1/ZGTA-V-Build92-Windows-x64.zip) | Browser version · alpha |
-| Mac / Linux | [Mac/Linux ZIP](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.1/ZGTA-V-Build92-Browser-Mac-Linux.zip) | Browser version · beta host; Linux testing pending |
-| Android | [Termux ZIP](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.1/ZGTA-V-Build92-Android-Termux.zip) | Experimental browser version; no APK |
+| iPhone / iPad — **iOS / iPadOS 15.0 or later** | [IPA](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.2/ZGTA-V-Build91-Archive-Access-TrollStore.ipa) | Beta. TrollStore route tested; [other sideloaders](docs/IOS-SIDELOADING.md) experimental. |
+| Windows x64 | [Windows ZIP](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.2/ZGTA-V-Build93-Windows-x64.zip) | Browser version · alpha |
+| Mac / Linux | [Mac/Linux ZIP](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.2/ZGTA-V-Build93-Browser-Mac-Linux.zip) | Browser version · beta host; Linux testing pending |
+| Android | [Termux ZIP](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.2/ZGTA-V-Build93-Android-Termux.zip) | Experimental browser version; no APK |
 
 Read the **[installation guide](docs/START-HERE.md)** before downloading. It covers the required game files, device requirements and updates. Sileo users can add **[Zema's Repo](https://zemabinks.github.io/repo/)**.
 

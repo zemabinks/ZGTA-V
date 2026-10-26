@@ -25,7 +25,7 @@ setup in earlier successful updates. Current0.91-1 wrappers pin the same91 IPA
 and pass local scripted tests; independent current helper output was not supplied.
 AppSync remains an untested rootful experimental route.
 
-## Browser revision92
+## Browser revision 92 (initial public beta)
 
 Changes affect the launcher and host packaging, not the existing engine/renderer
 WASM or network/profile worker source. Runtime files are validated against the
@@ -63,3 +63,13 @@ Android and Linux physical execution/gameplay remain community tests.
 
 No FPS gain, universal device compatibility, native Android/Windows game binary,
 public matchmaking or reboot persistence is claimed. No paid hosted build ran.
+
+## Browser revision 93 — desktop launchers
+
+Changes are limited to desktop entry installation, preferred Chrome opening on macOS, packaging and documentation. Engine, game assets, saves and multiplayer code are unchanged.
+
+Nine desktop-focused tests pass: exact iOS icon provenance; Mac bundle creation and executable syntax; private installed-copy survival after removing the temporary original download; repeat launches; update recovery; preservation of unrelated apps and symlink targets; Windows shortcut argument contracts; and graceful behavior when Desktop access fails. Windows COM execution and real Finder double-click remain separate device/UI acceptance checks. No Windows environment is attached to this Mac.
+
+The first successful Mac/Windows setup installs a desktop entry. It starts the existing local server in a visible Terminal/console window. The URL is available only while that process is running; no login item or service is installed. Repeated startup reuses an existing ZGTA V server. Existing browser profile/origin and game-folder selection are retained.
+
+Package integrity and real localhost HTTP/startup results for revision 93 are recorded in the release verification asset. These checks do not establish full game compatibility or reboot persistence.

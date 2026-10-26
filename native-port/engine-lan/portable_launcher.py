@@ -19,6 +19,7 @@ if sys.version_info < (3,9):raise SystemExit('ZGTA V browser host requires Pytho
 HERE=Path(__file__).resolve().parent
 PACKAGE=HERE.parents[1]
 URL='http://127.0.0.1:18887/'
+PORT=18887
 
 
 def verify_package(root):
@@ -64,6 +65,7 @@ if($d.ShowDialog() -eq 'OK'){[Console]::Write($d.SelectedPath)}
 
 
 def data_directory():
+    if PACKAGE.parent.name=='desktop-launchers':return PACKAGE.parent.parent
     if os.name=='nt':return Path(os.environ['LOCALAPPDATA'])/'ZGTA V'
     return Path.home()/'.local/share/ZGTA-V'
 
@@ -103,21 +105,38 @@ def open_browser():
         candidates=[Path(os.environ.get(v,''))/'Google/Chrome/Application/chrome.exe' for v in ('PROGRAMFILES','PROGRAMFILES(X86)','LOCALAPPDATA')]
         for chrome in candidates:
             if chrome.is_file():subprocess.Popen([str(chrome),URL]);return
+    if sys.platform=='darwin':
+        for applications in [Path('/Applications'),Path.home()/'Applications']:
+            chrome=applications/'Google Chrome.app'
+            if chrome.is_dir():
+                subprocess.Popen(['/usr/bin/open','-a',str(chrome),URL]);return
     webbrowser.open(URL)
 
 
+def setup_desktop(data,manifest,disabled=False):
+    if disabled:return
+    try:
+        from desktop_launcher import install
+        entry=install(PACKAGE,data,manifest)
+        if entry:print('Desktop launcher ready: '+str(entry),flush=True)
+    except (OSError,ValueError,KeyError,subprocess.SubprocessError) as error:
+        # Optional convenience must not prevent an otherwise valid game launch.
+        print('Desktop launcher could not be created: '+str(error)+'\nYou can still use the Start script. Check Desktop access and try again.',file=sys.stderr)
+
+
 def main(argv=None):
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--mirror',type=Path);p.add_argument('--choose-folder',action='store_true');p.add_argument('--check',action='store_true');p.add_argument('--no-open',action='store_true');p.add_argument('--data',type=Path);a=p.parse_args(argv)
-    verify_package(PACKAGE)
-    if not a.check and existing_launcher():
-        print('ZGTA V is already running. Opening its Home screen; no server was restarted.')
-        if not a.no_open:open_browser()
-        return
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--mirror',type=Path);p.add_argument('--choose-folder',action='store_true');p.add_argument('--check',action='store_true');p.add_argument('--no-open',action='store_true');p.add_argument('--no-desktop',action='store_true',help='Skip desktop shortcut installation');p.add_argument('--data',type=Path);a=p.parse_args(argv)
+    manifest=verify_package(PACKAGE)
     data=(a.data or data_directory()).absolute();new=not data.exists();data.mkdir(parents=True,exist_ok=True,mode=0o700)
     if os.name=='nt':
         from portable_security import windows_private
         windows_private(data,new=new)
     elif data.stat().st_uid!=os.getuid() or data.stat().st_mode & 0o077:raise ValueError('Use an owned private folder for launcher data.')
+    if not a.check and existing_launcher():
+        setup_desktop(data,manifest,a.no_desktop)
+        print('ZGTA V is already running. Opening its Home screen; no server was restarted.')
+        if not a.no_open:open_browser()
+        return
     mirror=load_mirror(data,a.mirror,a.choose_folder)
     from serve_browser import Content,Handler,ThreadingHTTPServer
     from browser_mods import BrowserMods
@@ -127,12 +146,13 @@ def main(argv=None):
         addresses()  # Include the Home status reader in the packaged-startup check.
         content.lobby_host.close();content.lobby_directory.close()
         print(json.dumps({'package':'HASHES_PASS','mirror':'PINNED_INDEX_PASS','helper_initialization':'PASS','gameplay':'NOT_TESTED'}));return
-    try:server=ThreadingHTTPServer(('127.0.0.1',18887),Handler)
+    try:server=ThreadingHTTPServer(('127.0.0.1',PORT),Handler)
     except OSError:content.lobby_host.close();content.lobby_directory.close();raise ValueError('Port 18887 is in use. Close the other launcher first; no process was stopped.')
     server.content=content;server.daemon_threads=True
     config=data/'launcher.json';temp=data/('launcher-'+secrets.token_hex(8)+'.new.json');fd=os.open(temp,os.O_WRONLY|os.O_CREAT|os.O_EXCL,0o600)
     with os.fdopen(fd,'w') as f:json.dump({'mirror':str(mirror)},f)
     os.replace(temp,config)
+    setup_desktop(data,manifest,a.no_desktop)
     print('ZGTA V is ready at '+URL+'\nKeep this window open. Closing it stops browser-hosted lobbies. Ctrl+C stops cleanly.',flush=True)
     if not a.no_open:threading.Timer(.5,open_browser).start()
     try:server.serve_forever()

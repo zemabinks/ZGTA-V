@@ -1,6 +1,6 @@
 # Install ZGTA V
 
-[Downloads](https://github.com/zemabinks/ZGTA-V/releases/tag/v2.0.0-beta.1) · [Mods, graphics & multiplayer](PLAY-GUIDE.md) · [Help](#troubleshooting)
+[Downloads](https://github.com/zemabinks/ZGTA-V/releases/tag/v2.0.0-beta.2) · [Mods, graphics & multiplayer](PLAY-GUIDE.md) · [Help](#troubleshooting)
 
 ## Before you start
 
@@ -36,7 +36,7 @@ An ordinary Steam/Epic/Rockstar folder containing `GTA5.exe` is insufficient. Th
 ### TrollStore / TrollStore Lite
 
 1. Confirm your device already has a compatible [TrollStore](https://github.com/opa334/TrollStore) or TrollStore Lite setup. **iOS 15.0 is the app minimum, not a promise that every later iOS version supports TrollStore.**
-2. Download the [IPA](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.1/ZGTA-V-Build91-Archive-Access-TrollStore.ipa) and open it in TrollStore to install ZGTA V. Existing users: install over the existing app; do not delete it.
+2. Download the [IPA](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.2/ZGTA-V-Build91-Archive-Access-TrollStore.ipa) and open it in TrollStore to install ZGTA V. Existing users: install over the existing app; do not delete it.
 3. Open **ZGTA V → Game files → Choose a folder…** and select the folder containing your prepared files or archive.
 4. If an archive is listed, tap **Unpack** and let installation finish. You can also use **Choose an archive…** to select the file directly.
 5. If the game is already unpacked, select its folder and use **Check every file again**. Continue when the files are ready.
@@ -58,20 +58,22 @@ Use the **same IPA**. These ZGTA V installation routes are **experimental and un
 ## Windows x64
 
 1. Install a current Chrome or Edge browser with graphics acceleration enabled.
-2. Download the [Windows ZIP](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.1/ZGTA-V-Build92-Windows-x64.zip) and extract the **whole** ZIP. Do not run it from inside the archive.
+2. Download the [Windows ZIP](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.2/ZGTA-V-Build93-Windows-x64.zip) and extract the **whole** ZIP. Do not run it from inside the archive.
 3. Open its `ZGTA-V` folder and double-click **Start ZGTA V.cmd**. Python is included.
-4. Choose your prepared game folder when asked. Keep the launcher window open while playing.
+4. Choose your prepared game folder when asked. Setup creates a **ZGTA V** shortcut on your Desktop. After this, double-click that shortcut to start the host and open the browser. Keep the launcher window open while playing.
 5. If the browser does not open, visit `http://127.0.0.1:18887/`.
 6. Open **Settings → Graphics → Check this GPU** before starting a game.
 
 The browser runtime requires WebGPU, WebAssembly memory64, shared memory and BC texture compression. Unsupported GPUs cannot run it.
+
+The desktop shortcut uses a private launcher copy, so moving the extracted download does not break it. Keep your separate game folder where you selected it. If ZGTA V is already running, the shortcut reopens the browser without restarting your game.
 
 To stop the launcher, press Ctrl+C in its window. To choose a different game folder, stop it and run **Choose game folder.cmd**. If Windows Firewall asks while you host, allow the private network you intend to use.
 
 ## Mac / Linux
 
 1. Install Python **3.9+** from [python.org](https://www.python.org/downloads/) or your OS package manager, and a compatible Chrome/Edge browser.
-2. Extract the [Mac/Linux ZIP](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.1/ZGTA-V-Build92-Browser-Mac-Linux.zip).
+2. Extract the [Mac/Linux ZIP](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.2/ZGTA-V-Build93-Browser-Mac-Linux.zip).
 3. Open Terminal in the extracted `ZGTA-V` folder and run:
 
 ```sh
@@ -87,6 +89,10 @@ You can also pass the path directly:
 sh "Start ZGTA V.command" --mirror "/full/path/to/prepared game folder"
 ```
 
+On **Mac**, the first successful setup creates **ZGTA V.app** on your Desktop. Double-click it for future sessions: it starts the host in Terminal and opens Chrome if installed, or the default browser. The app uses a private launcher copy and remembers your game folder. Keep Terminal open while playing. **Linux** continues to use the command above.
+
+The URL works only while the local host is running. Closing Terminal stops it; double-click the desktop app to start it again. Keep your game files in the folder you selected. If Desktop access is refused, the Start script still works; allow access through the normal macOS prompt/settings and run setup again.
+
 Press Ctrl+C to stop. Run with `--choose-folder` to choose another folder while stopped. These packages run in your browser; they are not native Mac/Linux game apps.
 
 ## Android / Termux — experimental
@@ -95,7 +101,7 @@ There is **no APK**. Many Android GPUs cannot meet the browser requirements list
 
 1. Install Termux using its [official instructions](https://github.com/termux/termux-app#installation). Keep any Termux plugins from the same source.
 2. In Termux, run `termux-setup-storage` and allow storage access.
-3. Extract the [Android ZIP](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.1/ZGTA-V-Build92-Android-Termux.zip) into Downloads so its folder is `Downloads/ZGTA-V`.
+3. Extract the [Android ZIP](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.2/ZGTA-V-Build93-Android-Termux.zip) into Downloads so its folder is `Downloads/ZGTA-V`.
 4. Put your prepared game files in `Downloads/ZGTA-V/Game`, with `index.html`, `data` and `b` directly inside that folder.
 5. Run:
 
@@ -116,7 +122,7 @@ See the [host and join steps](PLAY-GUIDE.md#private-multiplayer), [mod imports](
 ## Update without losing saves
 
 - **iOS:** back up saves, then install the update over the existing app using the same installation method. Do not delete ZGTA V first. Switching signing accounts or installation methods can create a separate app or prevent an update; export backups before attempting a switch.
-- **Browser:** back up saves, stop your launcher, and replace the launcher package. Keep your separate game folder, the same browser profile and the same address (`http://127.0.0.1:18887/`). Do not clear site data; saves belong to that browser profile and address.
+- **Browser:** back up saves and stop your launcher. Extract the new package and run its Start script once; Mac/Windows update the owned desktop launcher while keeping the earlier launcher copy for recovery. Keep your separate game folder, the same browser profile and the same address (`http://127.0.0.1:18887/`). Do not clear site data; saves belong to that browser profile and address.
 
 See [save backups](PLAY-GUIDE.md#back-up-saves).
 

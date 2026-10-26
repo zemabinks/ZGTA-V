@@ -16,7 +16,7 @@ import zipfile
 
 ROOT=Path(__file__).resolve().parent
 SOURCE_ROOT=ROOT.parents[1]
-BROWSER_REVISION='64'
+BROWSER_REVISION='93'
 PYTHON_URL='https://www.python.org/ftp/python/3.13.16/python-3.13.16-embed-amd64.zip'
 PYTHON_SHA='97dae5274cc54867065e8d5a3226e48c35017ed332a0fdb0e27d5b5821961297'
 
@@ -53,6 +53,11 @@ def build(stage,output,platform,python_archive=None,revision=None,allow_dirty=Fa
     output=Path(output).absolute();stage=Path(stage).resolve(strict=True)
     if output.exists() or output.is_symlink():raise ValueError('Use a new package folder')
     runtime_provenance=checked_runtime(stage)
+    icons=json.loads((ROOT/'desktop-assets/provenance.json').read_text())
+    if icons.get('source_sha256')!=sha256(ROOT.parent/'app/App/Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png'):
+        raise ValueError('Desktop icons do not match the current iOS icon source')
+    for name in ('zgta-v.icns','zgta-v.ico'):
+        if icons.get('files',{}).get(name)!=sha256(ROOT/'desktop-assets'/name):raise ValueError('Desktop icon bytes changed: '+name)
     revision_result=subprocess.run(['git','rev-parse','HEAD'],cwd=ROOT,capture_output=True,text=True,check=True)
     source_revision=revision_result.stdout.strip()
     dirty=subprocess.run(['git','status','--porcelain=v1'],cwd=ROOT,capture_output=True,text=True,check=True)
@@ -72,6 +77,8 @@ def build(stage,output,platform,python_archive=None,revision=None,allow_dirty=Fa
         if f.parent==ROOT and f.suffix in ('.py','.js','.html','.css'):copy_source(f,code/f.name)
     for name in ('solo-card.png','friends-card.png','los-santos-map.jpg','zplay-gta-green.svg','zplay-gta-green-32.png','zplay-gta-green-180.png','favicon.ico'):
         copy_source(ROOT/name,code/name)
+    for name in ('zgta-v.icns','zgta-v.ico','provenance.json'):
+        copy_source(ROOT/'desktop-assets'/name,code/'desktop-assets'/name)
     copy_source(ROOT/'engine-safety-pins.json',code/'engine-safety-pins.json')
     readers=code/'relay-service';readers.mkdir()
     copy_source(ROOT/'relay-service/service_runner.py',readers/'service_runner.py')
@@ -120,11 +127,15 @@ def build(stage,output,platform,python_archive=None,revision=None,allow_dirty=Fa
 1. Extract the entire ZIP, then double-click Start ZGTA V.cmd.
 2. The first time, choose your OWN game mirror folder containing index.html,
    data and b. No game files are included or downloaded by this launcher.
-3. Home opens in installed Chrome, or your default browser. Keep the launcher
-   window open while playing/hosting. Ctrl+C stops it cleanly.
+3. Setup creates a ZGTA V desktop shortcut with the iOS app icon. Next time,
+   double-click it to start the local host and open Chrome (or your default browser).
+   Keep the launcher window open while playing/hosting. Ctrl+C stops it cleanly.
 4. Join with a friend's invite, or Host & Play and share your invite.
    On a Windows Firewall prompt, allow only the private network you use.
    No firewall rules are changed by this package. Remote uses a reachable private VPN address. With an existing WireGuard LAN route, use the host LAN address; Tailscale addresses use Remote.
+The launcher is copied into your private ZGTA V application-data folder; the
+desktop shortcut works independently of the extracted download folder. Your
+game folder stays where you selected it. Do not delete or move those game files.
 Your game folder is remembered locally. Use Choose game folder.cmd to change it
 with the launcher stopped. Browser characters remain in the same Chrome profile
 at http://127.0.0.1:18887/. Do not clear browser storage or uninstall Chrome.
@@ -186,8 +197,13 @@ exec python3 -B "$HERE/native-port/engine-lan/portable_launcher.py" "$@"
 3. Paste the full path to your OWN prepared game folder when asked. It must
    contain index.html, data and b. Paths with spaces are accepted as typed;
    do not add quotes around a pasted path. No game files are provided.
-4. Open http://127.0.0.1:18887/ if the browser does not open automatically.
-   Keep the Terminal window open. Ctrl+C stops your launcher and owned lobby.
+4. On Mac, setup creates ZGTA V.app on your Desktop, using the iOS app icon.
+   Double-click it next time: it starts the local host in Terminal and opens Chrome
+   if installed, otherwise your default browser. Keep Terminal open while playing.
+   Linux continues to use this script. Ctrl+C stops your launcher and owned lobby.
+   Open http://127.0.0.1:18887/ if the browser does not open automatically.
+Mac keeps a private launcher copy, so the desktop app does not depend on the
+extracted download folder. Keep your separate game folder in its selected location.
 The script installs no service or dependency and changes no OS security setting.
 The game folder is remembered. To change it, stop the launcher and run:
   sh "Start ZGTA V.command" --choose-folder

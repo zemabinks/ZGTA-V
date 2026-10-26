@@ -1,6 +1,6 @@
 # Mods, graphics and multiplayer
 
-[Installation](START-HERE.md) · [Downloads](https://github.com/zemabinks/ZGTA-V/releases/tag/v2.0.0-beta.1)
+[Installation](START-HERE.md) · [Downloads](https://github.com/zemabinks/ZGTA-V/releases/tag/v2.0.0-beta.2)
 
 ## Import mods
 
