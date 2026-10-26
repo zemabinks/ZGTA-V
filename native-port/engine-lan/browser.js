@@ -134,6 +134,10 @@
   function engineHooks(memory,lan,originals) {
     const m=new Memory(memory), originalsCall=(name,args)=>{if(typeof originals[name]!=='function')throw Error('Original hook absent: '+name);return originals[name](...args);};
     const at=(p,n)=>BigInt(p)+BigInt(n);
+    // Bound diagnostics per worker. No payloads, stat values, or save contents.
+    const selectNotes=new Set();let selectCalls=0;
+    const selectNote=(key,text)=>{if(selectNotes.has(key)||selectNotes.size>=12)return;selectNotes.add(key);
+      try{const channel=new BroadcastChannel('game-log');channel.postMessage('[online] socket select '+text);channel.close();}catch{}};
     // NativeShutdown uses an atomic64 store on the aligned engine handle.
     // Match that read across pthread workers before entering the LAN lock.
     const socketHandle=socket=>{const pos=m.offset(at(socket,8),8);
@@ -156,18 +160,21 @@
       profiler_push(profiler,name,flag){if(name===3746537n)m.set32(13347088n,0);return originalsCall('profiler_push',[profiler,name,flag]);},
       socket_select(count,read,write,except,timeout){
         // Return actual selected-bit count. Never call libc select with virtual handles.
-        const invalid=0xffffffff;if(!Number.isInteger(count)||count<0||count>1024)return invalid;
+        const invalid=0xffffffff,call=++selectCalls,start=performance.now();
+        const fail=reason=>{selectNote('reject:'+reason,'rejected: '+reason);return invalid;};
+        if(!Number.isInteger(count)||count<0||count>1024)return fail('descriptor limit '+count);
         try{
           const sets=[read,write,except];for(const set of sets)if(set!==0n)m.offset(set,128);
           const handles=set=>{const result=[];if(set===0n)return result;
             for(let fd=0;fd<count;fd++)if((m.u64(at(set,Math.floor(fd/64)*8))>>BigInt(fd%64))&1n)result.push(fd);return result;};
           const readers=handles(read),writers=handles(write),exceptions=handles(except);let end=Infinity;
-          if(timeout!==0n){const seconds=m.u64(timeout),micros=m.u32(at(timeout,8));if(seconds>3600n||micros>=1000000)return invalid;end=performance.now()+Number(seconds)*1000+micros/1000;}
+          if(timeout!==0n){const seconds=m.u64(timeout),micros=m.u32(at(timeout,8));if(seconds>3600n||micros>=1000000)return fail('timeout '+seconds+'/'+micros);end=performance.now()+Number(seconds)*1000+micros/1000;}
+          if(call<=3)selectNote('call:'+call,'call '+call+' nfds='+count+' read='+readers.join(',')+' write='+writers.join(',')+' timeout-ms='+(Number.isFinite(end)?Math.max(0,Math.round(end-start)):'infinite'));
           let ready;
           for(;;){
             // Load sequence before deriving readiness to avoid losing a packet/disconnect wakeup.
             const seq=Atomics.load(lan.words,9);ready=lan.selected(readers,writers,exceptions);
-            if(!ready)return invalid;if(ready.read.length||ready.write.length||!ready.connected)break;
+            if(!ready)return fail('unknown handle; read='+readers.join(',')+' write='+writers.join(',')+' except='+exceptions.join(','));if(ready.read.length||ready.write.length||!ready.connected)break;
             const remaining=end-performance.now();if(remaining<=0)break;
             if(typeof window!=='undefined')throw Error('Network Select must run in a worker');
             Atomics.wait(lan.words,9,seq,remaining);
@@ -177,8 +184,9 @@
           // Refresh views after waiting so memory growth cannot leave stale output views.
           for(const set of sets)if(set!==0n)m.offset(set,128);
           sets.forEach((set,i)=>{if(set!==0n)m.bytes(set,128).set(outputs[i]);});
+          if(call<=3)selectNote('done:'+call,'return '+call+' ready='+(ready.read.length+ready.write.length)+' elapsed-ms='+Math.round(performance.now()-start));
           return ready.read.length+ready.write.length;
-        }catch(error){if(error.message==='Network Select must run in a worker')throw error;return invalid;}
+        }catch(error){if(error.message==='Network Select must run in a worker')throw error;return fail(String(error.message||error).slice(0,100));}
       }
     };
   }
@@ -278,7 +286,7 @@
       });
     }
     const seenHooks=new Set();
-    for(const h of metadata.hooks){if(typeof hooks[h.field]!=='function')throw Error('Socket callback absent');callbacks[h.field]=(...args)=>{if(h.group!=='vnet'&&!seenHooks.has(h.field)){seenHooks.add(h.field);try{const channel=new BroadcastChannel('game-log');channel.postMessage('[online] first callback '+h.field);channel.close();}catch(_){}}try{return hooks[h.field](...args);}catch(error){try{const channel=new BroadcastChannel('game-log');channel.postMessage('[online] '+h.field+' failed: '+String(error.message).slice(0,200));channel.close();}catch(_){}throw error;}};}
+    for(const h of metadata.hooks){if(typeof hooks[h.field]!=='function')throw Error('Socket callback absent');callbacks[h.field]=(...args)=>{if(!seenHooks.has(h.field)){seenHooks.add(h.field);try{const channel=new BroadcastChannel('game-log');channel.postMessage('[online] first callback '+h.field);channel.close();}catch(_){}}try{return hooks[h.field](...args);}catch(error){try{const channel=new BroadcastChannel('game-log');channel.postMessage('[online] '+h.field+' failed: '+String(error.message).slice(0,200));channel.close();}catch(_){}throw error;}};}
     const helper=new WebAssembly.Instance(new WebAssembly.Module(Uint8Array.from(metadata.auxiliary_wasm)),{zema:callbacks});
     for(const h of metadata.hooks)table.set(metadata.table64?BigInt(h.slot):h.slot,helper.exports[h.field]);
     if(metadata.social)metadata.social.entries.forEach((entry,i)=>table.set(metadata.table64?BigInt(metadata.social.base+4+i):metadata.social.base+4+i,helper.exports['social_'+i]));
