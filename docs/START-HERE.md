@@ -6,10 +6,10 @@ A GTA V port with a Pure Black launcher, solo play, private multiplayer, local s
 
 | Device | Download | What it is | Current test status |
 |---|---|---|---|
-| iPhone / iPad with compatible TrollStore | [iOS TrollStore `.ipa`](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.1/ZGTA-V-Build91-Archive-Access-TrollStore.ipa) | Native iOS app, version 2.0 / Build91 | Installation and launcher previously confirmed; repaired archive workflow owner-confirmed on the tested iPhone. Broader gameplay acceptance pending. |
+| iPhone / iPad with compatible TrollStore | [iOS TrollStore `.ipa`](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.1/ZGTA-V-Build91-Archive-Access-TrollStore.ipa) | Native iOS app, version 2.0 / Build 91 | Installation and launcher previously confirmed; repaired archive workflow owner-confirmed on the tested iPhone. Broader gameplay acceptance pending. |
 | Compatible jailbroken iPhone / iPad using Sileo | Add [Zema's Repo](https://zemabinks.github.io/repo/), install **ZGTA V (TrollStore installer)** | A small installer that passes the pinned IPA to your existing TrollStore / TrollStore Lite | Existing RootHide route tested. It does not install TrollStore for you. |
 | Windows x64 | [Windows x64 ZIP](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.1/ZGTA-V-Build92-Windows-x64.zip) | Portable local browser host, including Python's actual `python.exe` | Alpha / community test. Package and HTTP checks on Mac; Windows execution and gameplay pending. |
-| Mac / Linux | [Browser Mac Linux ZIP](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.1/ZGTA-V-Build92-Browser-Mac-Linux.zip) | Local browser host using your installed Python3.9+ | Beta host. macOS startup/HTTP checks; Linux and current gameplay pending. |
+| Mac / Linux | [Browser Mac Linux ZIP](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.1/ZGTA-V-Build92-Browser-Mac-Linux.zip) | Local browser host using your installed Python 3.9+ | Beta host. macOS startup/HTTP checks; Linux and current gameplay pending. |
 | Android | [Android Termux ZIP](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.1/ZGTA-V-Build92-Android-Termux.zip) | Experimental local browser host starter | Alpha / compatibility testing. **No APK**, no physical Android validation; many GPUs lack required features. |
 
 The native iOS app and browser launcher share features but use different renderers and save storage. A Windows game `.exe` and native Android app are not provided. ZPlay is the wider games website; this port is **by zema (zemabinks)**.
@@ -45,7 +45,7 @@ The launcher validates the matching pinned build. A folder with only `GTA5.exe`,
 4. If you already have extracted matching files, select their folder and recheck. Only a validated usable folder is marked ready. External archives are retained; consuming app-owned archives is an explicit separate choice.
 5. Choose **On my own → Story mode / Free roam**, then press the green Play button. Or use **With friends**, configure a lobby, then press the green **Play Multiplayer / Host Multiplayer** button.
 
-A `.tipa`, if supplied, contains the exact same ZIP/IPA bytes under a TrollStore file extension; it is not a different build. The owner-confirmed archive test used the Build91 update; no separate `.tipa` installation test is claimed.
+A `.tipa`, if supplied, contains the exact same ZIP/IPA bytes under a TrollStore file extension; it is not a different build. The owner-confirmed archive test used the Build 91 update; no separate `.tipa` installation test is claimed.
 
 ### Install / update with Sileo
 
@@ -61,7 +61,7 @@ The separate **AppSync installer** is an **untested experimental rootful ARM64 r
 
 1. Install a current Chrome or Edge browser with graphics acceleration available.
 2. Extract the **whole** Windows ZIP. Open the `ZGTA-V` folder and double-click **Start ZGTA V.cmd**. Do not run files from inside the ZIP.
-3. Select the matching prepared game folder when asked. Python3.13.16 is bundled; no separate Python install is required.
+3. Select the matching prepared game folder when asked. Python 3.13.16 is bundled; no separate Python install is required.
 4. Keep the launcher window open. It opens `http://127.0.0.1:18887/`. If it does not open, visit that address manually.
 5. In Settings → Graphics choose **Check this GPU**. The runtime requires WebGPU, WebAssembly memory64, shared memory and BC texture compression. Unsupported hardware is reported; a 60 FPS cap is not a speed guarantee.
 6. Select a mode and press its green Play button. Ctrl+C stops the host. **Choose game folder.cmd** changes the remembered folder while stopped.
@@ -70,7 +70,7 @@ For hosting, allow your intended private network if Windows Firewall prompts. Th
 
 ## 4. Mac / Linux browser host
 
-Install Python3.9+ from [python.org](https://www.python.org/downloads/) or your OS package manager, plus a compatible Chrome/Edge browser. Extract the ZIP. In Terminal change into its `ZGTA-V` folder and run:
+Install Python 3.9+ from [python.org](https://www.python.org/downloads/) or your OS package manager, plus a compatible Chrome/Edge browser. Extract the ZIP. In Terminal change into its `ZGTA-V` folder and run:
 
 ```sh
 sh "Start ZGTA V.command"
@@ -120,7 +120,7 @@ It asks before installing Termux Python if missing. Open `http://127.0.0.1:18887
 
 ## Troubleshooting and reports
 
-- **Archive cannot be opened / Operation not permitted:** reselect the containing folder for a fresh Files grant, or select the archive directly. Keep the archive and existing game. Build91 repairs the discovered-archive access path; the owner confirms it now works.
+- **Archive cannot be opened / Operation not permitted:** reselect the containing folder for a fresh Files grant, or select the archive directly. Keep the archive and existing game. Build 91 repairs the discovered-archive access path; the owner confirms it now works.
 - **Ready changed to unavailable:** reattach/reselect the external folder or provider and recheck. Empty or incomplete folders must not count as a usable install.
 - **Browser won't load / port busy:** keep the existing host window open, use the same localhost URL, and close your own previous launcher before restarting. The starter does not kill another process.
 - **Unsupported GPU:** report the result from Check this GPU. Do not change OS security settings or browser experimental flags based on a guess.
@@ -131,4 +131,4 @@ Use [TEST-REPORT.md](TEST-REPORT.md) for a report. Include platform, OS, GPU/dev
 
 ## Verification scope
 
-This is a public **beta**, not full platform certification. iOS version2.0 / Build91 is the unchanged, byte-verified archive-access candidate now owner-confirmed for that workflow. Browser source/packages use revision92 and preserve the existing engine/renderer byte set. Windows/Android/Linux hardware gameplay, full upgrade/save retention, two-device multiplayer, performance comparisons and reboot persistence are still open. See [VERIFICATION.md](VERIFICATION.md). No paid GitHub Actions are used.
+This is a public **beta**, not full platform certification. iOS version2.0 / Build 91 is the unchanged, byte-verified archive-access candidate now owner-confirmed for that workflow. Browser source/packages use revision92 and preserve the existing engine/renderer byte set. Windows/Android/Linux hardware gameplay, full upgrade/save retention, two-device multiplayer, performance comparisons and reboot persistence are still open. See [VERIFICATION.md](VERIFICATION.md). No paid GitHub Actions are used.

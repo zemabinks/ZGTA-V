@@ -1,6 +1,6 @@
 # 2.0 beta verification
 
-## Native iOS — unchanged Build91
+## Native iOS — unchanged Build 91
 
 Compiled source: `bb230c44fc008f7601be5ee66b2f0c7fb206d92b`.
 IPA SHA-256: `f54b0172e6d9d348295af4ecf117c71817284eaca09cbf9e09aa130edb6f9802`.
@@ -14,8 +14,8 @@ save fixtures. Three actual Simulator UI cases passed using production UIKit and
 GameFolder with inert engine/download/install adapters and temporary files.
 These tests do not substitute for an iOS provider or physical gameplay test.
 
-The owner's physical Build90 log proved a permission failure opening a discovered
-mirror.rar, after successful scan. After the Build91 update the owner reports:
+The owner's physical Build 90 log proved a permission failure opening a discovered
+mirror.rar, after successful scan. After the Build 91 update the owner reports:
 “Yes it works now, next step now”. This establishes owner-confirmed archive
 workflow success, not independent current app inventory, save-upgrade, gameplay,
 performance or reboot acceptance. Raw phone logs remain private.
@@ -43,12 +43,12 @@ empty-address errors, offline explicit favorites with Join disabled, exclusion
 from Online, and Settings/Saves availability. Screenshots are actual local browser
 frames; the shown lobby names are disposable fixtures, not a live gameplay test.
 
-Windows packages contain the pinned official Python3.13.16 x64 embeddable runtime.
+Windows packages contain the pinned official Python 3.13.16 x64 embeddable runtime.
 Mac verification can inspect PE headers and exact archive contents; it cannot
 execute Windows Python. Android uses Termux Python and is not an APK. The generic
-Mac/Linux host uses installed Python3.9+ and an explicit folder path prompt.
+Mac/Linux host uses installed Python 3.9+ and an explicit folder path prompt.
 
-All three package/source manifest, CRC, extracted HTTP route and bundled-runtime checks pass on macOS. Windows Python PE headers and archive bytes match its pinned official input. The actual Mac shell starter passes check mode with private disposable state. A test-only /var alias was correctly rejected by the no-symlink mod-store policy; the canonical path passes. These results are recorded in the release verification JSON. The sanitized public source itself also passes the same59 targeted regression methods. Current Windows,
+All three package/source manifest, CRC, extracted HTTP route and bundled-runtime checks pass on macOS. Windows Python PE headers and archive bytes match its pinned official input. The actual Mac shell starter passes check mode with private disposable state. A test-only /var alias was correctly rejected by the no-symlink mod-store policy; the canonical path passes. These results are recorded in the release verification JSON. The sanitized public source itself also passes the same 59 targeted regression methods. Current Windows,
 Android and Linux physical execution/gameplay remain community tests.
 
 ## Still open
