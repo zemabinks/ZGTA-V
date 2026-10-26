@@ -1,0 +1,14 @@
+Package: com.zema.zgta-v.appsync
+Name: ZGTA V (AppSync installer - experimental)
+Version: 0.91-1
+Architecture: iphoneos-arm
+Section: Applications
+Maintainer: ZEMA
+Author: zema
+Depends: firmware (>= 15.0), firmware (<= 18.2), curl, coreutils, ai.akemi.appsyncunified (>= 116.0), ai.akemi.appinst (>= 2.1.1)
+Conflicts: com.zema.zgta-v.trollstore
+Description: Experimental Build 91 fallback for compatible ARM64 rootful jailbreaks without TrollStore. Uses official AppSync Unified and appinst; add https://cydia.akemi.ai/ for dependencies. Not for RootHide or rootless. Actual app installation and gameplay on this route are untested. Own game files required; removing this wrapper leaves the app and data installed.
+Icon: https://zemabinks.github.io/repo/assets/zgta-v.png
+SileoDepiction: https://zemabinks.github.io/repo/depictions/zgta-v-appsync.json
+Homepage: https://zemabinks.github.io/repo/#zgta-v
+Installed-Size: 0

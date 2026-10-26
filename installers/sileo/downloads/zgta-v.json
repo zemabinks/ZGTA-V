@@ -1,0 +1,19 @@
+{
+  "format": "zema-repo-app-download-v1",
+  "name": "ZGTA V",
+  "author": "zema",
+  "build": 91,
+  "status": "candidate",
+  "installation": "TrollStore",
+  "bundle_identifier": "com.zemabinks.gtamp.enginelanlab",
+  "file": "ZGTA-V-Build91-Archive-Access-TrollStore.ipa",
+  "bytes": 90975818,
+  "sha256": "f54b0172e6d9d348295af4ecf117c71817284eaca09cbf9e09aa130edb6f9802",
+  "download_url": "https://github.com/zemabinks/repo/releases/download/zgta-v-build-91/ZGTA-V-Build91-Archive-Access-TrollStore.ipa",
+  "release_url": "https://github.com/zemabinks/repo/releases/tag/zgta-v-build-91",
+  "own_game_files_required": true,
+  "device_acceptance": "Owner confirms the physical archive workflow works after the Build91 update. No new independent device inventory/log; gameplay, real save retention, multiplayer, performance and reboot tests remain pending.",
+  "last_confirmed_device_build": 88,
+  "source_revision": "bb230c44fc008f7601be5ee66b2f0c7fb206d92b",
+  "owner_archive_confirmation": "downloads/zgta-v-build91-owner-confirmation.json"
+}

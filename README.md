@@ -12,10 +12,10 @@ Play Story or Free roam, or host/join a private multiplayer lobby. The Pure Blac
 
 | Platform | Package | Status |
 |---|---|---|
-| iOS with compatible TrollStore / TrollStore Lite | Native IPA; Sileo installer also available | Beta; tested owner installation/launcher/archive workflow on RootHide iPhone |
-| Windows x64 | Browser host ZIP with real bundled Python.exe | Alpha; hardware execution/gameplay need community testing |
-| Mac / Linux | Browser host ZIP using Python3.9+ | Beta host; macOS package/HTTP checks, Linux/gameplay pending |
-| Android | Termux browser-host ZIP | Experimental alpha, not an APK; GPU compatibility often limited |
+| iOS with compatible TrollStore / TrollStore Lite | [Native IPA](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.1/ZGTA-V-Build91-Archive-Access-TrollStore.ipa); Sileo installer also available | Beta; tested owner installation/launcher/archive workflow on RootHide iPhone |
+| Windows x64 | [Windows ZIP](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.1/ZGTA-V-Build92-Windows-x64.zip) with real bundled Python.exe | Alpha; hardware execution/gameplay need community testing |
+| Mac / Linux | [Mac/Linux ZIP](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.1/ZGTA-V-Build92-Browser-Mac-Linux.zip) using Python3.9+ | Beta host; macOS package/HTTP checks, Linux/gameplay pending |
+| Android | [Termux ZIP](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.1/ZGTA-V-Build92-Android-Termux.zip) | Experimental alpha, not an APK; GPU compatibility often limited |
 
 **[Full installation instructions](docs/START-HERE.md)** explain game-folder layout, first launch, updates, local networking, saves, mods, controls and troubleshooting. An ordinary retail GTA install folder alone does not satisfy the prepared mirror format. This release does not provide a retail-game converter, native Windows game.exe or Android APK.
 

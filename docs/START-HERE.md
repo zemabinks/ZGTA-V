@@ -6,11 +6,11 @@ A GTA V port with a Pure Black launcher, solo play, private multiplayer, local s
 
 | Device | Download | What it is | Current test status |
 |---|---|---|---|
-| iPhone / iPad with compatible TrollStore | iOS TrollStore `.ipa` | Native iOS app, version 2.0 / Build91 | Installation and launcher previously confirmed; repaired archive workflow owner-confirmed on the tested iPhone. Broader gameplay acceptance pending. |
+| iPhone / iPad with compatible TrollStore | [iOS TrollStore `.ipa`](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.1/ZGTA-V-Build91-Archive-Access-TrollStore.ipa) | Native iOS app, version 2.0 / Build91 | Installation and launcher previously confirmed; repaired archive workflow owner-confirmed on the tested iPhone. Broader gameplay acceptance pending. |
 | Compatible jailbroken iPhone / iPad using Sileo | Add [Zema's Repo](https://zemabinks.github.io/repo/), install **ZGTA V (TrollStore installer)** | A small installer that passes the pinned IPA to your existing TrollStore / TrollStore Lite | Existing RootHide route tested. It does not install TrollStore for you. |
-| Windows x64 | Windows x64 ZIP | Portable local browser host, including Python's actual `python.exe` | Alpha / community test. Package and HTTP checks on Mac; Windows execution and gameplay pending. |
-| Mac / Linux | Browser Mac Linux ZIP | Local browser host using your installed Python3.9+ | Beta host. macOS startup/HTTP checks; Linux and current gameplay pending. |
-| Android | Android Termux ZIP | Experimental local browser host starter | Alpha / compatibility testing. **No APK**, no physical Android validation; many GPUs lack required features. |
+| Windows x64 | [Windows x64 ZIP](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.1/ZGTA-V-Build92-Windows-x64.zip) | Portable local browser host, including Python's actual `python.exe` | Alpha / community test. Package and HTTP checks on Mac; Windows execution and gameplay pending. |
+| Mac / Linux | [Browser Mac Linux ZIP](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.1/ZGTA-V-Build92-Browser-Mac-Linux.zip) | Local browser host using your installed Python3.9+ | Beta host. macOS startup/HTTP checks; Linux and current gameplay pending. |
+| Android | [Android Termux ZIP](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.1/ZGTA-V-Build92-Android-Termux.zip) | Experimental local browser host starter | Alpha / compatibility testing. **No APK**, no physical Android validation; many GPUs lack required features. |
 
 The native iOS app and browser launcher share features but use different renderers and save storage. A Windows game `.exe` and native Android app are not provided. ZPlay is the wider games website; this port is **by zema (zemabinks)**.
 

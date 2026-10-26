@@ -1,0 +1,67 @@
+#!/bin/sh
+# Experimental rootful fallback. Does not install dependencies inside dpkg.
+set -eu
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
+export PATH
+umask 077
+APP_NAME=@APP_NAME@
+IPA_URL=@IPA_URL@
+EXPECTED_SHA256=@SHA256@
+EXPECTED_BYTES=@BYTES@
+say() { printf '%s\n' "[$APP_NAME / AppSync] $*"; }
+fail() { say "ERROR: $*" >&2; exit 1; }
+
+install_app() {
+    [ "$(id -u)" = 0 ] || fail 'Run this installer through Sileo/dpkg as root.'
+    for command in curl sha256sum wc mktemp stat dpkg dpkg-query uname; do
+        command -v "$command" >/dev/null 2>&1 || fail "Missing $command. Repair package dependencies and retry."
+    done
+    [ "$(uname -s)" = Darwin ] || fail 'This package is for jailbroken iOS.'
+    case "$(uname -m)" in arm64|arm64e) ;; *) fail 'ZGTA V requires an ARM64 device.' ;; esac
+    [ "$(dpkg --print-architecture)" = iphoneos-arm ] || fail 'This AppSync candidate is only for rootful jailbreaks, not RootHide or rootless.'
+    for package in ai.akemi.appsyncunified ai.akemi.appinst firmware; do
+        status=$(dpkg-query -W -f='${db:Status-Status}' "$package" 2>/dev/null) || fail "Missing $package. Add https://cydia.akemi.ai/ in Sileo and resolve dependencies first."
+        [ "$status" = installed ] || fail "$package is not configured. Finish its installation before retrying."
+    done
+    firmware=$(dpkg-query -W -f='${Version}' firmware)
+    dpkg --compare-versions "$firmware" ge 15.0 && dpkg --compare-versions "$firmware" le 18.2 || fail 'This candidate requires iOS 15.0 through 18.2 and a compatible AppSync jailbreak.'
+    for requirement in 'ai.akemi.appsyncunified 116.0' 'ai.akemi.appinst 2.1.1'; do
+        package=${requirement% *}; minimum=${requirement#* }
+        version=$(dpkg-query -W -f='${Version}' "$package")
+        dpkg --compare-versions "$version" ge "$minimum" || fail "Update $package from its official source before retrying."
+    done
+    # Prefer TrollStore when present. Never silently migrate its app registration.
+    for app in /var/containers/Bundle/Application/*/TrollStore.app /private/var/containers/Bundle/Application/*/TrollStore.app /Applications/TrollStoreLite.app; do
+        [ ! -f "$app/trollstorehelper" ] || fail 'TrollStore is present. Use ZGTA V (TrollStore installer) instead; this package will not change installation methods.'
+    done
+    for app in /var/containers/Bundle/Application/*/PlayGTA5Native.app /private/var/containers/Bundle/Application/*/PlayGTA5Native.app; do
+        container=${app%/*}
+        [ ! -e "$container/_TrollStore" ] && [ ! -e "$container/_TrollStoreLite" ] || fail 'The existing ZGTA V app is TrollStore-managed. Restore TrollStore and update through it; do not delete your app or saves.'
+    done
+    appinst=/usr/bin/appinst
+    [ -f "$appinst" ] && [ -x "$appinst" ] && [ ! -L "$appinst" ] || fail 'The official appinst executable is missing.'
+    owner=$(stat -c %u "$appinst" 2>/dev/null || stat -f %u "$appinst" 2>/dev/null) || fail 'Cannot check appinst ownership.'
+    [ "$owner" = 0 ] || fail 'appinst is not root-owned. Repair its official package first.'
+    work=$(mktemp -d /var/tmp/zema-appsync.XXXXXXXX) || fail 'Cannot create a private download directory.'
+    trap 'rm -rf "$work"' EXIT HUP INT TERM
+    ipa="$work/payload.ipa"
+    say 'Downloading the pinned IPA…'
+    curl --fail --location --silent --show-error --proto '=https' --proto-redir '=https' \
+        --connect-timeout 15 --max-time 300 --retry 2 --max-filesize "$EXPECTED_BYTES" \
+        --output "$ipa" "$IPA_URL" || fail 'Download failed. No app installation was started; retry when online.'
+    bytes=$(wc -c < "$ipa" | tr -d '[:space:]')
+    [ "$bytes" = "$EXPECTED_BYTES" ] || fail 'The downloaded size does not match. Installation was not started.'
+    actual=$(sha256sum "$ipa"); actual=${actual%% *}
+    [ "$actual" = "$EXPECTED_SHA256" ] || fail 'The downloaded SHA-256 does not match. Installation was not started.'
+    say 'Installing through official appinst and AppSync Unified…'
+    if "$appinst" "$ipa"; then
+        say 'appinst reports installation complete. Keep the app and its data. This route requires an active compatible jailbreak; launch, gameplay and reboot behavior still need device testing.'
+    else
+        result=$?
+        fail "appinst returned $result. Read its error above. No uninstall, force overwrite or alternate installer was attempted."
+    fi
+}
+case "${1:-configure}" in
+    configure) install_app ;;
+    *) exit 0 ;;
+esac

@@ -48,8 +48,7 @@ Mac verification can inspect PE headers and exact archive contents; it cannot
 execute Windows Python. Android uses Termux Python and is not an APK. The generic
 Mac/Linux host uses installed Python3.9+ and an explicit folder path prompt.
 
-Package/source manifest, CRC, extracted HTTP route and bundled-runtime checks
-are recorded separately after the frozen source is packaged. Current Windows,
+All three package/source manifest, CRC, extracted HTTP route and bundled-runtime checks pass on macOS. Windows Python PE headers and archive bytes match its pinned official input. The actual Mac shell starter passes check mode with private disposable state. A test-only /var alias was correctly rejected by the no-symlink mod-store policy; the canonical path passes. These results are recorded in the release verification JSON. The sanitized public source itself also passes the same59 targeted regression methods. Current Windows,
 Android and Linux physical execution/gameplay remain community tests.
 
 ## Still open
