@@ -16,7 +16,7 @@ import zipfile
 
 ROOT=Path(__file__).resolve().parent
 SOURCE_ROOT=ROOT.parents[1]
-BROWSER_REVISION='93'
+BROWSER_REVISION='95.1'
 PYTHON_URL='https://www.python.org/ftp/python/3.13.16/python-3.13.16-embed-amd64.zip'
 PYTHON_SHA='97dae5274cc54867065e8d5a3226e48c35017ed332a0fdb0e27d5b5821961297'
 
@@ -75,7 +75,7 @@ def build(stage,output,platform,python_archive=None,revision=None,allow_dirty=Fa
     for rel in sorted(tracked):
         f=SOURCE_ROOT/rel
         if f.parent==ROOT and f.suffix in ('.py','.js','.html','.css'):copy_source(f,code/f.name)
-    for name in ('solo-card.png','friends-card.png','los-santos-map.jpg','zplay-gta-green.svg','zplay-gta-green-32.png','zplay-gta-green-180.png','favicon.ico'):
+    for name in ('solo-card.png','friends-card.png','desktop-city.png','los-santos-map.jpg','zplay-gta-green.svg','zplay-gta-green-32.png','zplay-gta-green-180.png','favicon.ico'):
         copy_source(ROOT/name,code/name)
     for name in ('zgta-v.icns','zgta-v.ico','provenance.json'):
         copy_source(ROOT/'desktop-assets'/name,code/'desktop-assets'/name)

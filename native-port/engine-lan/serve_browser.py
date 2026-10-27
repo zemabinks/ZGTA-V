@@ -19,22 +19,27 @@ ROOT=Path(__file__).resolve().parent
 INDEX_SHA='ea61ad05772c2bd2409304bdb80520abf5c50723a95dccc6bcc185c367a3105b'
 BUILD='/b/8b0b5899ed/'
 SIZES={3600:3,2500:4,150:12,80:12,40:16}
+HOST_SIZES={7500:3,4000:6}
 
 
 def overlay(data):
     """Same fixed-length transaction as BroadcastOverlay.c, never disk writes."""
     if len(data)>16*1024*1024 or b'\0' in data:raise ValueError('Invalid gameconfig')
-    start=data.index(b'<PlayerBroadcastData>');end=data.index(b'</PlayerBroadcastData>',start)
     changed=bytearray(data)
-    for size,count in SIZES.items():
-        tag=('<SizeOfData value="%d"/>'%size).encode();item=data.index(tag,start,end)
-        if data.find(tag,item+len(tag),end)>=0:raise ValueError('Duplicate broadcast record')
-        close=data.index(b'</Item>',item,end);field=data.index(b'<NumInstances value="',item,close);digits=field+21;quote=data.index(b'"',digits,close);old=data[digits:quote]
-        if not old or len(old)>9 or not old.isdigit():raise ValueError('Invalid broadcast count')
-        if int(old)>=count:continue
-        value=str(count).encode();delta=len(value)-len(old)
-        if delta<0 or data[field-delta:field]!=b'\t'*delta:raise ValueError('Broadcast width changed')
-        changed[field-delta:quote]=data[field:digits]+value
+    for name,sizes in [('HostBroadcastData',HOST_SIZES),('PlayerBroadcastData',SIZES)]:
+        opening=('<'+name+'>').encode();closing=('</'+name+'>').encode()
+        if data.count(opening)!=1 or data.count(closing)!=1:raise ValueError('Ambiguous broadcast section')
+        start=data.index(opening);end=data.index(closing,start)
+        for size,count in sizes.items():
+            tag=('<SizeOfData value="%d"/>'%size).encode();item=data.index(tag,start,end)
+            if data.find(tag,item+len(tag),end)>=0:raise ValueError('Duplicate broadcast record')
+            close=data.index(b'</Item>',item,end);field=data.index(b'<NumInstances value="',item,close);digits=field+21;quote=data.index(b'"',digits,close);old=data[digits:quote]
+            if data.find(b'<NumInstances value="',digits,close)>=0:raise ValueError('Duplicate broadcast count')
+            if not old or len(old)>9 or not old.isdigit():raise ValueError('Invalid broadcast count')
+            if int(old)>=count:continue
+            value=str(count).encode();delta=len(value)-len(old)
+            if delta<0 or delta>field-start or data[field-delta:field]!=b'\t'*delta:raise ValueError('Broadcast width changed')
+            changed[field-delta:quote]=data[field:digits]+value
     if len(changed)!=len(data):raise ValueError('Broadcast length changed')
     return bytes(changed)
 
@@ -72,6 +77,10 @@ def index(data,mode='lan',prefix=None,engine_sha=None,lease=None,vehicle_packs=N
     text=once(text,'const offscreen = canvas.transferControlToOffscreen();','await window.ZemaRuntimeReady;\n\tconst offscreen = canvas.transferControlToOffscreen();')
     # Never unregister unrelated service workers or delete historical caches.
     text=once(text,'await dropOldCache();','/* Existing caches are preserved. */')
+    # This server reads an existing local mirror. A second persistent data cache
+    # duplicates those files and competes with macOS swap on the same disk.
+    # Keep the upstream bounded 48 MiB memory cache and exact HTTP range reads.
+    text=once(text,"noStore: !!(q.get('nocache') || q.get('nosw'))",'noStore: true')
     text=once(text,'installInput(ev.data.input.memory, ev.data.input.block);','window.ZemaGameInput=ZemaController.install(ev.data.input.memory, ev.data.input.block,canvas,startSize,startMode,window.ZemaRuntime.settings,window.ZemaRuntime.features);')
     text=once(text,'canvas: offscreen,','canvas: offscreen,\n        features:window.ZemaRuntime.features,\n        fpsChannel:window.ZemaFPSChannel,')
     text=once(text,"new BroadcastChannel('game-fps')","new BroadcastChannel(window.ZemaFPSChannel)")
@@ -154,7 +163,7 @@ class Content:
             self.map_icons={'active':True,'icons':len(patch['icons']),'archive_sha256':patch['result_sha256']}
         except (OSError,ValueError,KeyError,TypeError) as error:
             self.map_icons['reason']=type(error).__name__  # Keep the original on unsupported inputs.
-        self.assets={name:(ROOT/name).read_bytes() for name in ['session-restart.js','launcher.html','launcher.css','launcher.js','lobby-model.js','lobby-ui.js','launch-settings.js','browser-performance.js','controller.js','runtime.js','browser-saves.js','browser-features.js','vehicle-catalog.js','browser-trainer.js','vehicle-ui.js','trainer-ui.js','performance-run.js','browser-mods-ui.js','connection-ui.js','lan-loading.js','solo-card.png','friends-card.png','los-santos-map.jpg','zplay-gta-green.svg','zplay-gta-green-32.png','zplay-gta-green-180.png','favicon.ico']}
+        self.assets={name:(ROOT/name).read_bytes() for name in ['session-restart.js','launcher.html','launcher.css','desktop-launcher.css','desktop-launcher.js','desktop-city.png','launcher.js','lobby-model.js','lobby-ui.js','launch-settings.js','browser-performance.js','controller.js','runtime.js','browser-saves.js','browser-features.js','vehicle-catalog.js','browser-trainer.js','vehicle-ui.js','trainer-ui.js','performance-run.js','browser-mods-ui.js','connection-ui.js','lan-loading.js','solo-card.png','friends-card.png','los-santos-map.jpg','zplay-gta-green.svg','zplay-gta-green-32.png','zplay-gta-green-180.png','favicon.ico']}
         self.assets['launcher-icon.png']=(ROOT.parent/'app/App/Assets.xcassets/HomeIcon.imageset/HomeIcon.png').read_bytes()
         import mod_previews
         for row in mod_previews.load().values():

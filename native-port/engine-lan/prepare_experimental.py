@@ -147,7 +147,7 @@ def add_ui(spec):
 
 def configure_identity(spec):
     props=spec['targets']['PlayGTA5Native']['info']['properties']
-    props.update(CFBundleDisplayName='ZGTA V',CFBundleVersion='88',NSBonjourServices=['_zgtav._tcp'],NSLocalNetworkUsageDescription='Host or join ZGTA V multiplayer on your local network, and access your optional game-file server.')
+    props.update(CFBundleDisplayName='ZGTA V',CFBundleVersion='96',NSBonjourServices=['_zgtav._tcp'],NSLocalNetworkUsageDescription='Host or join ZGTA V multiplayer on your local network, and access your optional game-file server.')
     return spec
 
 
