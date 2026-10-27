@@ -21,7 +21,7 @@ Your own matching prepared game files are required. No commercial game content i
 | Mac / Linux | [Mac/Linux ZIP](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.2/ZGTA-V-Build93-Browser-Mac-Linux.zip) | Browser version · beta host; Linux testing pending |
 | Android | [Termux ZIP](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.2/ZGTA-V-Build93-Android-Termux.zip) | Experimental browser version; no APK |
 
-Read the **[installation guide](docs/START-HERE.md)** before downloading. It covers the required game files, device requirements and updates. Sileo users can add **[Zema's Repo](https://zemabinks.github.io/repo/)**.
+Read the **[installation guide](docs/START-HERE.md)** before downloading. It covers the required game files, device requirements and updates. Sileo users can add **[Zema's Repo](https://zemabinks.github.io/repo/)**. Its current **0.96-1** installer supplies the **Build 96 candidate**, with paired device testing still pending.
 
 ## Guides
 
