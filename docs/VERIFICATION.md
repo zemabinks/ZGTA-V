@@ -1,6 +1,10 @@
 # 2.0 beta verification
 
-## Native iOS — unchanged Build 91
+## Current Build 96 candidate / Sileo 0.96-1
+
+[Build 96](https://github.com/zemabinks/ZGTA-V/releases/tag/host-capacity-candidate-96) applies the revised bounded multiplayer host-broadcast fix to iOS and browser. The Sileo source now pins that exact IPA through installer **0.96-1**; signed indexes, both package archives and all 23 isolated installer/catalog/index test methods pass. Physical Build96 installation, paired gameplay and small-job reproduction remain pending. Prior Build91 evidence below is historical and does not establish Build96 device acceptance.
+
+## Native iOS — historical Build 91
 
 Compiled source: `bb230c44fc008f7601be5ee66b2f0c7fb206d92b`.
 IPA SHA-256: `f54b0172e6d9d348295af4ecf117c71817284eaca09cbf9e09aa130edb6f9802`.
@@ -21,7 +25,7 @@ workflow success, not independent current app inventory, save-upgrade, gameplay,
 performance or reboot acceptance. Raw phone logs remain private.
 
 The Sileo native helper interface was physically exercised on the same RootHide
-setup in earlier successful updates. Current0.91-1 wrappers pin the same91 IPA
+setup in earlier successful updates. The historical0.91-1 wrappers pin the same91 IPA
 and pass local scripted tests; independent current helper output was not supplied.
 AppSync remains an untested rootful experimental route.
 

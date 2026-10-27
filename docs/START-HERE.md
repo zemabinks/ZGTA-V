@@ -46,10 +46,10 @@ The `.tipa` download contains the same app as the `.ipa`; use `.ipa` for other s
 ### Sileo
 
 1. Open **Sileo → Sources** and add `https://zemabinks.github.io/repo/`.
-2. Refresh Sources, then install **ZGTA V (TrollStore installer)**, version **0.91-1**, with your existing compatible TrollStore / TrollStore Lite setup.
+2. Refresh Sources, then install **ZGTA V (TrollStore installer)**, version **0.96-1** (Build 96 candidate), with your existing compatible TrollStore / TrollStore Lite setup.
 3. Open ZGTA V and follow the game-file steps above.
 
-The Sileo package does not install TrollStore for you. Removing the small installer package leaves ZGTA V and its data installed.
+Sileo currently supplies the [Build 96 candidate](https://github.com/zemabinks/repo/releases/tag/zgta-v-build-96); the beta 2 manual downloads elsewhere in this guide remain the earlier release. The Sileo package does not install TrollStore for you. Removing the small installer package leaves ZGTA V and its data installed.
 
 ### Sideloadly, AltStore Classic or AppSync
 
