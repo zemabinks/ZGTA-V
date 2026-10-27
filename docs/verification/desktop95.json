@@ -1,0 +1,25 @@
+{
+  "status": "LOCAL_CANDIDATE_ONLY",
+  "browser_revision": "95",
+  "design": "Owner-approved concept 3, with a Story mode / Free roam dropdown and no redundant footer navigation",
+  "scope": "Desktop browser launcher; native iOS source and compiled runtime remain unchanged",
+  "activation": "At least 1000 CSS px, hover available and fine pointer; touch layout otherwise retained",
+  "control_ownership": "One launch panel and one instance of each graphics control are moved between launch setup and preferences, never cloned",
+  "feature_checks": {
+    "story_and_free_roam_navigation": "PASS_CHROME",
+    "graphics_controls_saves_mods_support_access": "PASS_CHROME",
+    "contextual_final_launch_paths": "PASS_REAL_LAUNCH_FUNCTION_WITH_ISOLATED_API",
+    "inline_join_host_draft_validation": "PASS",
+    "lobby_search_and_live_policy": "PASS_ISOLATED_CONTROLLER_AND_EXISTING_POLICY",
+    "hidden_page_polling": "PASS",
+    "desktop_touch_resize_roundtrip": "PASS_CHROME",
+    "duplicate_visible_control_names": "NONE_OBSERVED",
+    "small_desktop_launch_button": "PASS_1024x700"
+  },
+  "execution_limits": {
+    "new_gameplay_session": "NOT_RUN_FOR_UI_CHANGE",
+    "saved_character_resume": "OPEN_INVESTIGATION_PAUSED_BY_OWNER",
+    "native_iOS": "UNCHANGED_NOT_REBUILT",
+    "Windows_and_Linux_execution": "NOT_TESTED"
+  }
+}

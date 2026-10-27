@@ -158,7 +158,7 @@ class Content:
             self.map_icons={'active':True,'icons':len(patch['icons']),'archive_sha256':patch['result_sha256']}
         except (OSError,ValueError,KeyError,TypeError) as error:
             self.map_icons['reason']=type(error).__name__  # Keep the original on unsupported inputs.
-        self.assets={name:(ROOT/name).read_bytes() for name in ['session-restart.js','launcher.html','launcher.css','launcher.js','lobby-model.js','lobby-ui.js','launch-settings.js','browser-performance.js','controller.js','runtime.js','browser-saves.js','browser-features.js','vehicle-catalog.js','browser-trainer.js','vehicle-ui.js','trainer-ui.js','performance-run.js','browser-mods-ui.js','connection-ui.js','lan-loading.js','solo-card.png','friends-card.png','los-santos-map.jpg','zplay-gta-green.svg','zplay-gta-green-32.png','zplay-gta-green-180.png','favicon.ico']}
+        self.assets={name:(ROOT/name).read_bytes() for name in ['session-restart.js','launcher.html','launcher.css','desktop-launcher.css','desktop-launcher.js','desktop-city.png','launcher.js','lobby-model.js','lobby-ui.js','launch-settings.js','browser-performance.js','controller.js','runtime.js','browser-saves.js','browser-features.js','vehicle-catalog.js','browser-trainer.js','vehicle-ui.js','trainer-ui.js','performance-run.js','browser-mods-ui.js','connection-ui.js','lan-loading.js','solo-card.png','friends-card.png','los-santos-map.jpg','zplay-gta-green.svg','zplay-gta-green-32.png','zplay-gta-green-180.png','favicon.ico']}
         self.assets['launcher-icon.png']=(ROOT.parent/'app/App/Assets.xcassets/HomeIcon.imageset/HomeIcon.png').read_bytes()
         import mod_previews
         for row in mod_previews.load().values():
