@@ -72,6 +72,10 @@ def index(data,mode='lan',prefix=None,engine_sha=None,lease=None,vehicle_packs=N
     text=once(text,'const offscreen = canvas.transferControlToOffscreen();','await window.ZemaRuntimeReady;\n\tconst offscreen = canvas.transferControlToOffscreen();')
     # Never unregister unrelated service workers or delete historical caches.
     text=once(text,'await dropOldCache();','/* Existing caches are preserved. */')
+    # This server reads an existing local mirror. A second persistent data cache
+    # duplicates those files and competes with macOS swap on the same disk.
+    # Keep the upstream bounded 48 MiB memory cache and exact HTTP range reads.
+    text=once(text,"noStore: !!(q.get('nocache') || q.get('nosw'))",'noStore: true')
     text=once(text,'installInput(ev.data.input.memory, ev.data.input.block);','window.ZemaGameInput=ZemaController.install(ev.data.input.memory, ev.data.input.block,canvas,startSize,startMode,window.ZemaRuntime.settings,window.ZemaRuntime.features);')
     text=once(text,'canvas: offscreen,','canvas: offscreen,\n        features:window.ZemaRuntime.features,\n        fpsChannel:window.ZemaFPSChannel,')
     text=once(text,"new BroadcastChannel('game-fps')","new BroadcastChannel(window.ZemaFPSChannel)")
