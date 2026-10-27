@@ -1,5 +1,7 @@
 # ZGTA V 2.0 beta
 
+> **New test candidate: [Build 96 — multiplayer host capacity](https://github.com/zemabinks/ZGTA-V/releases/tag/host-capacity-candidate-96).** Matching iPhone and browser updates include the revised bounded host broadcast fix. Local config/parity/package checks pass; paired gameplay and the small-job crash reproduction still need retesting. The beta 2 downloads below remain available.
+
 ### By zema · zemabinks
 
 **Solo Story · Free Roam · Private Multiplayer — Join or Create.**
