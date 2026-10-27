@@ -19,22 +19,27 @@ ROOT=Path(__file__).resolve().parent
 INDEX_SHA='ea61ad05772c2bd2409304bdb80520abf5c50723a95dccc6bcc185c367a3105b'
 BUILD='/b/8b0b5899ed/'
 SIZES={3600:3,2500:4,150:12,80:12,40:16}
+HOST_SIZES={7500:3,4000:6}
 
 
 def overlay(data):
     """Same fixed-length transaction as BroadcastOverlay.c, never disk writes."""
     if len(data)>16*1024*1024 or b'\0' in data:raise ValueError('Invalid gameconfig')
-    start=data.index(b'<PlayerBroadcastData>');end=data.index(b'</PlayerBroadcastData>',start)
     changed=bytearray(data)
-    for size,count in SIZES.items():
-        tag=('<SizeOfData value="%d"/>'%size).encode();item=data.index(tag,start,end)
-        if data.find(tag,item+len(tag),end)>=0:raise ValueError('Duplicate broadcast record')
-        close=data.index(b'</Item>',item,end);field=data.index(b'<NumInstances value="',item,close);digits=field+21;quote=data.index(b'"',digits,close);old=data[digits:quote]
-        if not old or len(old)>9 or not old.isdigit():raise ValueError('Invalid broadcast count')
-        if int(old)>=count:continue
-        value=str(count).encode();delta=len(value)-len(old)
-        if delta<0 or data[field-delta:field]!=b'\t'*delta:raise ValueError('Broadcast width changed')
-        changed[field-delta:quote]=data[field:digits]+value
+    for name,sizes in [('HostBroadcastData',HOST_SIZES),('PlayerBroadcastData',SIZES)]:
+        opening=('<'+name+'>').encode();closing=('</'+name+'>').encode()
+        if data.count(opening)!=1 or data.count(closing)!=1:raise ValueError('Ambiguous broadcast section')
+        start=data.index(opening);end=data.index(closing,start)
+        for size,count in sizes.items():
+            tag=('<SizeOfData value="%d"/>'%size).encode();item=data.index(tag,start,end)
+            if data.find(tag,item+len(tag),end)>=0:raise ValueError('Duplicate broadcast record')
+            close=data.index(b'</Item>',item,end);field=data.index(b'<NumInstances value="',item,close);digits=field+21;quote=data.index(b'"',digits,close);old=data[digits:quote]
+            if data.find(b'<NumInstances value="',digits,close)>=0:raise ValueError('Duplicate broadcast count')
+            if not old or len(old)>9 or not old.isdigit():raise ValueError('Invalid broadcast count')
+            if int(old)>=count:continue
+            value=str(count).encode();delta=len(value)-len(old)
+            if delta<0 or delta>field-start or data[field-delta:field]!=b'\t'*delta:raise ValueError('Broadcast width changed')
+            changed[field-delta:quote]=data[field:digits]+value
     if len(changed)!=len(data):raise ValueError('Broadcast length changed')
     return bytes(changed)
 
