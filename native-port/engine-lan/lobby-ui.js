@@ -54,7 +54,7 @@
      if(role==='join'){patch.relay=chosen.relay;patch[bank+'Relay']=chosen.relay;remember(chosen);}change(patch);
      feedback.textContent='';return chosen;
    }
-   pendingSetup=()=>{if(bookmark)throw Error('Save this favorite, or choose Join a friend / Create a lobby before launching.');try{return configure();}catch(error){feedback.className='lobby-feedback error';feedback.textContent=error.message;throw error;}};
+   pendingSetup=()=>{feedback.textContent='';if(bookmark)throw Error('Save this favorite, or choose Join a friend / Create a lobby before launching.');return configure();};
    form.onsubmit=async event=>{event.preventDefault();if(launching)return;
     try{
      if(bookmark){const chosen=M.target(address.input.value,room.input.value);M.setFavorite(storage,chosen,true);onlyFavorites=true;close(dialog);openServers(chosen.connection);if(desktop)openJoin('join',chosen);return;}

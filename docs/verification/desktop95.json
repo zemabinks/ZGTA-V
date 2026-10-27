@@ -1,6 +1,6 @@
 {
   "status": "LOCAL_CANDIDATE_ONLY",
-  "browser_revision": "95",
+  "browser_revision": "95.1",
   "design": "Owner-approved concept 3, with a Story mode / Free roam dropdown and no redundant footer navigation",
   "scope": "Desktop browser launcher; native iOS source and compiled runtime remain unchanged",
   "activation": "At least 1000 CSS px, hover available and fine pointer; touch layout otherwise retained",

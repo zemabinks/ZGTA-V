@@ -16,7 +16,7 @@ import zipfile
 
 ROOT=Path(__file__).resolve().parent
 SOURCE_ROOT=ROOT.parents[1]
-BROWSER_REVISION='95'
+BROWSER_REVISION='95.1'
 PYTHON_URL='https://www.python.org/ftp/python/3.13.16/python-3.13.16-embed-amd64.zip'
 PYTHON_SHA='97dae5274cc54867065e8d5a3226e48c35017ed332a0fdb0e27d5b5821961297'
 
