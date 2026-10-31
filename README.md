@@ -29,6 +29,15 @@ Read the **[installation guide](docs/START-HERE.md)** before downloading. The Ma
 - Browser Graphics, Controls, Mods, Saves and Support share the main navigation.
 - Mac installation now supports dragging the app from the DMG into Applications.
 
+## Browser preview
+
+The Mac launcher opens this browser interface. Story mode, Graphics, Controls,
+Mods, Saves and Support share the main navigation.
+
+![ZGTA V browser Story mode and main navigation](docs/images/browser/Story-mode-107.png)
+
+[See browser layouts and iOS previews](docs/INTERFACE-PREVIEWS.md).
+
 ## Guides
 
 - [Install and update](docs/START-HERE.md)
