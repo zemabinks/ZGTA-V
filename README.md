@@ -8,6 +8,14 @@ Your own matching prepared game files are required. No commercial game content i
 
 **[Download beta 3](https://github.com/zemabinks/ZGTA-V/releases/tag/v2.0.0-beta.3)** · **[Install and update](docs/START-HERE.md)** · **[What's new](docs/RELEASE-NOTES-beta3.md)** · **[Play guide](docs/PLAY-GUIDE.md)**
 
+## Start screens
+
+| iOS app | Browser / Mac launcher |
+|---|---|
+| ![Native iOS Home captured in the iPhone 15 Pro Simulator](docs/images/ios/Home-107.png) | ![Browser Story mode and main navigation](docs/images/browser/Story-mode-107.jpg) |
+
+[See the full iOS and browser gallery](docs/INTERFACE-PREVIEWS.md).
+
 ## Downloads
 
 | Platform | Package | Status |
@@ -28,15 +36,6 @@ Read the **[installation guide](docs/START-HERE.md)** before downloading. The Ma
 - Nearby LAN browsing uses announced ports, and updated managed hosts appear before the first player joins.
 - Browser Graphics, Controls, Mods, Saves and Support share the main navigation.
 - Mac installation now supports dragging the app from the DMG into Applications.
-
-## Browser preview
-
-The Mac launcher opens this browser interface. Story mode, Graphics, Controls,
-Mods, Saves and Support share the main navigation.
-
-![ZGTA V browser Story mode and main navigation](docs/images/browser/Story-mode-107.jpg)
-
-[See browser layouts and iOS previews](docs/INTERFACE-PREVIEWS.md).
 
 ## Guides
 

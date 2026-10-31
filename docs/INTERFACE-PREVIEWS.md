@@ -42,21 +42,25 @@ becomes available after the game world loads, and vehicles need matching assets.
 
 ## iOS app
 
-The existing iOS design previews are retained below. They show the mobile
-layout separately from the browser screenshots above.
+These are fresh iOS 26.3 Simulator captures on the iPhone 15 Pro profile, using
+HomeView, SettingsViewController and their supporting UIKit sources from public
+Build 107. The same screens were also checked on the smaller iPhone SE 2020
+profile. This screen-only harness starts no game engine; file readiness and
+hardware values are fixtures. These images show the native layout, not measured
+phone performance.
 
 ### Home
 
-![iOS Home design preview](images/Home-final.png)
+![Native iOS Home in the iPhone 15 Pro Simulator](images/ios/Home-107.png)
 
 ### With friends
 
-![iOS With friends design preview](images/With-friends-final.png)
+![Native iOS With friends in the iPhone 15 Pro Simulator](images/ios/Friends-107.png)
 
 ### Settings
 
-![iOS Settings design preview](images/Settings-final.png)
+![Native iOS Settings in the iPhone 15 Pro Simulator](images/ios/Settings-107.png)
 
-### Offline favorites
+### Graphics
 
-![iOS offline favorites design preview](images/Favorites-offline.png)
+![Native iOS Graphics in the iPhone 15 Pro Simulator](images/ios/Graphics-107.png)
