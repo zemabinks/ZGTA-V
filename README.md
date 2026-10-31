@@ -34,7 +34,7 @@ Read the **[installation guide](docs/START-HERE.md)** before downloading. The Ma
 The Mac launcher opens this browser interface. Story mode, Graphics, Controls,
 Mods, Saves and Support share the main navigation.
 
-![ZGTA V browser Story mode and main navigation](docs/images/browser/Story-mode-107.png)
+![ZGTA V browser Story mode and main navigation](docs/images/browser/Story-mode-107.jpg)
 
 [See browser layouts and iOS previews](docs/INTERFACE-PREVIEWS.md).
 

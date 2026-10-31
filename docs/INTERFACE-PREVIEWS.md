@@ -16,21 +16,21 @@ Choose Story mode or Free Roam from the menu, then adjust the launch setup.
 The main navigation also leads to multiplayer, mods, graphics, controls, saves
 and support.
 
-![Browser Story mode with launch setup and main navigation](images/browser/Story-mode-107.png)
+![Browser Story mode with launch setup and main navigation](images/browser/Story-mode-107.jpg)
 
 ### Graphics
 
 Graphics presets provide a starting point. Resolution and frame rate have
 separate controls on the same page.
 
-![Browser Graphics page with preset cards and display controls](images/browser/Graphics-107.png)
+![Browser Graphics page with preset cards and display controls](images/browser/Graphics-107.jpg)
 
 ### Controls
 
 Keyboard, mouse, controller and targeting options stay inside the launcher's
 main navigation.
 
-![Browser Controls page with mouse and controller settings](images/browser/Controls-107.png)
+![Browser Controls page with mouse and controller settings](images/browser/Controls-107.jpg)
 
 ### Mods
 
@@ -38,7 +38,7 @@ The Mod Manager is an integrated launcher page. This preview shows its upper
 section; the vehicle catalog and other play tools continue below. Spawning
 becomes available after the game world loads, and vehicles need matching assets.
 
-![Browser Mod Manager integrated into the main navigation](images/browser/Mods-107.png)
+![Browser Mod Manager integrated into the main navigation](images/browser/Mods-107.jpg)
 
 ## iOS app
 
