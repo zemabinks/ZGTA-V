@@ -64,7 +64,7 @@ class BrowserLobbyHost:
                 return dict(self.restart_spec['info'],running=False,owned=True,can_restart=True,id=self.restart_spec['id'],peers=0)
             return {'running':False,'owned':False}
         self.engine.expire()
-        return dict(self.info, running=True,owned=True,id=self.identifier,
+        return dict(self.info, running=True,owned=True,id=self.identifier,discovery=self.announcement.status(),
                     peers=sum(p.writer is not None for ps in self.engine.rooms.values() for p in ps.values()))
     def status(self):
         with self.lock:
@@ -100,7 +100,7 @@ class BrowserLobbyHost:
                    'remote':'ws://%s:%d/engine-lan'%(selected['remote'],port) if connection=='Remote' and selected['remote'] else '',
                    'availability':'While the local launcher is running and this computer is awake'}
         self.restart_spec=None
-        if connection=='LAN' and not selected['lan'].startswith('127.'):self.announcement.start(room,port)
+        if connection=='LAN' and not selected['lan'].startswith('127.'):self.announcement.start(room,port,selected['lan'])
         return await self._status()
     def start(self,room,connection):
         if not isinstance(room,str) or not room.strip() or len(room.encode())>64 or any(ord(c)<32 or 127<=ord(c)<160 for c in room):raise ValueError('Enter a room of 1–64 bytes without control characters.')

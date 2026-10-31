@@ -96,7 +96,9 @@ targets:
           NSAllowsArbitraryLoads: true
         # Filled in by the cloud build so you don't have to type it.
         PGDefaultAssetServer: ""
-        NSLocalNetworkUsageDescription: "Connect to your Mac multiplayer server and optional game-file server on the same local network."
+        NSLocalNetworkUsageDescription: "Host or join ZGTA V multiplayer on your local network, and access your optional game-file server."
+        NSBonjourServices:
+          - _zgtav._tcp
         NSMicrophoneUsageDescription: "ZGTA V uses the microphone for optional in-game voice chat (Speaker & Mic)."
         # The app folder (logs) is visible in the Files app.
         UIFileSharingEnabled: true

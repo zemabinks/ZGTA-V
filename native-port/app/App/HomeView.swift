@@ -369,7 +369,10 @@ private final class PureBlackModeCard: UIControl {
         super.init(frame: .zero)
         backgroundColor = Theme.surface; layer.cornerRadius = 15; layer.borderWidth = 1; layer.borderColor = Theme.panelStroke.cgColor
         let icon = UIImageView(image: UIImage(systemName: symbol)); icon.tintColor = Theme.accent
+        icon.contentMode = .scaleAspectFit
+        icon.accessibilityIdentifier = "mode.symbol." + symbol
         icon.widthAnchor.constraint(equalToConstant: 26).isActive = true
+        icon.heightAnchor.constraint(equalToConstant: 26).isActive = true
         label.text = title
         label.font = Theme.body(15, .semibold)
         label.textColor = .white

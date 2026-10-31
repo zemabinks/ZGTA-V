@@ -192,7 +192,10 @@ u32 w2c_env_0x5F_syscall_renameat(struct w2c_env *h,u32 a,u64 old,u32 b,u64 new)
 u32 w2c_env_0x5F_syscall_ftruncate64(struct w2c_env *h,u32 fd,u64 length){int n=nativeFD(fd);if(n<0||ftruncate(n,(int64_t)length)<0)return failure();return 0;}
 u32 w2c_wasi__snapshot__preview1_fd_close(struct w2c_wasi__snapshot__preview1 *h,u32 fd){
   if(fd<3)return 0;pthread_mutex_lock(&filesLock);int n=nativeFD(fd);if(n<0){pthread_mutex_unlock(&filesLock);return 8;}
-  if(descriptors[fd].dir)closedir(descriptors[fd].dir);else close(n);
+  // getdents owns a duplicated descriptor through fdopendir. closedir releases
+  // that copy; the original guest descriptor must be closed independently.
+  if(descriptors[fd].dir)closedir(descriptors[fd].dir);
+  close(n);
   memset(&descriptors[fd],0,sizeof descriptors[fd]);descriptors[fd].native=-1;pthread_mutex_unlock(&filesLock);return 0;
 }
 u32 pg_file_io(struct w2c_env *h,u32 fd,u64 vectors,u64 count,u64 offset,u64 out,bool writing,bool positioned){

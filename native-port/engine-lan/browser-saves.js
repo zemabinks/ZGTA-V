@@ -31,13 +31,20 @@
   const binary=atob(text),out=new Uint8Array(binary.length);for(let i=0;i<out.length;i++)out[i]=binary.charCodeAt(i);return out;
  }
  function nativePath(path){if(typeof path!=='string')return null;const match=/^(userdata|sandbox)(\/Documents\/.+)$/.exec(path);return match&&safe('/userdata'+match[2])?{mode:match[1]==='userdata'?'story':'sandbox',path:'/userdata'+match[2]}:null;}
+ // JS has no full Unicode case-fold API. This conservative transfer key also
+ // catches expansion aliases such as sharp-s/ss, ligature ff and final sigma
+ // before they reach a case-insensitive native filesystem. Browser-only IDB
+ // names remain distinct; only native transfers use this spelling check.
+ function nativeKey(path){return path.normalize('NFC').toUpperCase().toLowerCase().normalize('NFC');}
  async function validate(archive,mode){
   database(mode);const phone=archive?.schema===1&&archive.format===undefined&&Number.isFinite(archive.created);
   if(!archive||(!phone&&(archive.format!=='zema-browser-save-v1'||archive.mode!==mode))||!Array.isArray(archive.entries)||!archive.entries.length||archive.entries.length>COUNT)throw Error('Choose an iPhone .mugoatsave or a browser backup for this save profile.');
   const seen=new Set(),entries=[];let total=0;
   for(const item of archive.entries){
    const mapped=phone?nativePath(item?.path):null,path=phone?mapped?.path:item?.path;
-   if(!safe(path)||seen.has(item.path))throw Error('Invalid or duplicate save path.');seen.add(item.path);
+   if(!safe(path))throw Error('Invalid or duplicate save path.');
+   const key=phone?nativeKey(item.path):item.path;
+   if(seen.has(key))throw Error('Invalid or duplicate save path.');seen.add(key);
    const data=decode(item.data);total+=data.byteLength;
    if(total>LIMIT||await digest(data)!==item.sha256)throw Error('Backup is too large or its checksum does not match.');
    // Validate the entire phone package before selecting one isolated profile.
@@ -49,7 +56,7 @@
  async function nativeArchive(mode,value){
   const entries=await validate(value,mode),seen=new Set();
   return {schema:1,created:Date.now()/1000-978307200,entries:await Promise.all(entries.map(async f=>{
-   const path=(mode==='story'?'userdata':'sandbox')+f.path.slice('/userdata'.length),key=path.normalize('NFC').toLowerCase();
+   const path=(mode==='story'?'userdata':'sandbox')+f.path.slice('/userdata'.length),key=nativeKey(path);
    if(new TextEncoder().encode(path).length>=1024)throw Error('A save path is too long for the iPhone backup format.');
    if(seen.has(key))throw Error('Two save paths differ only by case or Unicode spelling. Rename them before transferring to iPhone.');seen.add(key);
    return {path,data:encode(f.data),sha256:await digest(f.data)};
@@ -60,6 +67,20 @@
   return new Promise((resolve,reject)=>{const r=indexedDB.open(name,1);r.onupgradeneeded=()=>{if(!create){r.transaction.abort();return;}r.result.createObjectStore('files');};r.onblocked=()=>reject(Error('Save database is in use.'));r.onerror=()=>reject(r.error||Error('Cannot open saves.'));r.onsuccess=()=>{if(!r.result.objectStoreNames.contains('files')){r.result.close();reject(Error('Unexpected save storage.'));}else resolve(r.result);};});}
  function collect(db){if(!db)return Promise.resolve([]);return new Promise((resolve,reject)=>{let total=0,entries=[];const tx=db.transaction('files','readonly'),r=tx.objectStore('files').openCursor();r.onsuccess=()=>{const c=r.result;if(!c)return;try{if(safe(c.key)){const data=new Uint8Array(c.value.data);total+=data.byteLength;if(total>LIMIT||entries.length>=COUNT)throw Error('Saves exceed the 16 MB / 256 file backup limit.');entries.push({path:c.key,data,mtime:c.value.mtime});}c.continue();}catch(error){tx.abort();reject(error);}};tx.oncomplete=()=>resolve(entries);tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error||Error('Save read cancelled.'));});}
  async function list(mode){return lease(async()=>{const db=await open(mode);try{return await collect(db);}finally{db?.close();}});}
+ function storedSize(value){const bytes=value?.data?.byteLength??value?.data?.length;if(!Number.isSafeInteger(bytes)||bytes<0)throw Error('Invalid stored save data.');return bytes;}
+ async function listInfo(mode){return lease(async()=>{const db=await open(mode);if(!db)return [];try{return await new Promise((resolve,reject)=>{
+  const entries=[],tx=db.transaction('files','readonly'),r=tx.objectStore('files').openCursor();let visited=0;
+  r.onsuccess=()=>{const c=r.result;if(!c)return;try{if(++visited>4096)throw Error('The save database contains too many entries to list safely.');if(safe(c.key))entries.push({path:c.key,size:storedSize(c.value),mtime:c.value.mtime});c.continue();}catch(error){tx.abort();reject(error);}};
+  tx.oncomplete=()=>resolve(entries);tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error||Error('Save listing cancelled.'));
+ });}finally{db.close();}});}
+ async function selected(mode,path){
+  if(!safe(path))throw Error('Invalid save path.');
+  return lease(async()=>{const db=await open(mode);if(!db)return [];try{return await new Promise((resolve,reject)=>{
+   const tx=db.transaction('files','readonly'),r=tx.objectStore('files').get(path);let entries=[];
+   r.onsuccess=()=>{try{if(r.result!==undefined){if(storedSize(r.result)>LIMIT)throw Error('The selected save exceeds the 16 MB backup limit.');entries=[{path,data:new Uint8Array(r.result.data),mtime:r.result.mtime}];}}catch(error){tx.abort();reject(error);}};
+   tx.oncomplete=()=>resolve(entries);tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error||Error('Save read cancelled.'));
+  });}finally{db.close();}});
+ }
  async function importStory(bytes,filename){
   const title=storyTitle(bytes),snapshot=bytes.slice();
   return lease(async()=>{const db=await open('story',true);try{
@@ -89,14 +110,22 @@
   }finally{db.close();}});
  }
  async function archive(mode,files){const entries=[];for(const f of files)entries.push({path:f.path,data:encode(f.data),sha256:await digest(f.data),mtime:f.mtime});return {format:'zema-browser-save-v1',mode,created:new Date().toISOString(),entries};}
- async function exportSaves(mode,path){const files=await list(mode),selected=path?files.filter(f=>f.path===path):files;if(!selected.length)throw Error('No saved files yet. Save inside the game first.');return archive(mode,selected);}
+ async function exportSaves(mode,path){const files=path===undefined?await list(mode):await selected(mode,path);if(!files.length)throw Error('No saved files yet. Save inside the game first.');return archive(mode,files);}
  async function exportNative(mode){return nativeArchive(mode,await exportSaves(mode));}
  async function exportSafety(mode){return lease(async()=>{const db=await open(mode);if(!db)throw Error('No safety backup exists yet.');try{const backup=await new Promise((resolve,reject)=>{let latest=null;const tx=db.transaction('files','readonly'),r=tx.objectStore('files').openCursor();r.onsuccess=()=>{const c=r.result;if(!c)return;if(String(c.key).startsWith('__zema-save-backup__/')&&c.value?.format==='zema-browser-rollback-v1'&&(!latest||c.value.created>latest.created))latest=c.value;c.continue();};tx.oncomplete=()=>resolve(latest);tx.onerror=()=>reject(tx.error);});if(!backup||!backup.entries.length)throw Error('No nonempty safety backup exists yet.');return archive(mode,backup.entries);}finally{db.close();}});}
  async function restore(mode,raw){if(typeof raw!=='string'||raw.length>32*1024*1024)throw Error('Backup exceeds 32 MB.');const entries=await validate(JSON.parse(raw),mode);
   return lease(async()=>{const db=await open(mode,true);try{
    // Same readwrite transaction reads originals, stores their backup and applies replacements.
    return await new Promise((resolve,reject)=>{const tx=db.transaction('files','readwrite'),store=tx.objectStore('files'),r=store.openCursor();const originals=[];let total=0,backups=0;const key='__zema-save-backup__/'+Date.now()+'-'+crypto.randomUUID();
-    r.onsuccess=()=>{const c=r.result;try{if(c){if(String(c.key).startsWith('__zema-save-backup__/'))backups++;else if(safe(c.key)){const data=new Uint8Array(c.value.data);total+=data.byteLength;if(total>LIMIT||originals.length>=COUNT)throw Error('Current saves exceed the backup limit.');originals.push({path:c.key,data,mtime:c.value.mtime});}c.continue();return;}if(backups>=16)throw Error('The 16 safety-backup limit has been reached. No save or backup was changed.');store.put({format:'zema-browser-rollback-v1',created:Date.now(),entries:originals},key);for(const e of entries)store.put({data:e.data,mtime:e.mtime},e.path);}catch(error){tx.abort();reject(error);}};
+    r.onsuccess=()=>{const c=r.result;try{if(c){if(String(c.key).startsWith('__zema-save-backup__/'))backups++;else if(safe(c.key)){const data=new Uint8Array(c.value.data);total+=data.byteLength;if(total>LIMIT||originals.length>=COUNT)throw Error('Current saves exceed the backup limit.');originals.push({path:c.key,data,mtime:c.value.mtime});}c.continue();return;}if(backups>=16)throw Error('The 16 safety-backup limit has been reached. No save or backup was changed.');
+     // Restore overlays files, so validate the resulting profile rather than
+     // only checking the incoming archive and originals independently. This
+     // keeps the next export/transfer usable and makes rejection atomic.
+     const merged=new Map(originals.map(f=>[f.path,f.data.byteLength]));
+     for(const e of entries)merged.set(e.path,e.data.byteLength);
+     let mergedBytes=0;for(const bytes of merged.values())mergedBytes+=bytes;
+     if(merged.size>COUNT||mergedBytes>LIMIT)throw Error('Restored saves would exceed the 16 MB / 256 file backup limit. Existing saves and backups were kept.');
+     store.put({format:'zema-browser-rollback-v1',created:Date.now(),entries:originals},key);for(const e of entries)store.put({data:e.data,mtime:e.mtime},e.path);}catch(error){tx.abort();reject(error);}};
     tx.oncomplete=()=>resolve({restored:entries.length,backup:key});tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error||Error('Restore cancelled; previous files remain.'));
    });
   }finally{db.close();}});
@@ -115,5 +144,5 @@
   if(!(bytes instanceof Uint8Array))throw Error('Choose a .zemapf profile backup.');const p=root.ZemaOnline.Profile.decode(bytes),snapshot=bytes.slice();
   return lease(async()=>{const store=await lanStore(true);try{const current=await store.load();if(current!==null)root.ZemaOnline.Profile.decode(current);if(await store.commit(snapshot)!==true)throw Error('LAN restore failed.');return {name:p.name,id:p.id};}finally{store.db.close();}});
  }
- const api={safe,database,validate,list,exportSaves,exportNative,nativeArchive,exportSafety,restore,digest,archive,lanInfo,lanBytes,restoreLan,storyTitle,storyCandidates,importStory};root.ZemaBrowserSaves=api;if(typeof module==='object')module.exports=api;
+ const api={safe,database,validate,list,listInfo,exportSaves,exportNative,nativeArchive,exportSafety,restore,digest,archive,lanInfo,lanBytes,restoreLan,storyTitle,storyCandidates,importStory};root.ZemaBrowserSaves=api;if(typeof module==='object')module.exports=api;
 })(globalThis);

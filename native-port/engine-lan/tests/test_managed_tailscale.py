@@ -21,9 +21,9 @@ class ManagedVPN(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             client=Path(d)/'client';client.write_text('fixture');client.chmod(0o700)
             def result(state='Running',online=True,ips=None):
-                return SimpleNamespace(returncode=0,stdout=json.dumps({'BackendState':state,'Self':{'Online':online,'TailscaleIPs':ips or ['100.75.192.42']}}))
+                return SimpleNamespace(returncode=0,stdout=json.dumps({'BackendState':state,'Self':{'Online':online,'TailscaleIPs':ips or ['100.70.1.9']}}))
             run=Mock(return_value=result())
-            self.assertEqual(runner.tailscale_ip(run,client),'100.75.192.42')
+            self.assertEqual(runner.tailscale_ip(run,client),'100.70.1.9')
             self.assertEqual(run.call_args.args[0],[str(client),'status','--json','--peers=false'])
             self.assertEqual(run.call_args.kwargs['env']['TERM'],'dumb')
             for value in [result('Stopped'),result(online=False),result(ips=['8.8.8.8','::1']),SimpleNamespace(returncode=1,stdout=''),SimpleNamespace(returncode=0,stdout='[]')]:
@@ -34,16 +34,16 @@ class ManagedVPN(unittest.TestCase):
 
     def test_cli_optional_listener_requires_exact_vpn_range(self):
         serve=AsyncMock()
-        with patch.object(relay,'serve',serve):relay.main(['--bind','192.168.1.2','--vpn-bind','100.75.192.42','--service'])
-        serve.assert_awaited_once_with('192.168.1.2',47540,None,'100.75.192.42')
-        for args in [['--vpn-bind','8.8.8.8'],['--vpn-bind','192.168.1.2'],['--tailscale','--bind','100.75.192.42','--vpn-bind','100.75.192.43']]:
+        with patch.object(relay,'serve',serve):relay.main(['--bind','192.168.1.2','--vpn-bind','100.70.1.9','--service'])
+        serve.assert_awaited_once_with('192.168.1.2',47540,None,'100.70.1.9')
+        for args in [['--vpn-bind','8.8.8.8'],['--vpn-bind','192.168.1.2'],['--tailscale','--bind','100.70.1.9','--vpn-bind','100.70.1.10']]:
             with patch.object(relay,'serve',AsyncMock()) as serve,contextlib.redirect_stderr(io.StringIO()),self.assertRaises(SystemExit):relay.main(args)
             serve.assert_not_called()
 
     def test_status_requires_live_matching_instance_on_both_addresses(self):
         with tempfile.TemporaryDirectory() as d:
             root=Path(d).resolve()/'runtime';root.mkdir(mode=0o700)
-            runner.publish_address(root,'192.168.1.2');runner.publish_address(root,'100.75.192.42','relay-vpn-bind.json')
+            runner.publish_address(root,'192.168.1.2');runner.publish_address(root,'100.70.1.9','relay-vpn-bind.json')
             health={'instance':'a'*32,'peers':2,'rooms':1}
             with patch.object(control,'ROOT',root),patch.object(control,'verify_agent'),patch.object(control,'loaded',return_value=True),patch.object(control,'health_at',return_value=health),patch.object(control,'browser_host_status',return_value=None):
                 state=control.status();self.assertTrue(state['running'] and state['vpn_running']);self.assertEqual(state['peers'],2)
@@ -64,7 +64,7 @@ class DualListeners(unittest.IsolatedAsyncioTestCase):
         start=AsyncMock(side_effect=[fake(),fake()])
         loop=SimpleNamespace(add_signal_handler=lambda _sig,fn:actual.call_soon(fn))
         with patch.object(relay.asyncio,'start_server',start),patch.object(relay.asyncio,'get_running_loop',return_value=loop):
-            await relay.serve('192.168.1.2',12345,None,'100.75.192.42')
+            await relay.serve('192.168.1.2',12345,None,'100.70.1.9')
         self.assertIs(start.await_args_list[0].args[0].__self__,start.await_args_list[1].args[0].__self__)
         for listener in listeners:listener.close.assert_called_once();listener.wait_closed.assert_awaited_once()
 
@@ -72,10 +72,10 @@ class DualListeners(unittest.IsolatedAsyncioTestCase):
         actual=asyncio.get_running_loop();listener=Mock();listener.sockets=[SimpleNamespace(getsockname=lambda:('127.0.0.1',12345))];listener.wait_closed=AsyncMock()
         def schedule(_sig,fn):actual.call_later(.02,fn)
         async def start(*args,**kwargs):
-            if args[1]=='100.75.192.42':listener.close.assert_not_called();raise OSError(49,'Unavailable VPN')
+            if args[1]=='100.70.1.9':listener.close.assert_not_called();raise OSError(49,'Unavailable VPN')
             return listener
         with patch.object(relay.asyncio,'start_server',side_effect=start),patch.object(relay.asyncio,'get_running_loop',return_value=SimpleNamespace(add_signal_handler=schedule)):
-            await relay.serve('192.168.1.2',12345,None,'100.75.192.42')
+            await relay.serve('192.168.1.2',12345,None,'100.70.1.9')
         listener.close.assert_called_once();listener.wait_closed.assert_awaited_once()
 
 if __name__=='__main__':unittest.main()

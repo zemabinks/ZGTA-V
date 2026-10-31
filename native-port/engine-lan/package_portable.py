@@ -16,7 +16,7 @@ import zipfile
 
 ROOT=Path(__file__).resolve().parent
 SOURCE_ROOT=ROOT.parents[1]
-BROWSER_REVISION='93'
+BROWSER_REVISION='107'
 PYTHON_URL='https://www.python.org/ftp/python/3.13.16/python-3.13.16-embed-amd64.zip'
 PYTHON_SHA='97dae5274cc54867065e8d5a3226e48c35017ed332a0fdb0e27d5b5821961297'
 
@@ -46,6 +46,15 @@ def checked_runtime(stage):
     return {'stage_manifest_sha256':sha256(stage/'browser-stage.json'),'module_metadata_sha256':sha256(stage/'engine-lan-module.json'),'staged_hashes':expected}
 
 
+def source_channel(origin):
+    """Only reviewed repository identities may become an advertised update URL."""
+    for name, channel in [('ZGTA-V-Private-Development', 'private-development'), ('ZGTA-V', 'public')]:
+        url='https://github.com/zemabinks/'+name
+        if origin in (url, url+'.git', 'git@github.com:zemabinks/'+name+'.git'):
+            return {'source_repository':url,'release_channel':channel}
+    return {'source_repository':None,'release_channel':'unspecified'}
+
+
 def build(stage,output,platform,python_archive=None,revision=None,allow_dirty=False):
     if platform not in ('Windows-x64','Android-Termux','Browser-Mac-Linux'):raise ValueError('Unknown platform')
     revision=BROWSER_REVISION if revision is None else str(revision)
@@ -60,6 +69,8 @@ def build(stage,output,platform,python_archive=None,revision=None,allow_dirty=Fa
         if icons.get('files',{}).get(name)!=sha256(ROOT/'desktop-assets'/name):raise ValueError('Desktop icon bytes changed: '+name)
     revision_result=subprocess.run(['git','rev-parse','HEAD'],cwd=ROOT,capture_output=True,text=True,check=True)
     source_revision=revision_result.stdout.strip()
+    origin=subprocess.run(['git','remote','get-url','origin'],cwd=ROOT,capture_output=True,text=True,check=True).stdout.strip()
+    channel=source_channel(origin)
     dirty=subprocess.run(['git','status','--porcelain=v1'],cwd=ROOT,capture_output=True,text=True,check=True)
     if dirty.stdout and not allow_dirty:raise ValueError('Commit the frozen source before release packaging; dirty source is allowed only with --allow-dirty for disposable checks')
     tracked=set(subprocess.run(['git','ls-files','-z'],cwd=SOURCE_ROOT,capture_output=True,check=True).stdout.decode().split('\0'))
@@ -75,11 +86,18 @@ def build(stage,output,platform,python_archive=None,revision=None,allow_dirty=Fa
     for rel in sorted(tracked):
         f=SOURCE_ROOT/rel
         if f.parent==ROOT and f.suffix in ('.py','.js','.html','.css'):copy_source(f,code/f.name)
-    for name in ('solo-card.png','friends-card.png','los-santos-map.jpg','zplay-gta-green.svg','zplay-gta-green-32.png','zplay-gta-green-180.png','favicon.ico'):
+    for name in ('solo-card.png','friends-card.png','desktop-city.png','los-santos-map.jpg','zplay-gta-green.svg','zplay-gta-green-32.png','zplay-gta-green-180.png','favicon.ico'):
         copy_source(ROOT/name,code/name)
     for name in ('zgta-v.icns','zgta-v.ico','provenance.json'):
         copy_source(ROOT/'desktop-assets'/name,code/'desktop-assets'/name)
+    # Portable Bonjour is source-only and works with isolated Windows Python.
+    # Preserve licenses/provenance and include no host-specific binary modules.
+    for rel in sorted(tracked):
+        if rel.startswith('native-port/engine-lan/discovery_vendor/'):
+            copy_source(SOURCE_ROOT/rel,code/Path(rel).relative_to('native-port/engine-lan'))
     copy_source(ROOT/'engine-safety-pins.json',code/'engine-safety-pins.json')
+    copy_source(ROOT/'render-hooks-pins.json',code/'render-hooks-pins.json')
+    copy_source(ROOT/'render-lifetime-pins106.json',code/'render-lifetime-pins106.json')
     readers=code/'relay-service';readers.mkdir()
     copy_source(ROOT/'relay-service/service_runner.py',readers/'service_runner.py')
     runtime=package/'Runtime';runtime.mkdir()
@@ -171,7 +189,8 @@ Play; an unsupported BC adapter is refused with your data preserved.
    If the browser does not open, visit http://127.0.0.1:18887/ in Chrome.
 Keep Termux/Chrome active while playing or hosting. Android can suspend or kill
 background apps; unattended hosting is not promised. Join by invite works without
-LAN browsing. Remote requires a usable private VPN route. With WireGuard to a home LAN, use the reachable host LAN address under Same Wi-Fi / LAN; Tailscale addresses use Remote.
+LAN browsing. Automatic LAN discovery is included; Android may restrict multicast
+on some devices/networks. Remote requires a usable private VPN route. With WireGuard to a home LAN, use the reachable host LAN address under Same Wi-Fi / LAN; Tailscale addresses use Remote.
 A native one-tap Android launcher and physical gameplay certification are open
 follow-ups. This starter is useful for compatibility/setup testing; it does not
 claim all Android phones can play or host reliably.
@@ -214,7 +233,13 @@ browser storage; export a backup before changing browser/profile or address.
 This package's host initialization and HTTP routes were checked on macOS;
 Linux execution and game/GPU/controller behavior still need community tests.
 '''
-    (package/'START HERE.txt').write_text(instructions+'\nSource and updates: https://github.com/zemabinks/ZGTA-V\nPublic worldwide discovery is not enabled. LAN/Tailscale hosts are private.\n')
+    if channel['release_channel']=='private-development':
+        updates='Private development candidate; owner gameplay acceptance is still pending.\nSource and candidate updates: '+channel['source_repository']
+    elif channel['source_repository']:
+        updates='Source and updates: '+channel['source_repository']
+    else:
+        updates='Update channel unspecified; use the source_revision in portable-manifest.json.'
+    (package/'START HERE.txt').write_text(instructions+'\n'+updates+'\nPublic worldwide discovery is not enabled. LAN/Tailscale hosts are private.\n')
     files={str(f.relative_to(package)).replace('\\','/'):sha256(f) for f in sorted(package.rglob('*')) if f.is_file()}
     for record in source_files.values():
         if sha256(SOURCE_ROOT/record['source'])!=record['sha256']:raise ValueError('Package source changed during build: '+record['source'])
@@ -222,7 +247,7 @@ Linux execution and game/GPU/controller behavior still need community tests.
     final_dirty=subprocess.run(['git','status','--porcelain=v1'],cwd=ROOT,capture_output=True,text=True,check=True).stdout
     if final_revision!=source_revision or (not allow_dirty and final_dirty):raise ValueError('Frozen source changed during packaging')
     if checked_runtime(runtime)!=runtime_provenance:raise ValueError('Runtime changed while copying')
-    manifest={'format':'zgta-portable-v1','build':int(revision.split('.')[0]),'browser_revision':revision,'platform':platform,'source_revision':source_revision,'source_worktree_dirty':bool(dirty.stdout or final_dirty),'source_files':source_files,'runtime_provenance':runtime_provenance,'game_files_included':False,'physical_platform_validation':'PENDING','python_source':PYTHON_URL if platform=='Windows-x64' else 'EXISTING_TERMUX_PYTHON','python_archive_sha256':PYTHON_SHA if platform=='Windows-x64' else None,'files':files}
+    manifest={'format':'zgta-portable-v1','build':int(revision.split('.')[0]),'browser_revision':revision,'platform':platform,'source_revision':source_revision,'source_worktree_dirty':bool(dirty.stdout or final_dirty),'source_files':source_files,'runtime_provenance':runtime_provenance,'game_files_included':False,'physical_platform_validation':'PENDING','python_source':PYTHON_URL if platform=='Windows-x64' else ('EXISTING_TERMUX_PYTHON' if platform=='Android-Termux' else 'SYSTEM_PYTHON'),**channel,'python_archive_sha256':PYTHON_SHA if platform=='Windows-x64' else None,'files':files}
     (package/'portable-manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
     archive=output/('ZGTA-V-Build'+revision+'-'+platform+'.zip')
     with zipfile.ZipFile(archive,'x',zipfile.ZIP_DEFLATED,compresslevel=6) as z:

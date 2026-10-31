@@ -10,6 +10,11 @@ void PGAttachMetalLayer(void *layer) { PGMetalRendererAttachLayer(layer); }
 double PGRenderedFramesPerSecond(void) { return PGMetalRendererFPS(); }
 void PGLogNativeGraphicsProgress(void) { PGMetalRendererLogProgress(); }
 void PGSetPresentPacing(double seconds) { PGMetalRendererSetPresentInterval(seconds); }
+void PGSetPerformanceSampling(int enabled) { PGMetalRendererSetPerformanceSampling(enabled); }
+int PGReadPerformanceMetrics(PGNativePerformanceMetrics *metrics) { return PGMetalRendererReadPerformanceMetrics(metrics); }
+void PGSetRenderingDiagnostics(int enabled) { PGMetalRendererSetRenderingDiagnostics(enabled); }
+uint32_t PGCopyRenderingDiagnostics(char *output, uint32_t capacity) { return PGMetalRendererCopyRenderingDiagnostics(output, capacity); }
+void PGRequestGraphicsMemoryTrim(void) { PGMetalRendererRequestMemoryTrim(); }
 void PGCaptureNativeFrame(const char *name) { PGMetalRendererCapture(name); }
 void PGStartGraphics(void *memory, uint64_t memorySize, uint64_t ring, uint64_t ringSize, uint64_t) {
 	if (!PGMetalRendererAvailable()) { pg_log("The Metal shader library is missing from the app: rebuild with the game's shaders."); return; }

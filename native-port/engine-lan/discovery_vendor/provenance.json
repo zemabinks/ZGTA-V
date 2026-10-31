@@ -1,0 +1,63 @@
+{
+  "format": "zgta-discovery-vendor-v1",
+  "mode": "Pure Python source; no binary extension or runtime pip install",
+  "dependencies": [
+    {
+      "name": "zeroconf",
+      "version": "0.147.2",
+      "source": "https://files.pythonhosted.org/packages/be/71/44d5afe5f160c0bbca6dff9ff03709c49bd9b23e0bf09dba84b1d4273ac0/zeroconf-0.147.2.tar.gz",
+      "archive_sha256": "2f91e2544433acfa928c8dbaea7af8bf0644e06904610799d6b762fd599d81bd",
+      "files": {
+        "zeroconf-COPYING": "4d1d974999ae8655ee47afb47ac3b327cd1baeea3509aecb35341ba1a1a53c94",
+        "zeroconf/__init__.py": "98596103a4fe563f5b806cab5385f70203f7602034a0dc075abd043c3c7ae3c5",
+        "zeroconf/_cache.py": "bad4f2036bfe0bca5839dd73bd1bdc094373db681428823b3b2fb1a21b4f5323",
+        "zeroconf/_core.py": "83979414355d6daddf648e1c322a13bb3063ac9072e599895871fb067543c6af",
+        "zeroconf/_dns.py": "ad024e528e70155e2f48c066bd8323d8dd230e0ef49cec2703bd5833061e33ee",
+        "zeroconf/_engine.py": "aec201c85ccfd53ba8be159cb419099fdfd1b178407b9f1a11110af07752e7b1",
+        "zeroconf/_exceptions.py": "72327c3a73ccdf5b5e33e95257adacec2ac922f3a30964ee57c25f87df54a325",
+        "zeroconf/_handlers/__init__.py": "6aa7a150d16eecf16e2ec8bc71c5a621fdd30164c39f18668a36ff00b2591c68",
+        "zeroconf/_handlers/answers.py": "065e2733b9dde4b23587f0dbdf6475e81073e79ddd37b21c57451de1dc2a1a1f",
+        "zeroconf/_handlers/multicast_outgoing_queue.py": "088c227e1331680e3dcffa33e48314ccff3fa565e39c230a938de0e9ae435913",
+        "zeroconf/_handlers/query_handler.py": "3bb3ca73f9b51f716768c83338e6e55e717d374939082b55af1b4332413a3f02",
+        "zeroconf/_handlers/record_manager.py": "f180deb0d82dd7fbc86b0e820a045a54ebb3a5a8dc3c0a93aed7cb4e059cf394",
+        "zeroconf/_history.py": "c46e7e5644cd560ae97769115f5ecbec6eb9bcaa5e7abaee079a4f67237c194e",
+        "zeroconf/_listener.py": "dcfd88df1d677b2b2d8f80265d674024705825435e680c6a00a9f5e6ce1780d8",
+        "zeroconf/_logger.py": "41039722245fd0f0a2dbfde37e0f52d0d5f6f4c0c04b8f83c221e44add028e10",
+        "zeroconf/_protocol/__init__.py": "6aa7a150d16eecf16e2ec8bc71c5a621fdd30164c39f18668a36ff00b2591c68",
+        "zeroconf/_protocol/incoming.py": "47e79e4ff1a4d5064da2d38fd65fb6610e7c1581a0596f5ed2cc3c9ea9730a6d",
+        "zeroconf/_protocol/outgoing.py": "0e52fd98a7fab0b612f5e443c21a3e56620c27e74bd8b1a7494bfe6997a42368",
+        "zeroconf/_record_update.py": "0c1c0c4f13c4c5fcbf728e448b6e6c7b898d9c55dffbcb9617dd4ed92091013b",
+        "zeroconf/_services/__init__.py": "ecc7a94aae4dee3b0d4f9a9314bfddfcb4eb934db09bb523de1b7ec5b7aadbc6",
+        "zeroconf/_services/browser.py": "694ff1cd9da62251a692420c70ab062022b856a61a8dba8614b333e281b75ae6",
+        "zeroconf/_services/info.py": "fa7a4f92b124a22c78f3fe714671e559e275ba5c9951972f82d50d8f80eb0e12",
+        "zeroconf/_services/registry.py": "22c24ee87576ee066d2c77e0e4adeaf676f3bddf07440d6f2793f267952492da",
+        "zeroconf/_services/types.py": "56485cc15244370d8486a977c340e67707fdbf15218ded552b4604091411ed3f",
+        "zeroconf/_transport.py": "28f4bb6769735fb464008b872302612972ccfff1f1332333a52aa392758801c5",
+        "zeroconf/_updates.py": "83d777968bf24141aa312bb58f6137e7d7e70e25dff0cb3ba80035fa167f64bc",
+        "zeroconf/_utils/__init__.py": "6aa7a150d16eecf16e2ec8bc71c5a621fdd30164c39f18668a36ff00b2591c68",
+        "zeroconf/_utils/asyncio.py": "88fcf7fa2e5582aab24bc2a5dc5ef7f231e3972cf13f2432e8455c29ea1d982d",
+        "zeroconf/_utils/ipaddress.py": "7a55fbe61d45cc06af5cf41e94d1f8a87728015e6d941e98ca639e07200cd269",
+        "zeroconf/_utils/name.py": "aeb5797a236252d8203bed7958db4471820296682a06e3f0245a69a1bbfa110c",
+        "zeroconf/_utils/net.py": "cd49dd2d112768373055b0e16ca0f22383dcd9be4b4ccd7735c08a1fb676e17e",
+        "zeroconf/_utils/time.py": "e10c5b0d97ef8349fcaadeaa8eb50c16f059d6dadef2f65814eb128f77be4f7e",
+        "zeroconf/asyncio.py": "0ef352e9105fb4742e0f453e20db36fbbcc76601a1f7097e96757e2879475536",
+        "zeroconf/const.py": "feb56d942ad355d8b8331fc06f6014c7779e4a096c44b7a26fb0569b2b25fe34"
+      }
+    },
+    {
+      "name": "ifaddr",
+      "version": "0.2.0",
+      "source": "https://files.pythonhosted.org/packages/9c/1f/19ebc343cc71a7ffa78f17018535adc5cbdd87afb31d7c34874680148b32/ifaddr-0.2.0-py3-none-any.whl",
+      "archive_sha256": "085e0305cfe6f16ab12d72e2024030f5d52674afad6911bb1eee207177b8a748",
+      "files": {
+        "ifaddr/__init__.py": "113db071c00c7b4242f61ec00cb65c21e51d48697ccdbadaba44ce2406e4dd3b",
+        "ifaddr/_posix.py": "63c0027da09cf65787ab3f6a0b4d07be26aed6330b04307a6b4d77c3ba4334f4",
+        "ifaddr/_shared.py": "a55d2b726006e517c3a1a09a5c99c784b1c60befa3193f346aa2478b98b6e301",
+        "ifaddr/_win32.py": "3dec4674392e70925a1d7d8281f63ddb3a530c418e55d5d90a59cec0aa2abf79",
+        "ifaddr/netifaces.py": "ee5e40887d35c4fc1440acdc78d817d68384018574790946d3bc4a4cfd5a0616",
+        "ifaddr/test_ifaddr.py": "844d2d1009cc334195abce147ccfab384b91cccb8dd2f848c6253e1e6929fca5",
+        "ifaddr-LICENSE.txt": "8700856576ae2bc80c63bc970250510d9213fb02fed006d5f22742c9ddde24d7"
+      }
+    }
+  ]
+}

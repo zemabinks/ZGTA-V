@@ -59,6 +59,48 @@ class Portable(unittest.TestCase):
                 self.assertNotIn('Runtime/unrelated-proof.txt',manifest['files'])
                 self.assertNotIn('Python/python.exe',manifest['files'])
 
+    def test_source_snapshot_download_block_is_not_the_obsolete_build91_index(self):
+        root=package_portable.SOURCE_ROOT
+        index=json.loads((root/'scripts/release-index.json').read_text())
+        self.assertGreaterEqual(index['latest_ios_build'],101)
+        block=(root/'README.md').read_text().split('<!-- current-build:start -->',1)[1].split('<!-- current-build:end -->',1)[0]
+        self.assertIn('[Build '+str(index['latest_ios_build'])+']',block)
+        self.assertIn('/releases/tag/'+index['installer_proof']['tag'],block)
+        self.assertNotIn('Newest iPhone installer: [Build 91]',block)
+        # SOURCE_VERSION is intentionally historical, not a mutable download index.
+
+    def test_source_channel_is_exact_and_does_not_advertise_unknown_remotes(self):
+        private='https://github.com/zemabinks/ZGTA-V-Private-Development'
+        public='https://github.com/zemabinks/ZGTA-V'
+        for remote in [private,private+'.git','git@github.com:zemabinks/ZGTA-V-Private-Development.git']:
+            self.assertEqual(package_portable.source_channel(remote),{'source_repository':private,'release_channel':'private-development'})
+        self.assertEqual(package_portable.source_channel(public+'.git'),{'source_repository':public,'release_channel':'public'})
+        for remote in ['https://example.com/private.git',private+'.git/extra','https://github.com/another/ZGTA-V.git','https://user:secret@example.com/repo.git']:
+            self.assertEqual(package_portable.source_channel(remote),{'source_repository':None,'release_channel':'unspecified'})
+
+    def test_non_windows_runtime_provenance_and_private_candidate_update_channel(self):
+        import zipfile
+        for platform,python_source in [('Android-Termux','EXISTING_TERMUX_PYTHON'),('Browser-Mac-Linux','SYSTEM_PYTHON')]:
+            with self.subTest(platform=platform),tempfile.TemporaryDirectory(prefix='zgta-portable-channel-') as folder:
+                root=Path(folder);stage=root/'stage';self.fixture_stage(stage)
+                original=package_portable.subprocess.run
+                def run(args,**kwargs):
+                    if args==['git','remote','get-url','origin']:
+                        return Mock(stdout='https://github.com/zemabinks/ZGTA-V-Private-Development.git\n')
+                    return original(args,**kwargs)
+                with patch.object(package_portable.subprocess,'run',side_effect=run):
+                    result=package_portable.build(stage,root/'output',platform,revision='101',allow_dirty=True)
+                with zipfile.ZipFile(result['archive']) as archive:
+                    manifest=json.loads(archive.read('ZGTA-V/portable-manifest.json'))
+                    guide=archive.read('ZGTA-V/START HERE.txt').decode()
+                    self.assertEqual(manifest['python_source'],python_source)
+                    self.assertEqual(manifest['release_channel'],'private-development')
+                    self.assertEqual(manifest['source_repository'],'https://github.com/zemabinks/ZGTA-V-Private-Development')
+                    self.assertIn('Private development candidate',guide)
+                    self.assertIn('owner gameplay acceptance is still pending',guide)
+                    self.assertIn('Source and candidate updates: '+manifest['source_repository'],guide)
+                    self.assertNotIn('Source and updates: https://github.com/zemabinks/ZGTA-V\n',guide)
+
     def test_packaging_rejects_changed_runtime_before_writing_output(self):
         with tempfile.TemporaryDirectory(prefix='zgta-portable-bad-stage-') as folder:
             root=Path(folder);stage=root/'stage';self.fixture_stage(stage)
@@ -153,6 +195,23 @@ class Portable(unittest.TestCase):
         with patch.object(launcher.urllib.request,'build_opener',return_value=response):self.assertFalse(launcher.existing_launcher())
         response.open.return_value=io.BytesIO(b'{"service":"zgta-browser-launcher"}')
         with patch.object(launcher.urllib.request,'build_opener',return_value=response):self.assertTrue(launcher.existing_launcher())
+
+    def test_existing_launcher_validates_bounded_identity_and_legacy_hosts(self):
+        import io
+        manifest={'build':101,'browser_revision':'101','source_revision':'a'*40,
+                  'runtime_provenance':{'stage_manifest_sha256':'b'*64,'module_metadata_sha256':'c'*64}}
+        identity=launcher.package_identity(manifest)
+        for payload,want in [
+            ({'service':'zgta-browser-launcher','identity':identity},identity),
+            ({'service':'zgta-browser-launcher'},None),
+            ({'service':'zgta-browser-launcher','identity':dict(identity,source_revision='/private/path')},None)]:
+            opener=Mock();opener.open.return_value=io.BytesIO(json.dumps(payload).encode())
+            with patch.object(launcher.urllib.request,'build_opener',return_value=opener):
+                self.assertEqual(launcher.existing_launcher(),{'service':'zgta-browser-launcher','identity':want})
+        for payload in [[],{'service':'other'},'zgta-browser-launcher']:
+            opener=Mock();opener.open.return_value=io.BytesIO(json.dumps(payload).encode())
+            with patch.object(launcher.urllib.request,'build_opener',return_value=opener):
+                self.assertIsNone(launcher.existing_launcher())
 
     def test_local_gpu_probe_and_fast_setup_preserve_identity(self):
         code='''const assert=require('node:assert/strict'),P=require(process.argv[1]);(async()=>{let options;const r=await P.inspect({gpu:{requestAdapter:async o=>{options=o;return {features:new Set(['texture-compression-bc']),info:{description:'Test GPU'}};}}},WebAssembly,true);assert.equal(options.powerPreference,'high-performance');assert.equal(r.adapter,'Test GPU');assert.equal(r.bc,true);let old={room:'KEEP',player:'KEEP',fps:30};assert.equal(P.faster(old).fps,60);assert.equal(P.faster(old).room,'KEEP');assert.equal(old.fps,30);assert.equal((await P.inspect({},WebAssembly,true)).webgpu,false);})();'''

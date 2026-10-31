@@ -1,0 +1,25 @@
+{
+  "format": "zgta-character-save-investigation-v1",
+  "date": "2026-10-18",
+  "status": "NOT_FIXED_AWAITING_ENGINE_SAVE_TRACE",
+  "findings": [
+    "Browser profile checkpoints can succeed without any game character-save file.",
+    "An empty folder selected for an optional export is not the automatic save location.",
+    "Existing game-origin profile snapshots were copied and CRC-validated read-only; no game save was overwritten."
+  ],
+  "changes": [
+    "Badge distinguishes profile-only storage, stored character files, and file-read attempts.",
+    "Automatic save/load remains the default; backups are explicitly optional.",
+    "Bounded local queue-save and cloud-file diagnostics survive unrelated log noise."
+  ],
+  "tests": {
+    "experimental": 8,
+    "native_browser_callbacks": 8,
+    "local_http": 9,
+    "disposable_real_chrome_restart_conflict_corruption": "PASS"
+  },
+  "new_ipa": false,
+  "original_intel_folder_changed": false,
+  "private_save_contents_published": false,
+  "stage": "EngineLAN-FeaturesBrowser-20261018-v20"
+}

@@ -1,4 +1,5 @@
 #pragma once
+#include "../NativePerformanceMetrics.h"
 #include <stdint.h>
 #include <stdbool.h>
 #ifdef __cplusplus
@@ -13,6 +14,11 @@ double PGMetalRendererFPS(void);
 void PGMetalRendererLogProgress(void);
 // Minimum time each frame stays on screen (1/cap), 0 to present as soon as possible.
 void PGMetalRendererSetPresentInterval(double seconds);
+void PGMetalRendererSetPerformanceSampling(int enabled);
+int PGMetalRendererReadPerformanceMetrics(PGNativePerformanceMetrics *metrics);
+void PGMetalRendererSetRenderingDiagnostics(int enabled);
+uint32_t PGMetalRendererCopyRenderingDiagnostics(char *output, uint32_t capacity);
+void PGMetalRendererRequestMemoryTrim(void);
 void PGMetalRendererCapture(const char *name);
 #ifdef __cplusplus
 }

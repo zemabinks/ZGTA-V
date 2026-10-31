@@ -54,6 +54,7 @@ final class NativePortViewController: UIViewController, MTKViewDelegate {
     private let fpsLabel = UILabel()
     private var lastFPSLabelUpdate: CFTimeInterval = 0
     private let performanceRun = PerformanceRun()
+    private var capturingRenderingDiagnostics = false
     /// The start screen; it hides once the game's world is up.
     private lazy var home = HomeView(modes: GameMode.allCases.map { ($0.title, $0 == .story ? "book.fill" : "map.fill") }, log: output)
     private var launchButton: UIButton { home.playButton }
@@ -78,12 +79,14 @@ final class NativePortViewController: UIViewController, MTKViewDelegate {
     private var engineFailed = false
     private var bootedPreset = GameSettings.shared.graphicsPreset
     private var bootedFrameRateCap = 60
+    private var bootedMemoryProfile = GameSettings.shared.memoryProfile
     private var bootedBackend = "offline"
     private var requestedFrameInterval: Int32 = 1
     /// Render height multiplier while the phone is hot (1 = the chosen resolution).
     private var thermalScale = 1.0
     /// Requested engine size, not a claim about the GPU's completed frame dimensions.
     private var requestedRenderSize: (width: Int, height: Int)?
+    private var previousPerformanceReads: (timeMS: Double, values: [UInt64])?
     private var bootedMode: GameMode?
     private var stableTimer: Timer?
     private var healthTimer: Timer?
@@ -528,6 +531,7 @@ final class NativePortViewController: UIViewController, MTKViewDelegate {
         appendLog("Game mode: \(mode.title)\(mode == .sandbox ? " on " + GameSettings.sandboxMapTitles[GameSettings.shared.sandboxMap] : "")")
         bootedPreset = GameSettings.shared.graphicsPreset
         bootedFrameRateCap = GameSettings.shared.frameRateCap
+        bootedMemoryProfile = GameSettings.shared.memoryProfile
         bootedBackend = MugoatOnlineEnabled() ? "legacy-bridge" : "offline"
         requestedFrameInterval = bootedFrameRateCap == 0 ? 0 : bootedFrameRateCap == 30 ? 2 : 1
         let initialSize = GraphicsConfiguration.size(for: bootedPreset, renderHeight: GameSettings.shared.renderHeight, screen: view.bounds.size, matchScreenShape: GameSettings.shared.matchScreenShape)
@@ -1164,6 +1168,8 @@ final class NativePortViewController: UIViewController, MTKViewDelegate {
     }
 
     @objc private func leftApp() {
+        PGSetRenderingDiagnostics(0)
+        PGSetPerformanceSampling(0)
         performanceRun.cancel("The game was hidden. Start another measurement.")
         GameSettings.shared.markBootInterrupted()
     }
@@ -1180,6 +1186,8 @@ final class NativePortViewController: UIViewController, MTKViewDelegate {
     }
     private func showSettings() {
         guard presentedViewController == nil else { return }
+        PGSetRenderingDiagnostics(0)
+        PGSetPerformanceSampling(0)
         performanceRun.cancel("Settings opened. Start another measurement.")
         touchControls.reset()
         let controller = SettingsViewController(engineRunning: engineStarted, runningMode: bootedMode)
@@ -1219,15 +1227,19 @@ final class NativePortViewController: UIViewController, MTKViewDelegate {
             if !$0.comparisonWarnings.isEmpty { text += $0.comparisonWarnings.joined(separator: "\n") + "\n" }
             return text + "\n"
         } ?? (performanceRun.reason.isEmpty ? "" : performanceRun.reason + "\n\n")
-        let alert = UIAlertController(title: "Performance check", message: summary + "Choose a 30-second check or a 3-minute check with an FPS/heat timeline. Stay in the same place and keep the game visible. Avoid the pause menu. Sampling windows are not a per-frame 1% low. Results stay on this device.", preferredStyle: .alert)
+        let alert = UIAlertController(title: "Performance check", message: summary + "Choose a 30-second check or a 3-minute check with an FPS/heat timeline. Stay in the same place and keep the game visible. Avoid the pause menu. Sampling windows are not a per-frame 1% low. Results stay on this device. Use Capture rendering issue while the flicker is visible, then save the report. That diagnostic run is not a clean FPS comparison.", preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         if worldReadyAt != nil {
-            for duration in [30, 180] {
-            alert.addAction(UIAlertAction(title: duration == 30 ? "Measure 30s FPS" : "Measure 3min FPS", style: .default) { [weak self] _ in
+            for (duration, title, captureRendering) in [(30, "Measure 30s FPS", false), (180, "Measure 3min FPS", false), (30, "Capture rendering issue", true)] {
+            alert.addAction(UIAlertAction(title: title, style: .default) { [weak self] _ in
                 guard let self else { return }
                 self.dismiss(animated: true) {
                     let s = GameSettings.shared
-                    self.performanceRun.start(now: CACurrentMediaTime() * 1000, context: ["platform": "iOS", "build": Theme.appVersion, "mode": self.bootedBackend == "engine-lan" ? "lan" : (self.bootedMode.map { String(describing: $0) } ?? "unknown"), "preset": self.bootedPreset.title, "height": String(s.renderHeight), "fpsCap": String(self.bootedFrameRateCap), "savedFPSCap": String(s.frameRateCap), "runtimeBackend": self.bootedBackend, "frameLimitSource": "Requested engine interval at 60 Hz; application and presentation timing not read back", "startedAt": ISO8601DateFormatter().string(from: Date()), "thermalState": String(ProcessInfo.processInfo.thermalState.rawValue), "renderDimensionsSource": "Requested engine back-buffer dimensions; GPU application not observed", "memorySource": "TASK_VM_INFO phys_footprint and os_proc_available_memory; headroom is an OS estimate", "physicalMemoryBytes": String(ProcessInfo.processInfo.physicalMemory), "osVersion": ProcessInfo.processInfo.operatingSystemVersionString], durationSeconds: duration)
+                    self.previousPerformanceReads = nil
+                    self.capturingRenderingDiagnostics = captureRendering
+                    PGSetRenderingDiagnostics(captureRendering ? 1 : 0)
+                    PGSetPerformanceSampling(1)
+                    self.performanceRun.start(now: CACurrentMediaTime() * 1000, context: ["platform": "iOS", "build": Theme.appVersion, "mode": self.bootedBackend == "engine-lan" ? "lan" : (self.bootedMode.map { String(describing: $0) } ?? "unknown"), "preset": self.bootedPreset.title, "height": String(s.renderHeight), "fpsCap": String(self.bootedFrameRateCap), "savedFPSCap": String(s.frameRateCap), "runtimeBackend": self.bootedBackend, "frameLimitSource": "Requested engine interval at 60 Hz; application and presentation timing not read back", "startedAt": ISO8601DateFormatter().string(from: Date()), "thermalState": String(ProcessInfo.processInfo.thermalState.rawValue), "renderDimensionsSource": "Requested engine back-buffer dimensions; GPU application not observed", "memorySource": "TASK_VM_INFO phys_footprint and os_proc_available_memory; headroom is an OS estimate", "lowMemoryProtection": PGIsLowMemoryDevice() != 0 ? "true" : "false", "memoryProfile": self.bootedMemoryProfile.title, "savedMemoryProfile": s.memoryProfile.title, "deviceModel": s.tier.model, "bcTexturesNative": PGGPUReadsBC() != 0 ? "true" : "false", "thermalStateLabels": "0 nominal;1 fair;2 serious;3 critical", "rendererMetricsSource": "Opt-in one-second Metal aggregates; CPU wait times are not GPU execution times; allocated bytes are estimates", "renderingCapture": captureRendering ? "true" : "false", "physicalMemoryBytes": String(ProcessInfo.processInfo.physicalMemory), "osVersion": ProcessInfo.processInfo.operatingSystemVersionString], durationSeconds: duration)
                     self.fpsLabel.isHidden = false
                 }
             })
@@ -1420,6 +1432,40 @@ final class NativePortViewController: UIViewController, MTKViewDelegate {
             "resourceReclaimFailures": Double(PGResourceReclaimFailures()),
             "memoryBudgetClamps": Double(PGMemoryBudgetClamps())
         ]
+        values["memoryBudgetQueries"] = Double(PGMemoryBudgetQueries())
+        values["memoryBudgetEvictions"] = Double(PGMemoryBudgetEvictions())
+        var reads = [UInt64](repeating: 0, count: 6)
+        reads.withUnsafeMutableBufferPointer { PGAssetHealth($0.baseAddress) }
+        let names = ["assetReadCount", "assetReadBytes", "assetReadErrors", "assetReadShortCount", "assetReadSlowCount", "assetReadMicroseconds"]
+        for (index, name) in names.enumerated() { values[name] = Double(reads[index]) }
+        if let previous = previousPerformanceReads, now > previous.timeMS,
+           zip(reads, previous.values).allSatisfy({ $0 >= $1 }) {
+            let elapsed = (now - previous.timeMS) / 1000
+            let delta = zip(reads, previous.values).map { $0 - $1 }
+            values["assetReadBytesPerSecond"] = Double(delta[1]) / elapsed
+            values["assetSlowReadsPerSecond"] = Double(delta[4]) / elapsed
+            values["assetReadAverageMS"] = delta[0] > 0 ? Double(delta[5]) / Double(delta[0]) / 1000 : 0
+        }
+        previousPerformanceReads = (now, reads)
+        var renderer = PGNativePerformanceMetrics()
+        if PGReadPerformanceMetrics(&renderer) != 0 {
+            values.merge([
+                "metalAllocatedBytes": Double(renderer.metalBytes), "textureAllocatedBytes": Double(renderer.textureBytes),
+                "textureShadowBytes": Double(renderer.textureShadowBytes), "pooledBufferBytes": Double(renderer.pooledBufferBytes),
+                "bufferArenaBytes": Double(renderer.bufferArenaBytes), "gpuCacheTrimmedBytes": Double(renderer.cacheTrimmedBytes),
+                "pendingPipelineCount": Double(renderer.pendingPipelines), "rendererFrameMS": renderer.frameMS,
+                "rendererP95FrameMS": renderer.p95MS, "rendererMaxFrameMS": renderer.maxMS,
+                "cpuPipelineWaitMSPerFrame": renderer.pipelineWaitMS, "cpuGPUFenceWaitMSPerFrame": renderer.gpuFenceWaitMS,
+                "cpuUploadMSPerFrame": renderer.uploadMS, "uploadedBytesPerFrame": renderer.uploadBytesPerFrame,
+                "rendererSampleAgeMS": max(0, now - renderer.timeMS)
+            ], uniquingKeysWith: { _, new in new })
+            values["bufferArenaLiveBytes"] = Double(renderer.arenaLiveBytes)
+            values["bufferArenaRequestedBytes"] = Double(renderer.arenaRequestedBytes)
+            values["bufferArenaPendingBytes"] = Double(renderer.arenaPendingBytes)
+            values["bufferArenaReusableBytes"] = Double(renderer.arenaReusableBytes)
+            values["textureCreateFailures"] = Double(renderer.textureCreateFailures)
+            values["textureDecodeFailures"] = Double(renderer.textureDecodeFailures)
+        }
         if let size = requestedRenderSize {
             values["requestedRenderWidth"] = Double(size.width)
             values["requestedRenderHeight"] = Double(size.height)
@@ -1431,6 +1477,11 @@ final class NativePortViewController: UIViewController, MTKViewDelegate {
         } == KERN_SUCCESS
         if ok { values["appFootprintBytes"] = Double(vm.phys_footprint) }
         performanceRun.observeConditions(values, now: now)
+    }
+    override func didReceiveMemoryWarning() {
+        super.didReceiveMemoryWarning()
+        PGRequestGraphicsMemoryTrim()
+        appendLog("iOS memory warning: requested idle graphics-cache trim; live game resources retained.")
     }
     @objc private func releaseTouchControls() {
         touchControls.reset(publish: false)
@@ -1465,8 +1516,10 @@ final class NativePortViewController: UIViewController, MTKViewDelegate {
         }
     }
     @objc private func pollController() {
-        guard !engineFailed else { return }
+        guard !engineFailed else { PGSetRenderingDiagnostics(0); PGSetPerformanceSampling(0); return }
         guard UIApplication.shared.applicationState == .active else {
+            PGSetRenderingDiagnostics(0)
+            PGSetPerformanceSampling(0)
             performanceRun.cancel("The game was hidden. Start another measurement.")
             touchControls.reset(publish: false)
             lastControllerPoll = nil
@@ -1479,10 +1532,21 @@ final class NativePortViewController: UIViewController, MTKViewDelegate {
             if performanceRun.state == .running {
                 samplePerformanceConditions(now: now * 1000)
                 performanceRun.sample(fps: fps, now: now * 1000)
+                if performanceRun.state == .complete, capturingRenderingDiagnostics {
+                    PGSetRenderingDiagnostics(0)
+                    var capture = [CChar](repeating: 0, count: 524288)
+                    let size = PGCopyRenderingDiagnostics(&capture, 524288)
+                    if size > 0, Int(size) <= capture.count {
+                        performanceRun.attachRenderingDiagnostics(Data(capture.prefix(Int(size)).map { UInt8(bitPattern: $0) }))
+                    } else { appendLog("Rendering capture unavailable; no scene result inferred.") }
+                    capturingRenderingDiagnostics = false
+                }
                 if performanceRun.state == .complete, let result = performanceRun.result {
                     appendLog(String(format: "Performance check: %.1f average FPS, %.1f slowest sampling window, %.0f ms. Not a per-frame 1%% low.", result.averageFPS, result.slowestWindowFPS, result.durationMS))
                 }
             }
+            PGSetPerformanceSampling(performanceRun.state == .running ? 1 : 0)
+            if performanceRun.state != .running { PGSetRenderingDiagnostics(0) }
             let frames = fps > 0 ? String(format: "%.0f FPS", fps) : "— FPS"
             fpsLabel.text = performanceRun.state == .running ? "\(max(0, Int(ceil((performanceRun.endsAt - now * 1000) / 1000))))s test" : frames
             lastFPSLabelUpdate = now

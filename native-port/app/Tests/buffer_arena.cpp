@@ -12,8 +12,13 @@ int main(){
  auto a=arena.acquire(312,0,create);auto b=arena.acquire(7272,0,create);
  assert(a.resource==b.resource&&a.offset!=b.offset&&a.offset%256==0&&b.offset%256==0);
  assert(a.bytes>=312&&b.bytes>=7272&&created==1);
+ assert(arena.activeBytes()==a.bytes+b.bytes&&arena.activeRequestedBytes()==312+7272);
+ assert(arena.pendingAllocationBytes()==0);
+ assert(arena.reusableBytes()+arena.activeBytes()==Arena::SlabBytes);
  arena.retire(a,10);arena.retire(b,4);arena.collect(5);
  assert(arena.activeRanges()==0&&arena.pendingRanges()==1);
+ assert(arena.activeBytes()==0&&arena.activeRequestedBytes()==0&&arena.pendingAllocationBytes()==a.bytes);
+ assert(arena.reusableBytes()+arena.pendingAllocationBytes()==Arena::SlabBytes);
  auto c=arena.acquire(312,5,create);assert(c.offset!=a.offset);
  arena.retire(c,6);arena.collect(10);assert(arena.pendingRanges()==0);
  // Coalescing recovers an entire slab after mixed-order ranges retire.
@@ -28,6 +33,8 @@ int main(){
  arena.collect(25);assert(arena.pendingRanges()==20000);
  assert(arena.activeRanges()==0);arena.collect(30);assert(arena.pendingRanges()==0&&arena.backingSlabs()==1);
  assert(arena.createdSlabs()==created);
+ assert(arena.activeBytes()==0&&arena.activeRequestedBytes()==0&&arena.pendingAllocationBytes()==0);
+ assert(arena.reusableBytes()==Arena::SlabBytes);
  Arena failed;assert(!failed.acquire(312,0,[](uint32_t){return Resource{};}));assert(failed.backingSlabs()==0);
  assert(!failed.acquire(Arena::SlabBytes+1,0,create));
 }

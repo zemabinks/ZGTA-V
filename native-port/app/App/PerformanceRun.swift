@@ -17,7 +17,14 @@ final class PerformanceRun {
         let fps: Double
         let conditions: [String: Double]
     }
+    struct RenderingDiagnostics: Codable {
+        let format: String
+        let observations: [[String: String]]
+        let counters: [String: UInt64]
+        let note: String
+    }
     struct Result: Encodable {
+        var renderingDiagnostics: RenderingDiagnostics? = nil
         let format = "zgta-performance-v2"
         let context: [String: String]
         let durationMS: Double
@@ -42,8 +49,8 @@ final class PerformanceRun {
     private var timeline: [Snapshot] = []
     private(set) var measurementMS: Double = 30000
     var endsAt: Double { started + 2000 + measurementMS }
-    private static let counters: Set<String> = ["resourceBytesReleased", "resourceBytesReused", "resourceReclaimFailures", "memoryBudgetClamps"]
-    private static let gauges: Set<String> = ["appFootprintBytes", "availableMemoryBytes", "thermalState", "thermalScale", "requestedRenderWidth", "requestedRenderHeight", "canvasWidth", "canvasHeight", "requestedFrameInterval", "secondsSinceWorldReady"]
+    private static let counters: Set<String> = ["resourceBytesReleased", "resourceBytesReused", "resourceReclaimFailures", "memoryBudgetClamps", "gpuCacheTrimmedBytes", "textureCreateFailures", "textureDecodeFailures", "memoryBudgetQueries", "memoryBudgetEvictions", "assetReadCount", "assetReadBytes", "assetReadErrors", "assetReadShortCount", "assetReadSlowCount", "assetReadMicroseconds"]
+    private static let gauges: Set<String> = ["appFootprintBytes", "availableMemoryBytes", "thermalState", "thermalScale", "requestedRenderWidth", "requestedRenderHeight", "canvasWidth", "canvasHeight", "requestedFrameInterval", "secondsSinceWorldReady", "metalAllocatedBytes", "textureAllocatedBytes", "textureShadowBytes", "pooledBufferBytes", "bufferArenaBytes", "bufferArenaLiveBytes", "bufferArenaRequestedBytes", "bufferArenaPendingBytes", "bufferArenaReusableBytes", "pendingPipelineCount", "rendererFrameMS", "rendererP95FrameMS", "rendererMaxFrameMS", "cpuPipelineWaitMSPerFrame", "cpuGPUFenceWaitMSPerFrame", "cpuUploadMSPerFrame", "uploadedBytesPerFrame", "rendererSampleAgeMS", "assetReadBytesPerSecond", "assetReadAverageMS", "assetSlowReadsPerSecond"]
     private(set) var result: Result?
     func start(now: Double, context: [String: String] = [:], durationSeconds: Int = 30) {
         guard now.isFinite, [30, 180].contains(durationSeconds) else { return }
@@ -82,8 +89,16 @@ final class PerformanceRun {
             }
         }
     }
+    func attachRenderingDiagnostics(_ data: Data) {
+        guard state == .complete, var value = result, data.count <= 524288,
+              let capture = try? JSONDecoder().decode(RenderingDiagnostics.self, from: data),
+              capture.format == "zgta-rendering-consumer105-v1", capture.observations.count <= 256 else { return }
+        value.renderingDiagnostics = capture
+        result = value
+    }
     private var comparisonWarnings: [String] {
         var warnings: [String] = []
+        if context["renderingCapture"] == "true" { warnings.append("Rendering diagnostics were active; this run is not a clean FPS comparison.") }
         if let heat = conditions["thermalState"], heat.maximum >= 2 { warnings.append("iOS reported serious or critical heat during this check.") }
         if let heat = conditions["thermalState"], heat.minimum != heat.maximum { warnings.append("Thermal state changed during this check.") }
         if ["requestedRenderWidth", "requestedRenderHeight", "canvasWidth", "canvasHeight"].contains(where: { conditions[$0].map { $0.minimum != $0.maximum } ?? false }) { warnings.append("Render dimensions changed during this check.") }

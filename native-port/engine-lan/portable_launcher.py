@@ -89,13 +89,48 @@ def load_mirror(data,explicit=None,choose=False):
     raise ValueError('Put your own game mirror in Downloads/ZGTA-V/Game (index.html, data and b), then start again. In Termux, run termux-setup-storage once and grant its storage request. No game files are supplied or downloaded.')
 
 
+def package_identity(manifest):
+    """A bounded identity for a verified host, with no filesystem paths."""
+    try:
+        source=manifest['source_revision'];revision=manifest['browser_revision'];build=manifest['build']
+        runtime=manifest['runtime_provenance']
+        stage=runtime['stage_manifest_sha256'];module=runtime['module_metadata_sha256']
+        if not isinstance(source,str) or not re.fullmatch('[0-9a-f]{40}',source):return None
+        if not isinstance(revision,str) or not re.fullmatch(r'[1-9][0-9]*(?:\.[0-9]+)?',revision):return None
+        if isinstance(build,bool) or not isinstance(build,int) or build!=int(revision.split('.')[0]):return None
+        if any(not isinstance(v,str) or not re.fullmatch('[0-9a-f]{64}',v) for v in (stage,module)):return None
+        return {'build':build,'browser_revision':revision,'source_revision':source,
+                'stage_manifest_sha256':stage,'module_metadata_sha256':module}
+    except (KeyError,TypeError,ValueError):return None
+
+
+def existing_notice(current,expected):
+    identity=current.get('identity')
+    if identity is not None and identity==expected:
+        return 'ZGTA V Build '+identity['browser_revision']+' is already running. Opening its Home screen; no server was restarted.'
+    requested='Build '+expected['browser_revision'] if expected else 'this candidate'
+    running='Build '+identity['browser_revision'] if identity else 'an older or unidentified build'
+    if identity and expected and identity['browser_revision']==expected['browser_revision']:
+        running='a different copy of Build '+identity['browser_revision'];requested='The selected Build '+expected['browser_revision']+' copy'
+    return ('ZGTA V is still running '+running+'. Opening its existing Home screen; '+requested+
+            ' has not started. Stop the existing launcher when you are finished playing, then start '+
+            requested+' again to use the update. Your current game and lobby were preserved.')
+
+
 def existing_launcher():
     try:
         opener=urllib.request.build_opener(urllib.request.ProxyHandler({}))
         request=urllib.request.Request(URL+'zema-lab/launcher/status',data=b'{}',headers={'Content-Type':'application/json','X-Zema-Lab':'1'})
         with opener.open(request,timeout=1) as r:raw=r.read(4097)
-        return len(raw)<=4096 and json.loads(raw).get('service')=='zgta-browser-launcher'
-    except (OSError,ValueError,TypeError):return False
+        value=json.loads(raw)
+        if len(raw)>4096 or not isinstance(value,dict) or value.get('service')!='zgta-browser-launcher':return None
+        identity=value.get('identity')
+        # Reuse the same validation; discard untrusted/legacy identity fields.
+        verified=package_identity({'build':identity.get('build'),'browser_revision':identity.get('browser_revision'),
+                                  'source_revision':identity.get('source_revision'),
+                                  'runtime_provenance':identity}) if isinstance(identity,dict) else None
+        return {'service':'zgta-browser-launcher','identity':verified}
+    except (OSError,ValueError,TypeError):return None
 
 
 def open_browser():
@@ -132,15 +167,17 @@ def main(argv=None):
         from portable_security import windows_private
         windows_private(data,new=new)
     elif data.stat().st_uid!=os.getuid() or data.stat().st_mode & 0o077:raise ValueError('Use an owned private folder for launcher data.')
-    if not a.check and existing_launcher():
+    existing=None if a.check else existing_launcher()
+    if existing:
         setup_desktop(data,manifest,a.no_desktop)
-        print('ZGTA V is already running. Opening its Home screen; no server was restarted.')
+        print(existing_notice(existing,package_identity(manifest)))
         if not a.no_open:open_browser()
         return
     mirror=load_mirror(data,a.mirror,a.choose_folder)
     from serve_browser import Content,Handler,ThreadingHTTPServer
     from browser_mods import BrowserMods
     content=Content(mirror,PACKAGE/'Runtime',BrowserMods(data/'mods'))
+    content.launcher_identity=package_identity(manifest)
     if a.check:
         from browser_lobby_host import addresses
         addresses()  # Include the Home status reader in the packaged-startup check.

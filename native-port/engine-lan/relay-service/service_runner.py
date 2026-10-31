@@ -6,6 +6,7 @@ import os
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 import signal
+import socket
 import stat
 import subprocess
 import sys
@@ -15,6 +16,45 @@ PORT = 47540
 RANGES = tuple(ipaddress.IPv4Network(s) for s in ('10.0.0.0/8','172.16.0.0/12','192.168.0.0/16','169.254.0.0/16'))
 TAILSCALE_RANGE = ipaddress.IPv4Network('100.64.0.0/10')
 TAILSCALE_CLIENT = Path('/Applications/Tailscale.app/Contents/MacOS/Tailscale')
+
+def lan_interface(address, run=subprocess.run):
+    """Match the existing private bind to an Ethernet/Wi-Fi interface only."""
+    try:
+        ip = ipaddress.IPv4Address(address)
+        if str(ip) != address or not any(ip in net for net in RANGES): return None
+        names = sorted(name for _, name in socket.if_nameindex() if name.startswith('en') and name[2:].isdigit())[:8]
+        for name in names:
+            result = run(['/usr/sbin/ipconfig','getifaddr',name],capture_output=True,text=True,timeout=1)
+            if result.returncode == 0 and result.stdout.strip() == address: return name
+    except (OSError,ValueError,subprocess.TimeoutExpired): pass
+    return None
+
+class LANAnnouncement:
+    """One owned Bonjour proxy, scoped to the verified LAN listener interface."""
+    def __init__(self, log, spawn=subprocess.Popen, interface=lan_interface):
+        self.log, self.spawn, self.interface = log, spawn, interface
+        self.child = None
+        self.binding = None
+        self.host = 'zgta-relay-%d.local.' % os.getpid()
+
+    def ensure(self, address, port):
+        if self.binding == (address,port) and self.child is not None and self.child.poll() is None: return
+        self.close()
+        if type(port) is not int or not 1 <= port <= 65535: return
+        interface = self.interface(address)
+        if interface is None: return
+        try:
+            self.child = self.spawn(['/usr/bin/dns-sd','-i',interface,'-P','ZGTA V · LOS-SANTOS','_zgtav._tcp.','local.',str(port),self.host,address,
+                                     'protocol=zema-engine-lan/1','build=8b0b5899ed'],stdin=subprocess.DEVNULL,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+            self.binding = (address,port)
+            self.log.info('LAN discovery enabled on %s, port %d',interface,port)
+        except OSError as error:
+            self.log.warning('LAN discovery unavailable: %s',error)
+
+    def close(self):
+        stop_child(self.child)
+        self.child = None
+        self.binding = None
 
 def tailscale_ip(run=subprocess.run, client=TAILSCALE_CLIENT):
     """Read only the existing client's local status. Never configure a VPN."""
@@ -72,7 +112,7 @@ def publish_address(root, address, filename='relay-bind.json'):
 
 class RelaySupervisor:
     """A failed address observation must not tear down a healthy child/session."""
-    def __init__(self, root, log, spawn=None, stop=stop_child):
+    def __init__(self, root, log, spawn=None, stop=stop_child, announcement=None):
         self.root, self.log = root, log
         self.spawn = spawn or self.start_child
         self.stop = stop
@@ -81,14 +121,18 @@ class RelaySupervisor:
         self.pending_address = None
         self.waiting = False
         self.probe_missing = False
+        self.announcement = announcement if announcement is not None else LANAnnouncement(log)
 
     def start_child(self, address):
         vpn_address=tailscale_ip()
         args=[sys.executable,'-B','-u',str(self.root/'relay.py'),'--bind',address,'--port',str(PORT),'--service']
         if vpn_address:args+=['--vpn-bind',vpn_address]
         child = subprocess.Popen(args,stdin=subprocess.DEVNULL,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True)
+        child.relay_ready = threading.Event()
         def drain(process):
-            for line in process.stdout:self.log.info('engine: %s',line.rstrip()[:500])
+            for line in process.stdout:
+                if line.strip() == 'ENGINE_LAN_RELAY_READY %s %d' % (address,PORT): process.relay_ready.set()
+                self.log.info('engine: %s',line.rstrip()[:500])
         threading.Thread(target=drain,args=(child,),daemon=True).start()
         try:
             publish_address(self.root,address)
@@ -100,6 +144,7 @@ class RelaySupervisor:
         if self.child is not None:
             code = self.child.poll()
             if code is not None:
+                self.announcement.close()
                 self.log.info('Relay exited (%s); recovering when a private address is available',code)
                 self.child = None
                 self.pending_address = None
@@ -124,6 +169,7 @@ class RelaySupervisor:
                 self.log.info('Observed a different private LAN address; awaiting confirmation')
                 return
             else:
+                self.announcement.close()
                 self.stop(self.child)
                 self.child = None
                 self.log.info('Confirmed private LAN address change; restarting relay')
@@ -138,7 +184,15 @@ class RelaySupervisor:
                 self.log.info('Enabled; waiting for a private Ethernet/Wi-Fi address')
                 self.waiting = True
 
+    def update_announcement(self):
+        ready = getattr(self.child,'relay_ready',None)
+        if self.child is not None and self.child.poll() is None and ready is not None and ready.is_set():
+            self.announcement.ensure(self.address,PORT)
+        else:
+            self.announcement.close()
+
     def close(self):
+        self.announcement.close()
         self.stop(self.child)
         self.child = None
 
@@ -155,6 +209,7 @@ def main():
     try:
         while not stopped.is_set():
             supervisor.update(lan_ip())
+            supervisor.update_announcement()
             stopped.wait(5)
     finally:
         supervisor.close();log.info('Relay stopped by its owner')

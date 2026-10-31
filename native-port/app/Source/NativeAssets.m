@@ -12,6 +12,9 @@
 #include "NativeAssetPreload.h"
 #include "NativeFeedWidth.h"
 #include "NativeAssetRead.h"
+#include "NativeGraphics.h"
+#include "NativeAssetWake.h"
+#include "NativeAssetNotify.h"
 
 // A language choice requested by the native app when the WASM engine boots.
 // This does not guarantee the underlying web game uses the locale or has the necessary fonts.
@@ -88,6 +91,13 @@ static _Thread_local double assetReadNetworkMS,assetReadLockMS;
 static _Thread_local uint64_t assetReadNetworkBytes;
 static _Thread_local unsigned assetReadSource;
 static _Thread_local bool assetSizeMismatch;
+static PGAssetWake assetWake=PG_ASSET_WAKE_INITIALIZER;
+static bool assetEventDriven;
+static uint64_t assetWakeSnapshot(void){return assetEventDriven?pg_asset_wake_snapshot(&assetWake):0;}
+static void assetWaitForWork(uint64_t seen,int32_t bell,bool queuedHints){
+  if(assetEventDriven)pg_asset_wake_wait(&assetWake,seen,queuedHints?250000000ull:1000000000ull);
+  else pg_atomic_wait32(w2c_env_memory(assetHost),assetTable,bell,10000000);
+}
 static double assetNowMS(void){return NSProcessInfo.processInfo.systemUptime*1000;}
 #ifdef PG_ASSET_TEST_HOOK
 static void (*assetFillTestHook)(uint32_t,uint64_t);
@@ -484,14 +494,23 @@ void pg_assets_prewarm(void){
     pg_log("ASSET_WARM_COMPLETE");
   }
 }
-static void pumpAssetHints(void){
-  // Demand reads still run; defer background hints while streaming needs its
-  // 384 MiB reserve for eviction and transient Metal uploads.
+static bool assetHintsHaveHeadroom(void){
+  // Keep optional I/O out of the same reserve used by streaming eviction.
+  // Demand reads remain authoritative, including on low-memory devices.
 #if !TARGET_OS_SIMULATOR
-  if(os_proc_available_memory()<384ull*1024*1024)return;
+  return os_proc_available_memory()>=((PGIsLowMemoryDevice()?512ull:384ull)<<20);
+#else
+  return true;
 #endif
+}
+static void pumpAssetHints(void){
+  if(!assetHintsHaveHeadroom())return;
   PGAssetHint hint;
-  while(pg_asset_hint_next(&normalHints,&lowHints,(unsigned)atomic_load(&activePrefetch),(unsigned)atomic_load(&activeSpeculative),16,4,&hint)){
+  // Optional hints share a bounded scratch/download budget. Reduced memory
+  // keeps at most four hint jobs (one speculative); demand workers bypass
+  // these queues and retain their existing priority and concurrency.
+  const bool reduced=PGIsLowMemoryDevice()!=0;
+  while(pg_asset_hint_next(&normalHints,&lowHints,(unsigned)atomic_load(&activePrefetch),(unsigned)atomic_load(&activeSpeculative),reduced?4:16,reduced?1:4,&hint)){
     if(hint.id>=assetFiles.count)continue;
     uint64_t size=[assetFiles[hint.id][1] unsignedLongLongValue];if(hint.offset>=size)continue;
     hint.length=(uint32_t)MIN((uint64_t)hint.length,size-hint.offset);
@@ -500,9 +519,12 @@ static void pumpAssetHints(void){
     PGAssetHint job=hint;atomic_fetch_add(&activePrefetch,1);if(job.speculative)atomic_fetch_add(&activeSpeculative,1);hintsScheduled++;
     dispatch_block_t work=^{@autoreleasepool {
       assetPrefetchRead=true;assetSpeculativeRead=job.speculative;
-      uint8_t *bytes=malloc(1024*1024);
-      @try {if(bytes){uint64_t end=job.offset+job.length;for(uint64_t at=job.offset;at<end;){uint32_t length=(uint32_t)MIN((uint64_t)1024*1024,end-at);if(readAsset(job.id,at,bytes,length)!=length)break;at+=length;}}}
-      @finally {free(bytes);assetPrefetchRead=assetSpeculativeRead=false;if(job.speculative)atomic_fetch_sub(&activeSpeculative,1);atomic_fetch_sub(&activePrefetch,1);}
+      uint8_t *bytes=NULL;
+      // Pressure can change after dispatch or during a long announcement.
+      // Dropping a hint never completes an engine demand request or marks
+      // its remaining range cached; a later demand still reads it normally.
+      @try {if(assetHintsHaveHeadroom())bytes=malloc(1024*1024);if(bytes){uint64_t end=job.offset+job.length;for(uint64_t at=job.offset;at<end;){if(!assetHintsHaveHeadroom())break;uint32_t length=(uint32_t)MIN((uint64_t)1024*1024,end-at);if(readAsset(job.id,at,bytes,length)!=length)break;at+=length;}}}
+      @finally {free(bytes);assetPrefetchRead=assetSpeculativeRead=false;if(job.speculative)atomic_fetch_sub(&activeSpeculative,1);atomic_fetch_sub(&activePrefetch,1);if(assetEventDriven)pg_asset_wake_signal(&assetWake);}
     }};
     if(assetBalancedQOS)work=dispatch_block_create_with_qos_class(DISPATCH_BLOCK_ENFORCE_QOS_CLASS,job.speculative?QOS_CLASS_BACKGROUND:QOS_CLASS_UTILITY,0,work);
     dispatch_async(assetBalancedQOS&&job.speculative?speculativeQueue:prefetchQueue,work);
@@ -515,7 +537,7 @@ static void *assetHintLoop(void *unused){
   pthread_setname_np("gta.asset.hints");if(assetBalancedQOS)pthread_set_qos_class_self_np(QOS_CLASS_UTILITY,0);
   wasm_rt_trap_t trap=wasm_rt_impl_try();if(trap){pg_log("Native asset hint worker encountered invalid engine memory.");return NULL;}
   _Atomic int32_t *table=pg_pointer(assetHost,assetTable,64);double report=assetNowMS();
-  for(;;){int32_t bell=atomic_load(table);@autoreleasepool {
+  for(;;){uint64_t wakeSeen=assetWakeSnapshot();int32_t bell=atomic_load(table);@autoreleasepool {
     uint32_t ring=atomic_load(table+2),capacity=atomic_load(table+3),head=atomic_load(table+4),tail=atomic_load(table+5);
     if(ring&&capacity){uint32_t oldest=pg_asset_hint_oldest(head,tail,capacity);hintsLapped+=(uint32_t)(oldest-tail);tail=oldest;
       while(tail!=head){uint64_t address=assetTable+((uint64_t)ring+(uint64_t)(tail%capacity)*4)*4;_Atomic int32_t *entry=pg_pointer(assetHost,address,16);uint32_t raw=atomic_load(entry+3);if(!raw)break;
@@ -526,13 +548,14 @@ static void *assetHintLoop(void *unused){
       atomic_store(table+5,(int32_t)tail);
     }
     pumpAssetHints();double now=assetNowMS();if(now-report>=10000){char line[256];snprintf(line,sizeof line,"Native asset hints: normal %llu, speculative %llu, scheduled %llu, cached %llu, lapped %llu, queues %u/%u, active %d/%d.",hintsNormalSeen,hintsLowSeen,hintsScheduled,hintsCached,hintsLapped,normalHints.count,lowHints.count,atomic_load(&activePrefetch),atomic_load(&activeSpeculative));pg_log(line);report=now;}
-  }pg_atomic_wait32(w2c_env_memory(assetHost),assetTable,bell,10000000);}
+  }assetWaitForWork(wakeSeen,bell,normalHints.count||lowHints.count);}
 }
 static void *assetLoop(void *unused) {
   char workerName[32];snprintf(workerName,sizeof workerName,"gta.asset.read.%ld",(long)(intptr_t)unused);pthread_setname_np(workerName);
   wasm_rt_trap_t trap=wasm_rt_impl_try();if(trap){pg_log("Native asset worker encountered invalid engine memory.");return NULL;}
   _Atomic int32_t *table=pg_pointer(assetHost,assetTable,64);
   for(;;) {
+    uint64_t wakeSeen=assetWakeSnapshot();
     int32_t bell=atomic_load(table);int count=atomic_load(table+1);
     if(count<0||count>4096){pg_log("Invalid native asset slot count.");return NULL;}
     for(int i=0;i<count;i++) {
@@ -560,14 +583,19 @@ static void *assetLoop(void *unused) {
       uint64_t offset=(uint32_t)atomic_load(hint+1)|((uint64_t)(uint32_t)atomic_load(hint+2)<<32);
       uint32_t length=MIN((uint32_t)wanted,512*1024);
       atomic_store(hint+3,0);used++;atomic_store(table+5,used);atomic_fetch_add(&activePrefetch,1);
-      dispatch_async(prefetchQueue,^{@autoreleasepool {assetPrefetchRead=assetSpeculativeRead=true;uint8_t *bytes=malloc(length);if(bytes){readAsset(id,offset,bytes,length);free(bytes);}assetPrefetchRead=assetSpeculativeRead=false;atomic_fetch_sub(&activePrefetch,1);}});
+      dispatch_async(prefetchQueue,^{@autoreleasepool {assetPrefetchRead=assetSpeculativeRead=true;uint8_t *bytes=malloc(length);if(bytes){readAsset(id,offset,bytes,length);free(bytes);}assetPrefetchRead=assetSpeculativeRead=false;atomic_fetch_sub(&activePrefetch,1);if(assetEventDriven)pg_asset_wake_signal(&assetWake);}});
     }
     }
-    pg_atomic_wait32(w2c_env_memory(assetHost),assetTable,bell,10000000);
+    assetWaitForWork(wakeSeen,bell,false);
   }
 }
 void w2c_env_wasm_httpfs_io_start_js(struct w2c_env *host,u64 table) {
   if(assetTable)return;assetHost=host;assetTable=table;
+  // The pinned engine publishes requests/hints then notifies one waiter on
+  // this bell. Broadcast only to our independent native consumers; preserve
+  // WASM notify counts for every engine futex, including this one.
+  assetEventDriven=pg_atomic_observe_notify(w2c_env_memory(host),table,pg_asset_wake_signal,&assetWake);
+  pg_log(assetEventDriven?"Native asset workers: event-driven doorbell and hint-completion wakeups.":"Native asset workers: retaining bounded polling fallback.");
   pg_log("Native asset request queue attached; files cached on the phone.");
   for(int i=0;i<6;i++){pthread_t thread;pthread_create(&thread,NULL,assetLoop,(void *)(intptr_t)i);pthread_detach(thread);}
   if(assetQueuedHints){pthread_t thread;pthread_create(&thread,NULL,assetHintLoop,NULL);pthread_detach(thread);pg_log("Native upcoming asset queue enabled: 16 hints, at most 4 speculative; demand reads take priority.");}

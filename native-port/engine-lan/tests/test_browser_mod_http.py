@@ -232,10 +232,15 @@ class BrowserModHTTP(unittest.TestCase):
         self.assertEqual(self.get(prefix + archive_path), pack())
         self.assertEqual(self.api('launch', {'mode': 'sandbox'})['mods'], [])
 
-    def test_lan_unchanged_offline_save_namespaces_and_snapshot_cap_release(self):
+    def test_lan_snapshot_preserves_config_and_offline_save_namespaces(self):
         before = self.get('/data/common/data/gameconfig.xml')
         self.import_pack()
-        self.assertEqual(self.api('launch', {'mode': 'lan'}), {'prefix': '', 'mode': 'lan', 'mods': []})
+        lan = self.api('launch', {'mode': 'lan'})
+        self.assertRegex(lan['prefix'], r'^/session/[a-f0-9]{32}$')
+        self.assertEqual(lan['mods'][0]['vehicleModels'], ['testvehicle'])
+        self.assertEqual(self.get(lan['prefix'] + '/data/common/data/gameconfig.xml'), before)
+        self.assertEqual(self.get(lan['prefix'] + server.BUILD + 'engine-lan-module.js'), (self.stage / 'engine-lan-module.js').read_bytes())
+        self.content.drop_session(lan['prefix'].rsplit('/', 1)[1])
         self.assertEqual(self.get('/data/common/data/gameconfig.xml'), before)
         self.assertEqual(self.get(server.BUILD + 'engine-lan-module.js'), (self.stage / 'engine-lan-module.js').read_bytes())
         self.assertEqual(len(self.content.sessions), 0)

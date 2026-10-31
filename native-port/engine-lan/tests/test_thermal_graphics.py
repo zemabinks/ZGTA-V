@@ -49,7 +49,7 @@ final class Fixture:NSObject {
  func appendLog(_ s:String){messages.append(s)}
  func showCheatToast(_ s:String){messages.append(s)}
  func notify(){thermalStateChanged()}
- func tick(){updateLanThermalGraphics()}
+ func tick(){updateThermalGraphics()}
  func resize(){applyLiveResolution()}
 '''+methods+r'''
 }
@@ -80,8 +80,8 @@ assert(policy.nextLimit(thermalState:3,ready:true,now:130.1)==3)
 assert(policy.nextLimit(thermalState:0,ready:true,now:Double.nan)==nil)
 assert(policy.nextLimit(thermalState:0,ready:false,now:160)==nil)
 assert(policy.nextLimit(thermalState:0,ready:true,now:161)==nil)
-// Offline retains its live resolution path; the LAN guard has no global effect.
-lan=0;limits=[];resizes=[];fixture.thermalScale=1;ProcessInfo.processInfo.thermalState = .serious;fixture.notify();assert(resizes.count==1&&resizes[0].1==576&&limits.isEmpty)
+// Offline retains safe live resizing and now uses the same temporary thermal FPS policy.
+lan=0;limits=[];resizes=[];fixture.lanThermalGraphics.begin(frameRateCap:60);fixture.thermalScale=1;ProcessInfo.processInfo.thermalState = .serious;fixture.notify();assert(resizes.count==1&&resizes[0].1==576&&limits==[2])
 print("LAN_THERMAL_FPS_AND_DEFERRED_RESIZE_PASS")
 '''
         with tempfile.TemporaryDirectory(prefix='zema-thermal-controller-') as d:
@@ -121,6 +121,6 @@ int main(){PGSetBackBufferSize(936,432);if(*(int32_t*)(memory+432)!=0)return 3;
         text=prepare.app_patch('SettingsViewController.swift',(APP/'App/SettingsViewController.swift').read_text())
         self.assertIn('Engine LAN resolution changes apply after restarting the app.',text)
         self.assertIn('engineRunning && ZemaLabEnabled() != 0 ? " · applies after restart"',text)
-        self.assertIn('updateLanThermalGraphics()\n        let now = CACurrentMediaTime()',prepare.controller_patch((APP/'App/NativePortViewController.swift').read_text()))
+        self.assertIn('updateThermalGraphics()\n        let now = CACurrentMediaTime()',prepare.controller_patch((APP/'App/NativePortViewController.swift').read_text()))
 
 if __name__=='__main__':unittest.main()

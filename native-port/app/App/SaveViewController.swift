@@ -32,7 +32,9 @@ final class SaveViewController: UITableViewController, UIDocumentPickerDelegate 
         reloadFiles()
     }
     private func reloadFiles() {
-        do { files = try store.files(); tableView.reloadData() }
+        // Full backups stay bounded to 256 files; a metadata-only list also
+        // lets an oversized existing profile recover its individual saves.
+        do { files = try store.files(limit: 4096); tableView.reloadData() }
         catch { message(L10n.text("Cannot read save files"), error.localizedDescription) }
         refreshControl?.endRefreshing()
     }

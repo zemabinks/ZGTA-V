@@ -19,22 +19,27 @@ ROOT=Path(__file__).resolve().parent
 INDEX_SHA='ea61ad05772c2bd2409304bdb80520abf5c50723a95dccc6bcc185c367a3105b'
 BUILD='/b/8b0b5899ed/'
 SIZES={3600:3,2500:4,150:12,80:12,40:16}
+HOST_SIZES={7500:3,4000:6}
 
 
 def overlay(data):
     """Same fixed-length transaction as BroadcastOverlay.c, never disk writes."""
     if len(data)>16*1024*1024 or b'\0' in data:raise ValueError('Invalid gameconfig')
-    start=data.index(b'<PlayerBroadcastData>');end=data.index(b'</PlayerBroadcastData>',start)
     changed=bytearray(data)
-    for size,count in SIZES.items():
-        tag=('<SizeOfData value="%d"/>'%size).encode();item=data.index(tag,start,end)
-        if data.find(tag,item+len(tag),end)>=0:raise ValueError('Duplicate broadcast record')
-        close=data.index(b'</Item>',item,end);field=data.index(b'<NumInstances value="',item,close);digits=field+21;quote=data.index(b'"',digits,close);old=data[digits:quote]
-        if not old or len(old)>9 or not old.isdigit():raise ValueError('Invalid broadcast count')
-        if int(old)>=count:continue
-        value=str(count).encode();delta=len(value)-len(old)
-        if delta<0 or data[field-delta:field]!=b'\t'*delta:raise ValueError('Broadcast width changed')
-        changed[field-delta:quote]=data[field:digits]+value
+    for name,sizes in [('HostBroadcastData',HOST_SIZES),('PlayerBroadcastData',SIZES)]:
+        opening=('<'+name+'>').encode();closing=('</'+name+'>').encode()
+        if data.count(opening)!=1 or data.count(closing)!=1:raise ValueError('Ambiguous broadcast section')
+        start=data.index(opening);end=data.index(closing,start)
+        for size,count in sizes.items():
+            tag=('<SizeOfData value="%d"/>'%size).encode();item=data.index(tag,start,end)
+            if data.find(tag,item+len(tag),end)>=0:raise ValueError('Duplicate broadcast record')
+            close=data.index(b'</Item>',item,end);field=data.index(b'<NumInstances value="',item,close);digits=field+21;quote=data.index(b'"',digits,close);old=data[digits:quote]
+            if data.find(b'<NumInstances value="',digits,close)>=0:raise ValueError('Duplicate broadcast count')
+            if not old or len(old)>9 or not old.isdigit():raise ValueError('Invalid broadcast count')
+            if int(old)>=count:continue
+            value=str(count).encode();delta=len(value)-len(old)
+            if delta<0 or delta>field-start or data[field-delta:field]!=b'\t'*delta:raise ValueError('Broadcast width changed')
+            changed[field-delta:quote]=data[field:digits]+value
     if len(changed)!=len(data):raise ValueError('Broadcast length changed')
     return bytes(changed)
 
@@ -58,7 +63,7 @@ def index(data,mode='lan',prefix=None,engine_sha=None,lease=None,vehicle_packs=N
     inject+='\n<script>window.ZemaBenchmarkEngine='+json.dumps(engine_sha)+';</script>'
     inject+='\n<script>window.ZemaLaunchLease='+json.dumps(lease)+';</script>'
     # Only vehicle names from this immutable launch snapshot, never future imports.
-    loaded=[{'vehicleModels':p['vehicleModels']} for p in (vehicle_packs or [])] if mode!='lan' else []
+    loaded=[{'vehicleModels':p['vehicleModels']} for p in (vehicle_packs or [])]
     inject+='\n<script>window.ZemaLoadedVehiclePacks='+json.dumps(loaded).replace('<','\\u003c')+';</script>'
     text=once(data.decode(),'<head>','<head>'+inject)
     text=once(text,'const q = new URLSearchParams(location.search);','const q = window.ZemaRuntime.query;')
@@ -72,11 +77,16 @@ def index(data,mode='lan',prefix=None,engine_sha=None,lease=None,vehicle_packs=N
     text=once(text,'const offscreen = canvas.transferControlToOffscreen();','await window.ZemaRuntimeReady;\n\tconst offscreen = canvas.transferControlToOffscreen();')
     # Never unregister unrelated service workers or delete historical caches.
     text=once(text,'await dropOldCache();','/* Existing caches are preserved. */')
+    # This server reads an existing local mirror. A second persistent data cache
+    # duplicates those files and competes with macOS swap on the same disk.
+    # Keep the upstream bounded 48 MiB memory cache and exact HTTP range reads.
+    text=once(text,"noStore: !!(q.get('nocache') || q.get('nosw'))",'noStore: true')
     text=once(text,'installInput(ev.data.input.memory, ev.data.input.block);','window.ZemaGameInput=ZemaController.install(ev.data.input.memory, ev.data.input.block,canvas,startSize,startMode,window.ZemaRuntime.settings,window.ZemaRuntime.features);')
     text=once(text,'canvas: offscreen,','canvas: offscreen,\n        features:window.ZemaRuntime.features,\n        fpsChannel:window.ZemaFPSChannel,')
     text=once(text,"new BroadcastChannel('game-fps')","new BroadcastChannel(window.ZemaFPSChannel)")
     text=once(text,'if (m.world) { ready = true;',"if (m.world || (m.frontend && window.ZemaRuntime.settings.mode==='lan')) { if(m.world)window.ZemaGameReady=true; ready = true;")
     if mode=='lan':
+        if prefix:text=once(text,"const BASE = '/b/8b0b5899ed'.charAt(0) === '_' ? '' : '/b/8b0b5899ed';","const BASE = '"+prefix+"/b/8b0b5899ed';")
         text=once(text,"1: 'Loading Story Mode'","1: 'Loading multiplayer'")
         text=once(text,'worker.postMessage({','window.ZemaLabLaunch(worker,{')
     else:text=once(text,"const BASE = '/b/8b0b5899ed'.charAt(0) === '_' ? '' : '/b/8b0b5899ed';","const BASE = '"+(prefix or '/offline/'+mode)+"/b/8b0b5899ed';")
@@ -100,6 +110,9 @@ def offline_worker(name,data,mode):
     if name == 'io_worker.js':
         import io_lifecycle
         text = io_lifecycle.apply(text)
+    if name == 'io_worker.js':
+        import io_scratch
+        text = io_scratch.apply(text)
     if name in ('loader.js','io_worker.js'):
         text=once(text,"indexedDB.open('gta5-userdata', 1)","indexedDB.open('zema-browser-"+mode+"-userdata-v1', 1)")
     if name=='loader.js':text=once(text,"self.location.origin + '/data/'","self.location.origin + '/offline/"+mode+"/data/'")
@@ -154,7 +167,7 @@ class Content:
             self.map_icons={'active':True,'icons':len(patch['icons']),'archive_sha256':patch['result_sha256']}
         except (OSError,ValueError,KeyError,TypeError) as error:
             self.map_icons['reason']=type(error).__name__  # Keep the original on unsupported inputs.
-        self.assets={name:(ROOT/name).read_bytes() for name in ['session-restart.js','launcher.html','launcher.css','launcher.js','lobby-model.js','lobby-ui.js','launch-settings.js','browser-performance.js','controller.js','runtime.js','browser-saves.js','browser-features.js','vehicle-catalog.js','browser-trainer.js','vehicle-ui.js','trainer-ui.js','performance-run.js','browser-mods-ui.js','connection-ui.js','lan-loading.js','solo-card.png','friends-card.png','los-santos-map.jpg','zplay-gta-green.svg','zplay-gta-green-32.png','zplay-gta-green-180.png','favicon.ico']}
+        self.assets={name:(ROOT/name).read_bytes() for name in ['session-restart.js','launcher.html','launcher.css','desktop-launcher.css','desktop-launcher.js','desktop-city.png','launcher.js','lobby-model.js','lobby-ui.js','launch-settings.js','browser-performance.js','controller.js','runtime.js','browser-saves.js','browser-features.js','vehicle-catalog.js','browser-trainer.js','vehicle-ui.js','trainer-ui.js','performance-run.js','browser-mods-ui.js','connection-ui.js','lan-loading.js','solo-card.png','friends-card.png','los-santos-map.jpg','zplay-gta-green.svg','zplay-gta-green-32.png','zplay-gta-green-180.png','favicon.ico']}
         self.assets['launcher-icon.png']=(ROOT.parent/'app/App/Assets.xcassets/HomeIcon.imageset/HomeIcon.png').read_bytes()
         import mod_previews
         for row in mod_previews.load().values():
@@ -193,8 +206,7 @@ class Content:
                 if len(self.runtime_signals)>256:self.runtime_signals.popitem(last=False)
 
     def launch(self,mode):
-        if mode=='lan':return {'prefix':'','mode':mode,'mods':[]}
-        if mode not in ('story','sandbox'):raise ValueError('Unknown launch mode')
+        if mode not in ('story','sandbox','lan'):raise ValueError('Unknown launch mode')
         if not self.features:raise ValueError('Use the reviewed feature browser stage before starting this launcher')
         with self.session_lock:
             self.prune_sessions()
@@ -256,6 +268,18 @@ class Content:
         if tail=='/play/'+mode:return io.BytesIO(index(self.index_source,mode,prefix,engine_sha=self.engine_hashes[mode],lease=lease,vehicle_packs=snapshot.catalog if snapshot else [])),'text/html'
         if tail.startswith(BUILD):
             name=tail[len(BUILD):]
+            if mode=='lan':
+                # Keep the exact reviewed LAN engine/worker graph. Only data
+                # reads and the optional asset-cache namespace are snapshot-local.
+                source,mime=self._select(tail)
+                if name in ('loader.js','io_worker.js'):
+                    with source:content=source.read().decode()
+                    if name=='loader.js':
+                        content=once(content,"self.location.origin + '/data/'","self.location.origin + '"+prefix+"/data/'")
+                    elif snapshot and snapshot.catalog:
+                        content=once(content,"getDirectoryHandle('gamedata', { create: true })","getDirectoryHandle('zema-engine-lan-gamedata-"+snapshot.fingerprint+"', { create: true })")
+                    return io.BytesIO(content.encode()),mime
+                return source,mime
             special=self.feature_file(name)
             if special:return special
             if name in self.offline[mode]:
@@ -267,6 +291,7 @@ class Content:
             return self.original(tail)
         if tail.startswith('/data/'):
             name=tail[6:]
+            if mode=='lan' and name.lower()=='common/data/gameconfig.xml':return io.BytesIO(self.config),'application/xml'
             if snapshot:
                 content=snapshot.manifest_bytes if name=='manifest.json' and snapshot.catalog else snapshot.resolve(name)
                 if content is not None:return io.BytesIO(content),mimetypes.guess_type(name)[0] or 'application/octet-stream'
@@ -439,7 +464,7 @@ class Handler(BaseHTTPRequestHandler):
                 elif path=='/zema-lab/lobbies/probe' and set(body)=={'addresses'}:result=content.lobby_directory.probe(body['addresses'])
                 elif path=='/zema-lab/launcher/status' and not body:
                     from browser_lobby_host import addresses
-                    result={'service':'zgta-browser-launcher','files_available':content.mirror.is_dir() and content.stage.is_dir(),'networks':addresses()}
+                    result={'service':'zgta-browser-launcher','identity':getattr(content,'launcher_identity',None),'files_available':content.mirror.is_dir() and content.stage.is_dir(),'networks':addresses()}
                 elif path=='/zema-lab/host/status' and not body:result=content.lobby_host.status()
                 elif path=='/zema-lab/host/start' and set(body)=={'room','connection'}:result=content.lobby_host.start(body['room'],body['connection'])
                 elif path=='/zema-lab/host/stop' and set(body)=={'id'}:result=content.lobby_host.stop(body['id'])

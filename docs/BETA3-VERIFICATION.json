@@ -1,0 +1,54 @@
+{
+  "format": "zgta-public-promotion-verification-v1",
+  "release": "v2.0.0-beta.3",
+  "approved_on": "2026-10-31",
+  "owner_publication_choice": "YES_PUBLISH",
+  "source_export": {
+    "production_files_byte_identical_to_approved_source": 537,
+    "privacy_scan": "PASS",
+    "fixtures_and_provenance_changes": "See SOURCE-AUDIT.json"
+  },
+  "public_source_regression_methods_passed": 53,
+  "game_packages": [
+    {
+      "name": "ZGTA-V-Build107-Memory-UI-Audit-TrollStore.ipa",
+      "bytes": 117764166,
+      "sha256": "9918682d7917f8ebb1f00d7c4822bfc281729eb71824ed92cb90554fe919ae54",
+      "url": "https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.3/ZGTA-V-Build107-Memory-UI-Audit-TrollStore.ipa"
+    },
+    {
+      "name": "ZGTA-V-Build107-Browser-Mac-Linux.zip",
+      "bytes": 47606308,
+      "sha256": "9dbf462b58b4ea22d5cadc2c655c3e0814103813bdfc588ab48ade036e6e7061",
+      "url": "https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.3/ZGTA-V-Build107-Browser-Mac-Linux.zip"
+    },
+    {
+      "name": "ZGTA-V-Build107-Windows-x64.zip",
+      "bytes": 59048210,
+      "sha256": "c6f1159902e032d3003bfb3b6257fbf9796c1f4258596aa11604372eb0c85a8a",
+      "url": "https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.3/ZGTA-V-Build107-Windows-x64.zip"
+    },
+    {
+      "name": "ZGTA-V-Build107-Android-Termux.zip",
+      "bytes": 47606413,
+      "sha256": "0897f1644c0cae10be6d9c092003cf3576c3ca5963370404584c2d077e531086",
+      "url": "https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.3/ZGTA-V-Build107-Android-Termux.zip"
+    },
+    {
+      "name": "ZGTA-V-Build107.1-Mac.dmg",
+      "bytes": 134608965,
+      "sha256": "1dade885721fd95bda66e48726ed9abc2d3bde7f28052a9f1c3cd5abe7ce8861",
+      "url": "https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.3/ZGTA-V-Build107.1-Mac.dmg"
+    },
+    {
+      "name": "ZGTA-V-Relay-Controls-1.1.zip",
+      "bytes": 17748,
+      "sha256": "07082958dc4b8831d5939136a49fa435a2c078fa932e3d1f27d9c4b0e0ff4874",
+      "url": "https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.3/ZGTA-V-Relay-Controls-1.1.zip"
+    }
+  ],
+  "source_reproducibility": "Native build reuses pinned generated inputs; fresh-machine reproduction not established",
+  "owner_scope": "See VERIFICATION.md",
+  "game_packages_changed_since_owner_test": false,
+  "sileo_metadata_only_wrapper_version": "0.107-2"
+}

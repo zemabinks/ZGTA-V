@@ -2,15 +2,25 @@
 // Escalate immediately; restore a faster cap only after 30 seconds continuously
 // below the threshold. Saved user preferences are never changed.
 struct EngineLanThermalGraphics {
+    // Configure the engine before loading, rather than waiting for WORLD_READY.
+    // LAN back buffers cannot safely resize in play; this smaller startup size
+    // stays for the session. The saved resolution and cap remain unchanged.
+    static func startupLimit(frameRateCap: Int, thermalState: Int) -> Int32 {
+        let chosen: Int32 = frameRateCap == 0 ? 0 : frameRateCap == 30 ? 2 : 1
+        return thermalState >= 3 ? max(chosen, 3) : thermalState == 2 ? max(chosen, 2) : chosen
+    }
+    static func startupScale(thermalState: Int) -> Double {
+        thermalState >= 3 ? 0.65 : thermalState == 2 ? 0.8 : 1
+    }
     private var bootLimit: Int32 = 1
     private var lastLimit: Int32?
     private var coolingSince: Double?
     private var coolingTarget: Int32?
     private var lastTime: Double?
 
-    mutating func begin(frameRateCap: Int) {
+    mutating func begin(frameRateCap: Int, initialLimit: Int32? = nil) {
         bootLimit = frameRateCap == 0 ? 0 : frameRateCap == 30 ? 2 : 1
-        lastLimit = nil; coolingSince = nil; coolingTarget = nil; lastTime = nil
+        lastLimit = initialLimit; coolingSince = nil; coolingTarget = nil; lastTime = nil
     }
 
     mutating func nextLimit(thermalState: Int, ready: Bool, now: Double) -> Int32? {

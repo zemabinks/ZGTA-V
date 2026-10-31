@@ -15,6 +15,19 @@ import subprocess
 import tempfile
 
 
+def preserved_worktree(previous, repo):
+    """Accept a retained stage only in a worktree of this same Git repository."""
+    source=previous.parents[3]
+    if previous.parent!=source/'native-port/app/Build':raise ValueError('Unexpected preserved build location')
+    for root in (source,repo):
+        if any(p.is_symlink() for p in (root,*root.parents)):raise ValueError('Symlinked source worktree refused')
+    def common(root):
+        value=subprocess.check_output(['git','rev-parse','--git-common-dir'],cwd=root,text=True).strip()
+        return (root/value).resolve(strict=True)
+    if common(source)!=common(repo):raise ValueError('Preserved build is from another repository')
+    return source
+
+
 def archive_content_hash(path):
     """Hash every archive byte except member-header dates (never object data)."""
     digest=hashlib.sha256()
@@ -171,11 +184,19 @@ def retained_unit(previous, record, name, app_build, digest):
     if len(entries) != 1:
         raise ValueError('Preserved compilation unit unavailable: ' + name)
     entry = entries[0]; obj = Path(entry['object']); deps = obj.with_suffix('.d')
-    relative = obj.relative_to(app_build)
     expected_tail = Path('DerivedData/Build/Intermediates.noindex/PlayGTA5Native.build/Release-iphoneos/PlayGTA5Native.build/Objects-normal/arm64') / (name + '.o')
-    if not obj.is_absolute() or Path(*relative.parts[1:]) != expected_tail:
+    if not obj.is_absolute() or len(obj.parents) < len(expected_tail.parts):
         raise ValueError('Unexpected retained object path')
-    origin = app_build / relative.parts[0] / 'AppRoot'
+    original_stage = obj.parents[len(expected_tail.parts) - 1]
+    if obj != original_stage / expected_tail:
+        raise ValueError('Unexpected retained object path')
+    # Successful incremental receipts may point to an object in a sibling
+    # worktree. Authenticate that checkout's common Git repository rather than
+    # assuming every historical object is under the immediately prior Build/.
+    # Object/dependency/input hashes below remain mandatory in either case.
+    if original_stage.parent != app_build:
+        preserved_worktree(original_stage, previous.parents[3])
+    origin = original_stage / 'AppRoot'
     for item in (obj, deps):
         if not item.is_file() or any(p.is_symlink() for p in (item, *item.parents)):
             raise ValueError('Retained object or dependency unavailable')
@@ -214,9 +235,10 @@ def same_generated_compiler_settings(old_spec, new_spec):
     return old == new
 
 
-def prepare(run, previous, receipt, staged_sources, digest_file):
+def prepare(run, previous, receipt, staged_sources, digest_file, direct=False):
     from build_experimental import APP, REPO
-    if previous.parent != APP.absolute() / 'Build' or receipt.parent != previous or previous == run:
+    preserved_worktree(previous,REPO)
+    if receipt.parent != previous or previous == run:
         raise ValueError('Use a distinct preserved isolated build and its receipt')
     record = json.loads(receipt.read_text())
     if (record.get('format') != 'zema-engine-lan-build-v1' or record.get('exit_code') != 0
@@ -240,7 +262,7 @@ def prepare(run, previous, receipt, staged_sources, digest_file):
     reused = []
     for number in range(64):
         name = 'game_' + str(number)
-        obj, deps, object_app = retained_unit(previous, record, name, APP.absolute() / 'Build', digest)
+        obj, deps, object_app = retained_unit(previous, record, name, previous.parent, digest)
         if obj.is_symlink() or deps.is_symlink() or not obj.is_file() or not deps.is_file():
             raise ValueError('Preserved compilation unit unavailable: ' + name)
         with obj.open('rb') as source:
@@ -261,6 +283,19 @@ def prepare(run, previous, receipt, staged_sources, digest_file):
     observation = {'format': 'zema-generated-object-reuse-v1', 'previous_build_receipt_sha256': digest(receipt),
                    'previous_source_revision': record['tool_head'], 'reused_units': reused,
                    'recompile_units': ['game_' + str(n) + '.c' for n in range(64) if 'game_' + str(n) + '.c' not in [x['source'] for x in reused]]}
+    if direct:
+        # ld's file list includes each already-attested object directly. Avoid
+        # materializing another ~1 GB archive on a nearly full development Mac.
+        # All dependency/source/ARM64 checks above are identical to archive mode.
+        listing=run/'verified-engine-objects.txt'
+        body=''.join(x['object']+'\n' for x in reused)
+        if any('\n' in x['object'] or '\r' in x['object'] for x in reused):raise ValueError('Invalid linker object path')
+        if listing.exists():
+            if listing.is_symlink() or listing.read_text()!=body:raise ValueError('Preserved linker file list changed')
+        else:listing.write_text(body)
+        observation.update(link_mode='verified-object-filelist',filelist=str(listing),filelist_sha256=digest_file(listing))
+        return ['EXCLUDED_SOURCE_FILE_NAMES='+' '.join(x['source'] for x in reused),
+                'OTHER_LDFLAGS=$(inherited) -Wl,-filelist,'+str(listing)],observation
     preserved=record.get('generated_object_reuse')
     if preserved and (Path(preserved['library']).parent!=previous/'GeneratedObjectCache'
                       or preserved.get('reused_units')!=reused

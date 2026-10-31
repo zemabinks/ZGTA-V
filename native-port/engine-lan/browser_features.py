@@ -32,16 +32,18 @@ EXPORTS={
  'SetProfilePreference':(36175,['i64','i32','i32'],[])
 }
 from browser_world_exports import EXPORTS as WORLD_EXPORTS
-EXPORTS.update(WORLD_EXPORTS)
-import session_restart
-EXPORTS.update({a:(i,p,r) for a,n,i,p,r in session_restart.COMMANDS})
+# This is the historical base phase. Model queries and direct restart exports
+# have their own later, pinned producers; adding them here changes every
+# downstream digest and makes those producers reject an otherwise valid build.
+LATER_WORLD_EXPORTS = frozenset(('IsModelInCdImage', 'IsModelAVehicle'))
+EXPORTS.update({alias: row for alias, row in WORLD_EXPORTS.items()
+                if alias not in LATER_WORLD_EXPORTS})
 
 
 def transform(data):
     digest=hashlib.sha256(data).hexdigest()
     if digest not in (ORIGINAL,LAN):raise ValueError('Unreviewed engine; feature patch refused')
     types,indices,names=b.gate.module_abi(data)
-    session_restart.validate_abi(types,indices,names)
     if names.get('rage::ioPad::Update(bool)')!=[10454] or types[indices[10454]]!=(['i64'],[]):raise ValueError('Controller hook ABI changed')
     if names.get('rage::ioPad::UpdateDebug()')!=[10456]:raise ValueError('Controller post-update boundary changed')
     for alias,(index,params,results) in EXPORTS.items():
@@ -130,7 +132,7 @@ def transform(data):
     metadata={'format':'zema-browser-features-v1','engine_sha256':ORIGINAL,'input_sha256':digest,
       'patched_sha256':hashlib.sha256(output).hexdigest(),'pad_body_sha256':PAD_HASH,'table64':bool(flags&4),
       'loading_state':{'address':19473636,'function_index':34946,'body_sha256':LOADING_HASH},
-      'session_observation':SESSION_OBSERVATION,'session_restart':session_restart.CONTRACT,
+      'session_observation':SESSION_OBSERVATION,
       'hook':hook,'memory_file_name':memory_hook,'text_fallback':text_hook,'script_bank':bank_hooks,'gamer_tag':tag_hook,'blip_sprites':blip_hook,'auxiliary_wasm':list(b.auxiliary([hook,memory_hook,text_hook,*bank_hooks,tag_hook,blip_hook])),'deferred_start':start is not None,
       'exports':{alias:{'index':i,'params':p,'results':r} for alias,(i,p,r) in EXPORTS.items()},
       'runtime_verified':False,'physical_controller_verified':False,'trainer_effects_verified':False}
@@ -164,8 +166,8 @@ def english_worker(text):
 
 def renderer(data):
     if hashlib.sha256(data).hexdigest()!=GPU_HASH:raise ValueError('Reviewed GPU worker source changed')
-    import minimap_gpu, browser_gpu
-    return browser_gpu.apply(minimap_gpu.apply(data.decode())).encode()
+    import minimap_gpu, browser_gpu, render_performance, stipple_gpu
+    return stipple_gpu.apply(render_performance.apply(browser_gpu.apply(minimap_gpu.apply(data.decode())))).encode()
 
 def stage(engine,lan_stage,output):
     from stage_browser import ROOT, APP

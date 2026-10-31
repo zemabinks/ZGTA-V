@@ -13,7 +13,14 @@
   return report;
  }
  function text(r){return ['Shared memory: '+(r.sharedMemory?'ready':'unavailable'),'WebAssembly memory64: '+(r.memory64?'ready':'unavailable'),'Typed engine functions: '+(r.typedFunctions?'ready':'unavailable'),'High-performance WebGPU adapter: '+(r.adapter||'unavailable'),'BC game textures: '+(r.bc?'supported':'unsupported on this adapter'),'Software fallback reported: '+(r.fallback?'yes':'no')].join('\n');}
+ function hostIdentity(value){
+  if(!value||typeof value!=='object'||Array.isArray(value))return null;
+  const {build,browser_revision,source_revision,stage_manifest_sha256,module_metadata_sha256}=value;
+  if(!Number.isSafeInteger(build)||build<1||typeof browser_revision!=='string'||!/^[1-9][0-9]*(?:\.[0-9]+)?$/.test(browser_revision)||build!==Number(browser_revision.split('.')[0]))return null;
+  if(typeof source_revision!=='string'||!/^[0-9a-f]{40}$/.test(source_revision)||[stage_manifest_sha256,module_metadata_sha256].some(v=>typeof v!=='string'||!/^[0-9a-f]{64}$/.test(v)))return null;
+  return {build,browser_revision,source_revision,stage_manifest_sha256,module_metadata_sha256};
+ }
  function faster(raw){return {...raw,preset:'performance',height:432,fps:60,cores:4};}
- root.ZemaBrowserPerformance={engineSupport,inspect,text,faster};
+ root.ZemaBrowserPerformance={engineSupport,inspect,text,faster,hostIdentity};
  if(typeof module==='object')module.exports=root.ZemaBrowserPerformance;
 })(globalThis);

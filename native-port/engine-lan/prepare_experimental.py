@@ -27,6 +27,7 @@ import prepare_text_fallback
 import prepare_blip_sprites
 import generate_text_labels
 import generate_vehicle_catalog
+import prepare_bcdec
 
 def once(text,old,new):
     if text.count(old)!=1:raise ValueError('Reviewed source anchor changed: '+old[:100])
@@ -50,13 +51,21 @@ def controller_patch(text):
     text=once(text,'        bootedBackend = MugoatOnlineEnabled() ? "legacy-bridge" : "offline"',
         '        bootedBackend = ZemaLabEnabled() != 0 ? "engine-lan" : MugoatOnlineEnabled() ? "legacy-bridge" : "offline"')
     text=once(text,'        bootedPreset = GameSettings.shared.graphicsPreset',
-        '        bootedPreset = GameSettings.shared.graphicsPreset\n        lanThermalGraphics.begin(frameRateCap: GameSettings.shared.frameRateCap)')
+        '        bootedPreset = GameSettings.shared.graphicsPreset\n        let startupThermalState = ProcessInfo.processInfo.thermalState.rawValue\n        lanThermalGraphics.begin(frameRateCap: GameSettings.shared.frameRateCap, initialLimit: EngineLanThermalGraphics.startupLimit(frameRateCap: GameSettings.shared.frameRateCap, thermalState: startupThermalState))\n        thermalScale = EngineLanThermalGraphics.startupScale(thermalState: startupThermalState)')
+    text=once(text,'        requestedFrameInterval = bootedFrameRateCap == 0 ? 0 : bootedFrameRateCap == 30 ? 2 : 1',
+        '        requestedFrameInterval = EngineLanThermalGraphics.startupLimit(frameRateCap: bootedFrameRateCap, thermalState: startupThermalState)')
+    text=once(text,'let initialSize = GraphicsConfiguration.size(for: bootedPreset, renderHeight: GameSettings.shared.renderHeight, screen: view.bounds.size, matchScreenShape: GameSettings.shared.matchScreenShape)',
+        'let initialSize = GraphicsConfiguration.size(for: bootedPreset, renderHeight: GameSettings.shared.renderHeight, screen: view.bounds.size, matchScreenShape: GameSettings.shared.matchScreenShape, renderScale: thermalScale)')
+    text=once(text,'GraphicsConfiguration.apply(GameSettings.shared, screen: view.bounds.size)',
+        'GraphicsConfiguration.apply(GameSettings.shared, screen: view.bounds.size, renderScale: thermalScale, frameIntervalOverride: requestedFrameInterval)')
+    text=once(text,'        appendLog("Device: " + GameSettings.shared.tier.summary)',
+        '        if startupThermalState >= 2 { appendLog("Started while hot: reduced startup resolution and frame cap; saved settings retained. Resolution returns on a cool restart.") }\n        appendLog("Device: " + GameSettings.shared.tier.summary)')
     text=once(text,'            let state = ProcessInfo.processInfo.thermalState',
-        '            if ZemaLabEnabled() != 0 { self.updateLanThermalGraphics(); return }\n            let state = ProcessInfo.processInfo.thermalState')
+        '            self.updateThermalGraphics(); if ZemaLabEnabled() != 0 { return }\n            let state = ProcessInfo.processInfo.thermalState')
     text=once(text,'    private func applyLiveResolution() {\n        guard engineStarted else { return }',
-        '    private func updateLanThermalGraphics() {\n        guard engineStarted, !engineFailed, ZemaLabEnabled() != 0 else { return }\n        if let limit = lanThermalGraphics.nextLimit(thermalState: ProcessInfo.processInfo.thermalState.rawValue, ready: worldReadyAt != nil, now: CACurrentMediaTime()) {\n            requestedFrameInterval = limit\n            PGSetFrameLimit(limit)\n            PGSetPresentPacing(limit > 0 ? Double(limit) / 60.0 : 0)\n            appendLog("Engine LAN thermal protection: frame limit interval \\(limit); startup resolution retained.")\n        }\n    }\n    private func applyLiveResolution() {\n        guard engineStarted else { return }\n        if ZemaLabEnabled() != 0 {\n            appendLog("Engine LAN: resolution saved for next launch; live device reset deferred.")\n            showCheatToast("Resolution saved. Restart this lab app to apply it.")\n            return\n        }')
+        '    private func updateThermalGraphics() {\n        guard engineStarted, !engineFailed else { return }\n        if let limit = lanThermalGraphics.nextLimit(thermalState: ProcessInfo.processInfo.thermalState.rawValue, ready: worldReadyAt != nil, now: CACurrentMediaTime()) {\n            requestedFrameInterval = limit\n            PGSetFrameLimit(limit)\n            PGSetPresentPacing(limit > 0 ? Double(limit) / 60.0 : 0)\n            appendLog("Thermal protection: frame limit interval \\(limit); saved frame cap retained.")\n        }\n    }\n    private func applyLiveResolution() {\n        guard engineStarted else { return }\n        if ZemaLabEnabled() != 0 {\n            appendLog("Engine LAN: resolution saved for next launch; live device reset deferred.")\n            showCheatToast("Resolution saved. Restart this lab app to apply it.")\n            return\n        }')
     text=once(text,'        let now = CACurrentMediaTime()\n        if now - lastFPSLabelUpdate',
-        '        updateLanThermalGraphics()\n        let now = CACurrentMediaTime()\n        if now - lastFPSLabelUpdate')
+        '        updateThermalGraphics()\n        let now = CACurrentMediaTime()\n        if now - lastFPSLabelUpdate')
     text=once(text,'HomeView(modes: GameMode.allCases.map { ($0.title, $0 == .story ? "book.fill" : "map.fill") }, log: output)',
         'HomeView(modes: GameMode.allCases.map { ($0 == .sandbox ? "Free Roam" : $0.title, $0 == .story ? "book.fill" : "map.fill") } + [("Multiplayer", "network")], log: output)')
     text=once(text,'    private var engineStarted = false','    private var engineStarted = false\n    private var launchChoice = EngineLanLaunchChoice()')
@@ -147,8 +156,18 @@ def add_ui(spec):
 
 def configure_identity(spec):
     props=spec['targets']['PlayGTA5Native']['info']['properties']
-    props.update(CFBundleDisplayName='ZGTA V',CFBundleVersion='88',NSBonjourServices=['_zgtav._tcp'],NSLocalNetworkUsageDescription='Host or join ZGTA V multiplayer on your local network, and access your optional game-file server.')
+    props.update(CFBundleDisplayName='ZGTA V',CFBundleVersion='107',NSBonjourServices=['_zgtav._tcp'],NSLocalNetworkUsageDescription='Host or join ZGTA V multiplayer on your local network, and access your optional game-file server.')
     return spec
+
+def stage_stipple_resources(app):
+    """Keep the pinned baseline shaders and add the validated fade sidecar."""
+    import prepare_stipple_shaders
+    for name in ('shader-stipple-index.json','shader-stipple-sources.bin'):
+        source=APP/'GeneratedResources'/name
+        if not source.is_file() or source.is_symlink():
+            raise ValueError('Generate the matching private stipple shader sidecar first: '+name)
+        shutil.copy2(source,app/'GeneratedResources'/name)
+    prepare_stipple_shaders.verify(app/'GeneratedResources/shader-reflection.jsonl',app/'GeneratedResources')
 
 
 def stage(cached,output,engine):
@@ -163,6 +182,7 @@ def stage(cached,output,engine):
     for folder in ['Source','App','Resources','Scripts','IntelInputs']:
         clone(cached/folder,app/folder);shutil.copytree(APP/folder,app/folder,dirs_exist_ok=True)
     for folder in ['Tools','Vendor','Generated','GeneratedResources','GeneratedUIAssets']:clone(cached/folder,app/folder)
+    bcdec_receipt=prepare_bcdec.stage(app)
     (app/'Build/Online').mkdir(parents=True)
     clone(cached/'Build/Online/libmugoat_online.a',app/'Build/Online/libmugoat_online.a')
     before={p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in (app/'Generated').glob('game_*.c')}
@@ -194,6 +214,9 @@ def stage(cached,output,engine):
     resource_reclaim.stage(app/'Generated',engine.read_bytes())
     import open_rpf
     open_rpf_receipt=open_rpf.stage_native(app/'Generated')
+    import render_hooks
+    render_hooks.stage_native(app/'Generated')
+    stage_stipple_resources(app)
     p=app/'Generated/MugoatCommands.c';p.write_text(world_commands.patch(p.read_text(),engine.read_bytes(),app/'Generated'))
     p=app/'Source/EngineHost.c';p.write_text(engine_patch(p.read_text()))
     p=app/'Source/NativeAssets.m';p.write_text(asset_patch(p.read_text()))
@@ -214,6 +237,7 @@ def stage(cached,output,engine):
     target=spec['targets']['PlayGTA5Native'];target['sources'].append('EngineLAN')
     for entry in target['sources']:
         if isinstance(entry,dict) and entry.get('path') in ['App','Resources']:entry['excludes']=entry.get('excludes',[])+['Assets.xcassets','*.xcassets','**/*.xcassets']
+        if isinstance(entry,dict) and entry.get('path')=='Resources':entry['excludes']+=['AppIcons/Zema-V-original.png','AppIcons/manifest.json']
     target['settings']['base']['PRODUCT_BUNDLE_IDENTIFIER']='com.zemabinks.gtamp.enginelanlab'
     configure_identity(spec)
     # Cached UI catalog is copied unchanged, never regenerated on this Intel Mac.
@@ -224,6 +248,7 @@ def stage(cached,output,engine):
     receipt['gamer_tags']=tag_receipt
     receipt['engine_safety']=safety_receipt
     receipt['open_rpf']=open_rpf_receipt
+    receipt['bcdec_sign_extension']=bcdec_receipt
     (output/'stage.json').write_text(json.dumps(receipt,indent=2)+'\n');return receipt
 
 if __name__=='__main__':

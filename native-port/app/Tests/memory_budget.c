@@ -30,6 +30,11 @@ int main(void){
  assert(pg_streaming_resource_budget(1000,100,384,256)==-284);
  assert(pg_streaming_resource_budget(INT64_MAX,UINT64_MAX,384,UINT64_MAX)==0);
 
+ // Low-memory profile stops growth at the same 640 MiB total boundary,
+ // but begins controlled eviction earlier, with a 128 MiB hysteresis band.
+ assert(pg_streaming_resource_budget(1000,700,512,128)==60);
+ assert(pg_streaming_resource_budget(1000,600,512,128)==0);
+ assert(pg_streaming_resource_budget(1000,500,512,128)==-12);
  const uint64_t page=65536,MiB=1048576;
  const unsigned devices[]={3072,4096,6144,8192,12288,16384};
  for(unsigned i=0;i<sizeof devices/sizeof *devices;i++){

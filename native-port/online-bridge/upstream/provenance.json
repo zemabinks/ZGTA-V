@@ -1,0 +1,11 @@
+{
+  "source_revision": "e3198c6557c3552333d2e96aa924290e703f9797",
+  "source": "retained gta-intel-multiplayer-build-20261016 Git source",
+  "license": "GPL-3.0; original root LICENSE retained",
+  "modifications": "none; original source bytes relocated to make the native bridge self-contained",
+  "files": {
+    "mp.rs": "2d45027bc4618d43be801a4db4cfc98f5a19e27b0856435ed35097ca53c8bbee",
+    "proto.rs": "3524d7af158bc64c856324928c07a890b65b8fb69aaad2e6978bad60d8624e28",
+    "server.rs": "1953f2a178013cdff4cbc931c9b0c9a8ae47827216d680bf5318f6b5628c3660"
+  }
+}

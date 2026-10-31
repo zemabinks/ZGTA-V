@@ -24,11 +24,11 @@ def build(output):
         (package/name).write_text('#!/bin/zsh\nset -euo pipefail\nROOT="$(cd "$(dirname "$0")" && pwd)"\nexec /usr/bin/python3 -B "$ROOT/relay_control.py" '+action+'\n')
         (package/name).chmod(0o700)
         actions.append({'id':'zgtav.relay.'+action,'label':label,'detail':{'start':'Enable until switched off, including at Mac login. No one-hour timer.','stop':'Stop only the ZGTA V engine relay and disable its login auto-start.','status':'Show actual relay health, current Wi-Fi address and enabled state.','logs':'Show bounded local relay logs.'}[action],'relativePath':name,'role':'generic','risk':'safe' if action in ('status','logs') else 'caution','interactive':False})
-    (package/'zremote-control.json').write_text(json.dumps({'schema':2,'id':'com.zema.zgtav.relay.controls.v1','displayName':'ZGTA V — LAN Relay Controls','kind':'generic','version':'1.0.0','autoStartActionID':None,'actions':actions},indent=2)+'\n')
+    (package/'zremote-control.json').write_text(json.dumps({'schema':2,'id':'com.zema.zgtav.relay.controls.v1','displayName':'ZGTA V — LAN Relay Controls','kind':'generic','version':'1.1.0','autoStartActionID':None,'actions':actions},indent=2)+'\n')
     shutil.copyfile(HERE/'README.md',package/'README.md')
     for path in package.iterdir():
         if path.suffix!='.command':path.chmod(0o600)
-    archive=output/'ZGTA-V-Relay-Controls-1.0.zip'
+    archive=output/'ZGTA-V-Relay-Controls-1.1.zip'
     with zipfile.ZipFile(archive,'x',zipfile.ZIP_DEFLATED) as z:
         for path in sorted(package.iterdir()):z.write(path,str(path.relative_to(output)))
     return {'package':str(package),'archive':str(archive),'sha256':hashlib.sha256(archive.read_bytes()).hexdigest()}

@@ -51,13 +51,17 @@
 	<key>UIRequiresFullScreen</key>
 	<true/>
 	<key>NSLocalNetworkUsageDescription</key>
-	<string>Connect to your Mac multiplayer server and optional game-file server on the same local network.</string>
+	<string>Host or join ZGTA V multiplayer on your local network, and access your optional game-file server.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>ZGTA V uses the microphone for optional in-game voice chat (Speaker &amp; Mic).</string>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_zgtav._tcp</string>
 	</array>
 </dict>
 </plist>

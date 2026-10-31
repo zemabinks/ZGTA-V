@@ -1,6 +1,4 @@
-# ZGTA V 2.0 beta
-
-> **New test candidate: [Build 96 — multiplayer host capacity](https://github.com/zemabinks/ZGTA-V/releases/tag/host-capacity-candidate-96).** Matching iPhone and browser updates include the revised bounded host broadcast fix. Local config/parity/package checks pass; paired gameplay and the small-job crash reproduction still need retesting. The beta 2 downloads below remain available.
+# ZGTA V 2.0 beta 3
 
 ### By zema · zemabinks
 
@@ -8,33 +6,41 @@
 
 Your own matching prepared game files are required. No commercial game content is included.
 
-**[Download](https://github.com/zemabinks/ZGTA-V/releases/tag/v2.0.0-beta.2)** · **[Installation](docs/START-HERE.md)** · **[Mods, graphics & multiplayer](docs/PLAY-GUIDE.md)**
-
-![ZGTA V launcher](docs/images/Home-final.png)
+**[Download beta 3](https://github.com/zemabinks/ZGTA-V/releases/tag/v2.0.0-beta.3)** · **[Install and update](docs/START-HERE.md)** · **[What's new](docs/RELEASE-NOTES-beta3.md)** · **[Play guide](docs/PLAY-GUIDE.md)**
 
 ## Downloads
 
 | Platform | Package | Status |
 |---|---|---|
-| iPhone / iPad — **iOS / iPadOS 15.0 or later** | [IPA](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.2/ZGTA-V-Build91-Archive-Access-TrollStore.ipa) | Beta. TrollStore route tested; [other sideloaders](docs/IOS-SIDELOADING.md) experimental. |
-| Windows x64 | [Windows ZIP](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.2/ZGTA-V-Build93-Windows-x64.zip) | Browser version · alpha |
-| Mac / Linux | [Mac/Linux ZIP](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.2/ZGTA-V-Build93-Browser-Mac-Linux.zip) | Browser version · beta host; Linux testing pending |
-| Android | [Termux ZIP](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.2/ZGTA-V-Build93-Android-Termux.zip) | Experimental browser version; no APK |
+| iPhone / iPad — iOS / iPadOS 15.0+ | [Build 107 IPA](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.3/ZGTA-V-Build107-Memory-UI-Audit-TrollStore.ipa) | Owner-tested on iPhone 15 Pro with TrollStore. Other installation routes remain experimental. |
+| Mac | [Build 107.1 DMG](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.3/ZGTA-V-Build107.1-Mac.dmg) | Drag into Applications. Intel tested; Apple Silicon execution untested. Ad-hoc signed, not Apple-notarized. |
+| Mac / Linux browser | [Build 107 ZIP](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.3/ZGTA-V-Build107-Browser-Mac-Linux.zip) | Requires installed Python 3.9+ and a compatible browser. Linux gameplay untested. |
+| Windows x64 | [Build 107 ZIP](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.3/ZGTA-V-Build107-Windows-x64.zip) | Bundled Python; Windows execution untested. |
+| Android | [Build 107 Termux ZIP](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.3/ZGTA-V-Build107-Android-Termux.zip) | Experimental browser version; no APK. Android execution untested. |
+| Mac managed LAN host | [Relay controls 1.1](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.3/ZGTA-V-Relay-Controls-1.1.zip) | Advertises its actual port and an empty default room for nearby discovery. |
 
-Read the **[installation guide](docs/START-HERE.md)** before downloading. It covers the required game files, device requirements and updates. Sileo users can add **[Zema's Repo](https://zemabinks.github.io/repo/)**. Its current **0.96-1** installer supplies the **Build 96 candidate**, with paired device testing still pending.
+Read the **[installation guide](docs/START-HERE.md)** before downloading. The Mac launcher requires Chrome and compatible prepared game files; it is not a native Mac game engine. Sileo users can add **[Zema's Repo](https://zemabinks.github.io/repo/)**. Installer **0.107-2** delivers the same Build 107 IPA, with updated beta 3 metadata. Previous releases remain available.
+
+## What's improved
+
+- Buildings remain stable at the previously affected camera angles.
+- Automatic, Standard and Reduced memory management are separate from graphics presets, resolution and FPS.
+- Heat safeguards preserve saved settings; reports identify the active session settings.
+- Nearby LAN browsing uses announced ports, and updated managed hosts appear before the first player joins.
+- Browser Graphics, Controls, Mods, Saves and Support share the main navigation.
+- Mac installation now supports dragging the app from the DMG into Applications.
 
 ## Guides
 
 - [Install and update](docs/START-HERE.md)
-- [Import mods](docs/PLAY-GUIDE.md#import-mods)
-- [Change graphics](docs/PLAY-GUIDE.md#change-graphics)
+- [Mods, vehicle previews and graphics](docs/PLAY-GUIDE.md)
 - [Host or join a lobby](docs/PLAY-GUIDE.md#private-multiplayer)
 - [Remote play with Tailscale](docs/REMOTE-PLAY.md)
 - [Back up saves](docs/PLAY-GUIDE.md#back-up-saves)
 - [Report a problem](docs/TEST-REPORT.md)
 
-This is a beta. Device compatibility, gameplay and multiplayer testing are still in progress. See [test results and known limits](docs/VERIFICATION.md).
+This remains a beta. Reduced-memory behavior has not been benchmarked on a physical 3 GB iPhone SE2020; stable 60 FPS is not promised. Private LAN/Tailscale play is supported, with no worldwide server directory. See [verification and remaining limits](docs/VERIFICATION.md).
 
 ## Source and credits
 
-[Build information](docs/DEVELOPMENT.md) · [License](LICENSE) · [Native source license](native-port/LICENSE) · [Third-party notices](native-port/engine-lan/THIRD_PARTY_NOTICES.md)
+[Build information](docs/DEVELOPMENT.md) · [Source audit](docs/SOURCE-AUDIT.json) · [License](LICENSE) · [Native source license](native-port/LICENSE) · [Third-party notices](native-port/engine-lan/THIRD_PARTY_NOTICES.md)

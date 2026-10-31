@@ -15,7 +15,7 @@
   const actionLabel=command=>command.type==='waypoint'?'Waypoint teleport':command.type==='spawn'?'Vehicle spawn':'Cheat action';
   function request(command){try{if(!runtime||!root.ZemaGameReady)throw Error('Wait until your character is in the game world.');if(command.type==='cheat'&&mode()==='lan')throw Error('Cheat codes remain disabled in multiplayer.');ZemaTrainer.request(runtime.features.trainer,command);admissionNotice=null;output.textContent=actionLabel(command)+': queued for the engine thread…';}catch(e){admissionNotice={sequence:runtime?ZemaTrainer.status(runtime.features.trainer).sequence:0,text:actionLabel(command)+' not queued: '+e.message};output.textContent=admissionNotice.text;}}
   apply.onclick=()=>request({type:'cheat',code:select.value});spawn.onclick=()=>request({type:'spawn',model:model.value.trim()});waypoint.onclick=()=>request({type:'waypoint'});cancel.onclick=()=>{if(runtime){admissionNotice=null;ZemaTrainer.cancel(runtime.features.trainer);}};container.append(note,controls,output);
-  container.append(el('p','Models must exist in the base game or a loaded DLC pack. LAN mod imports and cheat codes are not enabled by these tools.'));
+  container.append(el('p','Models must exist in the base game or a loaded DLC pack. Import packs before launching; multiplayer players need matching packs. Cheat codes remain offline only.'));
   function refresh(){
    if(!runtime)return;vehicles.refreshAvailability();const s=ZemaTrainer.status(runtime.features.trainer),allowed=root.ZemaGameReady&&s.ready,busy=s.result===1||s.sequence!==s.ack||s.cleanupPending||s.replacementPending;
    const selectedAvailability=typeof ZemaTrainer.availability==='function'?ZemaTrainer.availability(runtime.features.trainer,model.value.trim()):'unknown';

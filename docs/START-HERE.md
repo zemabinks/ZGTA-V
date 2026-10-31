@@ -1,6 +1,6 @@
 # Install ZGTA V
 
-[Downloads](https://github.com/zemabinks/ZGTA-V/releases/tag/v2.0.0-beta.2) · [Mods, graphics & multiplayer](PLAY-GUIDE.md) · [Help](#troubleshooting)
+[Downloads](https://github.com/zemabinks/ZGTA-V/releases/tag/v2.0.0-beta.3) · [Mods, graphics & multiplayer](PLAY-GUIDE.md) · [Help](#troubleshooting)
 
 ## Before you start
 
@@ -36,7 +36,7 @@ An ordinary Steam/Epic/Rockstar folder containing `GTA5.exe` is insufficient. Th
 ### TrollStore / TrollStore Lite
 
 1. Confirm your device already has a compatible [TrollStore](https://github.com/opa334/TrollStore) or TrollStore Lite setup. **iOS 15.0 is the app minimum, not a promise that every later iOS version supports TrollStore.**
-2. Download the [IPA](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.2/ZGTA-V-Build91-Archive-Access-TrollStore.ipa) and open it in TrollStore to install ZGTA V. Existing users: install over the existing app; do not delete it.
+2. Download the [IPA](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.3/ZGTA-V-Build107-Memory-UI-Audit-TrollStore.ipa) and open it in TrollStore to install ZGTA V. Existing users: install over the existing app; do not delete it.
 3. Open **ZGTA V → Game files → Choose a folder…** and select the folder containing your prepared files or archive.
 4. If an archive is listed, tap **Unpack** and let installation finish. You can also use **Choose an archive…** to select the file directly.
 5. If the game is already unpacked, select its folder and use **Check every file again**. Continue when the files are ready.
@@ -46,10 +46,10 @@ The `.tipa` download contains the same app as the `.ipa`; use `.ipa` for other s
 ### Sileo
 
 1. Open **Sileo → Sources** and add `https://zemabinks.github.io/repo/`.
-2. Refresh Sources, then install **ZGTA V (TrollStore installer)**, version **0.96-1** (Build 96 candidate), with your existing compatible TrollStore / TrollStore Lite setup.
+2. Refresh Sources, then install **ZGTA V (TrollStore installer)**, version **0.107-2** (Build 107 / beta 3), with your existing compatible TrollStore / TrollStore Lite setup.
 3. Open ZGTA V and follow the game-file steps above.
 
-Sileo currently supplies the [Build 96 candidate](https://github.com/zemabinks/repo/releases/tag/zgta-v-build-96); the beta 2 manual downloads elsewhere in this guide remain the earlier release. The Sileo package does not install TrollStore for you. Removing the small installer package leaves ZGTA V and its data installed.
+Sileo supplies the same Build 107 IPA as this release. Installer 0.107-2 refreshes its release metadata; existing 0.107-1 installations already contain that app. The package does not install TrollStore for you. Removing the small installer package leaves ZGTA V and its data installed.
 
 ### Sideloadly, AltStore Classic or AppSync
 
@@ -58,11 +58,11 @@ Use the **same IPA**. These ZGTA V installation routes are **experimental and un
 ## Windows x64
 
 1. Install a current Chrome or Edge browser with graphics acceleration enabled.
-2. Download the [Windows ZIP](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.2/ZGTA-V-Build93-Windows-x64.zip) and extract the **whole** ZIP. Do not run it from inside the archive.
+2. Download the [Windows ZIP](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.3/ZGTA-V-Build107-Windows-x64.zip) and extract the **whole** ZIP. Do not run it from inside the archive.
 3. Open its `ZGTA-V` folder and double-click **Start ZGTA V.cmd**. Python is included.
 4. Choose your prepared game folder when asked. Setup creates a **ZGTA V** shortcut on your Desktop. After this, double-click that shortcut to start the host and open the browser. Keep the launcher window open while playing.
 5. If the browser does not open, visit `http://127.0.0.1:18887/`.
-6. Open **Settings → Graphics → Check this GPU** before starting a game.
+6. Open **Graphics → Check this GPU** before starting a game.
 
 The browser runtime requires WebGPU, WebAssembly memory64, shared memory and BC texture compression. Unsupported GPUs cannot run it.
 
@@ -70,10 +70,21 @@ The desktop shortcut uses a private launcher copy, so moving the extracted downl
 
 To stop the launcher, press Ctrl+C in its window. To choose a different game folder, stop it and run **Choose game folder.cmd**. If Windows Firewall asks while you host, allow the private network you intend to use.
 
-## Mac / Linux
+## Mac — drag into Applications
+
+1. Install Chrome and keep your compatible prepared game folder available.
+2. Open the [Build 107.1 DMG](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.3/ZGTA-V-Build107.1-Mac.dmg) and drag **ZGTA V** onto **Applications**.
+3. Launch **ZGTA V** from Applications and choose your prepared game folder. The app includes its Python runtime and opens the browser launcher.
+4. Keep the app open while playing. Use **Graphics → Check this GPU** before launching the world.
+
+The universal launcher bundles Intel and Apple Silicon runtimes. Intel execution was checked; Apple Silicon execution still needs testing. This app is ad-hoc signed and is not Apple-notarized. macOS may require its normal Open / Privacy & Security confirmation. Do not disable system security globally. The app does not include game files.
+
+For an update, close ZGTA V, replace the app in Applications, then reopen it. Keep your game folder, browser profile and the same localhost address to retain your existing browser saves.
+
+## Mac / Linux — portable alternative
 
 1. Install Python **3.9+** from [python.org](https://www.python.org/downloads/) or your OS package manager, and a compatible Chrome/Edge browser.
-2. Extract the [Mac/Linux ZIP](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.2/ZGTA-V-Build93-Browser-Mac-Linux.zip).
+2. Extract the [Mac/Linux ZIP](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.3/ZGTA-V-Build107-Browser-Mac-Linux.zip).
 3. Open Terminal in the extracted `ZGTA-V` folder and run:
 
 ```sh
@@ -81,7 +92,7 @@ sh "Start ZGTA V.command"
 ```
 
 4. Paste the full path to your prepared game folder when asked. Spaces are accepted; do not add quotes around the path at that prompt.
-5. Keep Terminal open. Visit `http://127.0.0.1:18887/` if the browser does not open, then choose **Settings → Graphics → Check this GPU**.
+5. Keep Terminal open. Visit `http://127.0.0.1:18887/` if the browser does not open, then choose **Graphics → Check this GPU**.
 
 You can also pass the path directly:
 
@@ -101,7 +112,7 @@ There is **no APK**. Many Android GPUs cannot meet the browser requirements list
 
 1. Install Termux using its [official instructions](https://github.com/termux/termux-app#installation). Keep any Termux plugins from the same source.
 2. In Termux, run `termux-setup-storage` and allow storage access.
-3. Extract the [Android ZIP](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.2/ZGTA-V-Build93-Android-Termux.zip) into Downloads so its folder is `Downloads/ZGTA-V`.
+3. Extract the [Android ZIP](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.3/ZGTA-V-Build107-Android-Termux.zip) into Downloads so its folder is `Downloads/ZGTA-V`.
 4. Put your prepared game files in `Downloads/ZGTA-V/Game`, with `index.html`, `data` and `b` directly inside that folder.
 5. Run:
 

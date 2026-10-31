@@ -34,6 +34,13 @@ async function main(){
  await assert.rejects(S.nativeArchive('story',ambiguous),/differ only/);
  const unicode=await S.archive('story',[{path:'/userdata/Documents/é',data:bytes},{path:'/userdata/Documents/e\u0301',data:bytes}]);
  await assert.rejects(S.nativeArchive('story',unicode),/differ only/);
+ for(const [first,second]of [['σ','ς'],['ss','ß'],['ff','ﬀ'],['A','a'],['é','e\u0301']]){
+  const archive=await S.archive('story',[{path:'/userdata/Documents/'+first,data:bytes},{path:'/userdata/Documents/'+second,data:bytes}]);
+  assert.equal((await S.validate(archive,'story')).length,2,'Browser-only case-sensitive paths remain valid');
+  await assert.rejects(S.nativeArchive('story',archive),/differ only/);
+  const phoneAliases={schema:1,created:0,entries:archive.entries.map(e=>({...e,path:e.path.slice(1)}))};
+  await assert.rejects(S.validate(phoneAliases,'story'),/duplicate/,'Native-input aliases must reject before profile selection/writes');
+ }
  await assert.rejects(S.nativeArchive('story',await browser('story','/userdata/Documents/'+'é'.repeat(600))),/too long/);
  const megabyte=new Uint8Array(1024*1024).fill(255),big=await S.archive('story',[{path:'/userdata/Documents/big',data:megabyte}]);
  assert.deepEqual((await S.validate(big,'story'))[0].data,megabyte,'large valid base64 must not exhaust the regex stack');

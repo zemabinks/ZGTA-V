@@ -93,7 +93,7 @@ enum GraphicsConfiguration {
     }
     /// Resolutions offered in Settings, besides "Auto" (the detail preset's own).
     static var resolutionChoices: [Int] {
-        let standard = [540, 720, 900, 1080, 1290, 1440, 1620, 2160]
+        let standard = [432, 540, 720, 900, 1080, 1290, 1440, 1620, 2160]
         var list = standard
         if !list.contains(nativeHeight) && nativeHeight >= 540 {
             list.append(nativeHeight)
@@ -103,9 +103,10 @@ enum GraphicsConfiguration {
     }
     /// Width/height to render at: the chosen height (or the preset's), shaped like the screen so the
     /// picture is not stretched.
-    static func size(for preset: GraphicsPreset, renderHeight: Int, screen: CGSize, matchScreenShape: Bool) -> (Int, Int) {
+    static func size(for preset: GraphicsPreset, renderHeight: Int, screen: CGSize, matchScreenShape: Bool, renderScale: Double = 1) -> (Int, Int) {
         let aspect = matchScreenShape && screen.height > 0 ? max(screen.width, screen.height) / min(screen.width, screen.height) : 16.0 / 9.0
         var height = Double(renderHeight > 0 ? renderHeight : preset.height)
+        if renderScale.isFinite && renderScale > 0 && renderScale <= 1 { height *= renderScale }
         height = min(max(height, 360), 2160.0)
         let width = min(height * aspect, 3840.0)
         func even(_ value: Double) -> Int { Int(value.rounded()) & ~1 }
@@ -113,21 +114,26 @@ enum GraphicsConfiguration {
     }
 
     /// Pass the chosen settings to the engine. Call before PGStartEngine.
-    static func apply(_ settings: GameSettings, screen: CGSize) -> String {
+    static func apply(_ settings: GameSettings, screen: CGSize, renderScale: Double = 1, frameIntervalOverride: Int32? = nil) -> String {
         PGSetEngineMemoryMB(Int32(settings.engineMemoryMB))
+        PGSetMemoryProfile(Int32(settings.memoryProfile.rawValue))
         let preset = settings.graphicsPreset
-        let (width, height) = size(for: preset, renderHeight: settings.renderHeight, screen: screen, matchScreenShape: settings.matchScreenShape)
+        let (width, height) = size(for: preset, renderHeight: settings.renderHeight, screen: screen, matchScreenShape: settings.matchScreenShape, renderScale: renderScale)
+        let effectiveCap = settings.frameRateCap
+        let chosenInterval: Int32 = effectiveCap == 0 ? 0 : effectiveCap == 60 ? 1 : 2
+        let requestedInterval = frameIntervalOverride.flatMap { (0...4).contains($0) ? $0 : nil } ?? chosenInterval
+        let interval = requestedInterval
         let options = preset.engineOptions
         var pointers = options.map { strdup($0) }
         defer { pointers.forEach { free($0) } }
         pointers.withUnsafeMutableBufferPointer { buffer in
             buffer.baseAddress!.withMemoryRebound(to: UnsafePointer<CChar>?.self, capacity: buffer.count) {
-                PGConfigureEngine($0, UInt32(buffer.count), Int32(width), Int32(height), settings.frameRateCap == 0 ? 0 : settings.frameRateCap == 60 ? 1 : 2)
+                PGConfigureEngine($0, UInt32(buffer.count), Int32(width), Int32(height), interval)
             }
         }
         // Even frame pacing when the cap is below the screen's refresh rate (30 on 60 Hz, 30/60 on 120 Hz).
-        let cap = settings.frameRateCap
+        let cap = interval == 0 ? 0 : 60 / Int(interval)
         PGSetPresentPacing(cap > 0 && cap < UIScreen.main.maximumFramesPerSecond ? 1.0 / Double(cap) : 0)
-        return "\(preset.title) \(width)×\(height) at \(GameSettings.frameRateTitle(settings.frameRateCap))"
+        return "\(preset.title) \(width)×\(height) at \(GameSettings.frameRateTitle(effectiveCap))"
     }
 }

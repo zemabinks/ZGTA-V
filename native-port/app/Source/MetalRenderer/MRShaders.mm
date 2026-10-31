@@ -1,9 +1,11 @@
 // Shader library, reflection table and D3D11 format tables of the native Metal renderer.
 #include "MRInternal.h"
+#include "MRConstantTables.h"
 #include <TargetConditionals.h>
 #include <stdarg.h>
 #include <mutex>
 #include <set>
+#include <zlib.h>
 
 namespace mr {
 
@@ -33,6 +35,11 @@ void logOnce(const std::string &key, const char *format, ...) {
 
 // ---- shader library ---------------------------------------------------------------------------------------------------
 static id<MTLLibrary> library;
+static id<MTLDevice> shaderDevice;
+static NSDictionary<NSString *, NSArray *> *stippleIndex;
+static NSData *stippleSources;
+static std::mutex shaderFunctionLock;
+static dispatch_queue_t stippleQueue;
 static std::unordered_map<std::string, std::unique_ptr<ShaderInfo>> shaders;
 
 static ResKind resKind(NSString *k) {
@@ -57,6 +64,11 @@ static TexDim texDim(NSString *d) {
 }
 
 bool loadShaderLibrary(id<MTLDevice> device) {
+	shaderDevice = device;
+	static dispatch_once_t stippleQueueOnce;
+	dispatch_once(&stippleQueueOnce, ^{
+		stippleQueue = dispatch_queue_create("zgta.metal.stipple", dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_SERIAL, QOS_CLASS_USER_INITIATED, 0));
+	});
 #if TARGET_OS_SIMULATOR
 	NSString *name = @"shaders-iphonesimulator";
 #else
@@ -71,6 +83,7 @@ bool loadShaderLibrary(id<MTLDevice> device) {
 	if (!data) { logf("Metal renderer: shader reflection missing"); return false; }
 	const char *bytes = (const char *)data.bytes, *end = bytes + data.length;
 	std::vector<ShaderInfo *> withConsts;
+	PGConstantTables tables;
 	size_t constBytes = 0;
 	uint32_t uid = 1;
 	while (bytes < end) {
@@ -114,22 +127,25 @@ bool loadShaderLibrary(id<MTLDevice> device) {
 		for (NSArray *a in o[@"alen"]) info->arrayLengths.push_back({[a[0] unsignedIntValue], [a[1] unsignedIntValue]});
 		for (NSNumber *n in o[@"k"]) info->consts.push_back((uint32_t)n.unsignedLongLongValue);
 		info->uid = uid++;
-		if (!info->consts.empty()) { withConsts.push_back(info.get()); constBytes += (info->consts.size() * 16 + 255) & ~255ull; }
+		if (!info->consts.empty()) {
+			withConsts.push_back(info.get());
+			constBytes += (info->consts.size() * 16 + 255) & ~255ull;
+			info->constOffset = tables.intern(info->consts);
+		}
 		shaders[info->hash] = std::move(info);
 	}
 	// every constant table in one buffer: element i of the table is row i (x component), as the WGSL declares array<vec4<u32>>
 	if (constBytes) {
-		id<MTLBuffer> table = [device newBufferWithLength:constBytes options:MTLResourceStorageModeShared];
-		uint8_t *base = (uint8_t *)table.contents;
-		NSUInteger at = 0;
+		id<MTLBuffer> table = [device newBufferWithLength:tables.bytes() options:MTLResourceStorageModeShared];
+		if (!table) { logf("Metal renderer: constant-table allocation failed"); return false; }
+		tables.write((uint8_t *)table.contents);
 		for (ShaderInfo *info : withConsts) {
-			uint32_t *rows = (uint32_t *)(base + at);
-			for (size_t i = 0; i < info->consts.size(); i++) rows[i * 4] = info->consts[i];
 			info->constBuffer = table;
-			info->constOffset = at;
-			at += (info->consts.size() * 16 + 255) & ~255ull;
+			// The library's packed buffer owns these immutable words now.
+			std::vector<uint32_t>().swap(info->consts);
 		}
 	}
+	logf("Metal renderer: constant tables %zu unique, %zu -> %zu bytes", tables.count(), constBytes, tables.bytes());
 	logf("Metal renderer: %zu precompiled shaders (%zu with constant tables).", shaders.size(), withConsts.size());
 	NSSet<NSString *> *functions = [NSSet setWithArray:library.functionNames];
 	size_t waterCount = 0, waterMissing = 0;
@@ -141,6 +157,32 @@ bool loadShaderLibrary(id<MTLDevice> device) {
 		}
 	}
 	logf("[water] library: %zu programs, %zu missing functions", waterCount, waterMissing);
+	NSString *stipplePath = [NSBundle.mainBundle pathForResource:@"shader-stipple-index" ofType:@"json"];
+	NSData *stippleData = stipplePath ? [NSData dataWithContentsOfFile:stipplePath] : nil;
+	NSDictionary *stippleManifest = stippleData ? [NSJSONSerialization JSONObjectWithData:stippleData options:0 error:nil] : nil;
+	NSString *sourcesPath = [NSBundle.mainBundle pathForResource:@"shader-stipple-sources" ofType:@"bin"];
+	stippleSources = sourcesPath ? [NSData dataWithContentsOfFile:sourcesPath options:NSDataReadingMappedIfSafe error:nil] : nil;
+	if ([stippleManifest[@"version"] unsignedIntValue] != 1 || ![stippleManifest[@"shaders"] isKindOfClass:NSDictionary.class] || !stippleSources.length) {
+		logf("Metal renderer: complete stipple shader sidecar missing or invalid");
+		return false;
+	}
+	stippleIndex = stippleManifest[@"shaders"];
+	size_t fragments = 0;
+	for (auto &entry : shaders) if (entry.second->stage == 1) {
+		fragments++;
+		NSArray *record = stippleIndex[[NSString stringWithUTF8String:entry.first.c_str()]];
+		if (![record isKindOfClass:NSArray.class] || record.count != 4) {
+			logf("Metal renderer: stipple coverage missing %s", entry.first.c_str());
+			return false;
+		}
+		uint64_t offset = [record[0] unsignedLongLongValue], packed = [record[1] unsignedLongLongValue], raw = [record[2] unsignedLongLongValue];
+		if (!packed || !raw || raw > 1024 * 1024 || offset > stippleSources.length || packed > stippleSources.length - offset) {
+			logf("Metal renderer: stipple source range invalid %s", entry.first.c_str());
+			return false;
+		}
+	}
+	if (stippleIndex.count != fragments) { logf("Metal renderer: stipple index coverage mismatch"); return false; }
+	logf("Metal renderer: %zu stipple sources, %lu compressed bytes (compiled on first use)", fragments, (unsigned long)stippleSources.length);
 	return true;
 }
 
@@ -149,7 +191,77 @@ ShaderInfo *findShader(const std::string &hash) {
 	return it == shaders.end() ? nullptr : it->second.get();
 }
 
-id<MTLFunction> shaderFunction(ShaderInfo *info) {
+static void compileStippleShader(ShaderInfo *info) {
+	@autoreleasepool {
+		NSError *error = nil;
+		id<MTLLibrary> variantLibrary;
+		{
+			std::lock_guard<std::mutex> guard(shaderFunctionLock);
+			variantLibrary = info->stippleLibrary;
+		}
+		if (!variantLibrary) {
+			NSArray *record = stippleIndex[[NSString stringWithUTF8String:info->hash.c_str()]];
+			if (record.count == 4) {
+				NSUInteger offset = [record[0] unsignedIntegerValue], packed = [record[1] unsignedIntegerValue];
+				uLongf raw = [record[2] unsignedLongValue];
+				std::vector<uint8_t> bytes(raw);
+				if (uncompress(bytes.data(), &raw, (const Bytef *)stippleSources.bytes + offset, packed) == Z_OK && raw == bytes.size()) {
+					NSString *source = [[NSString alloc] initWithBytes:bytes.data() length:bytes.size() encoding:NSUTF8StringEncoding];
+					MTLCompileOptions *options = [MTLCompileOptions new];
+					options.languageVersion = MTLLanguageVersion2_4;
+					options.fastMathEnabled = YES;
+					if (source) variantLibrary = [shaderDevice newLibraryWithSource:source options:options error:&error];
+				}
+			}
+			std::lock_guard<std::mutex> guard(shaderFunctionLock);
+			info->stippleLibrary = variantLibrary;
+			if (!variantLibrary) {
+				info->stippleFailedMask = UINT32_MAX;
+				info->stippleCompiling = false;
+				logf("Metal renderer: stipple source compilation failed %s (%s)", info->hash.c_str(), error.localizedDescription.UTF8String ?: "source decode failed");
+				return;
+			}
+		}
+		for (;;) {
+			uint32_t level = 0;
+			{
+				std::lock_guard<std::mutex> guard(shaderFunctionLock);
+				for (uint32_t i = 1; i < 32; i++) if ((info->stippleRequestedMask & (1u << i)) && !(info->stippleFailedMask & (1u << i)) && !info->stippleFunctions[i]) { level = i; break; }
+				if (!level) { info->stippleCompiling = false; return; }
+			}
+			MTLFunctionConstantValues *values = [MTLFunctionConstantValues new];
+			[values setConstantValue:&level type:MTLDataTypeUInt atIndex:0];
+			error = nil;
+			id<MTLFunction> function = [variantLibrary newFunctionWithName:[NSString stringWithFormat:@"s_%s_stipple", info->hash.c_str()] constantValues:values error:&error];
+			{
+				std::lock_guard<std::mutex> guard(shaderFunctionLock);
+				info->stippleFunctions[level] = function;
+				if (!function) info->stippleFailedMask |= 1u << level;
+			}
+			if (!function) logf("Metal renderer: stipple specialization failed %s level %u (%s)", info->hash.c_str(), level, error.localizedDescription.UTF8String ?: "unknown Metal error");
+		}
+	}
+}
+
+bool shaderFunctionPending(ShaderInfo *info, uint32_t stipple) {
+	if (!info || info->stage != 1 || !stipple || stipple > 31) return false;
+	std::lock_guard<std::mutex> guard(shaderFunctionLock);
+	return info->stippleCompiling && !info->stippleFunctions[stipple] && !(info->stippleFailedMask & (1u << stipple));
+}
+
+id<MTLFunction> shaderFunction(ShaderInfo *info, uint32_t stipple) {
+	std::lock_guard<std::mutex> guard(shaderFunctionLock);
+	stipple = stipple < 32 ? stipple : 0;
+	if (stipple && info->stage == 1) {
+		if (info->stippleFunctions[stipple]) return info->stippleFunctions[stipple];
+		if (info->stippleFailedMask & (1u << stipple)) return nil;
+		info->stippleRequestedMask |= 1u << stipple;
+		if (!info->stippleCompiling) {
+			info->stippleCompiling = true;
+			dispatch_async(stippleQueue, ^{ compileStippleShader(info); });
+		}
+		return nil;
+	}
 	if (info->function || info->functionFailed) return info->function;
 	info->function = [library newFunctionWithName:[NSString stringWithFormat:@"s_%s", info->hash.c_str()]];
 	if (!info->function) { info->functionFailed = true; logf("Metal renderer: function s_%s missing from the library", info->hash.c_str()); }

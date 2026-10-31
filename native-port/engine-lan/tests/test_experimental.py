@@ -102,7 +102,8 @@ int main(void){
         spec={'targets':{'PlayGTA5Native':{'sources':[],'info':{'properties':{}}}}}
         prepare_experimental.add_ui(spec)
         target=spec['targets']['PlayGTA5Native'];self.assertIn({'path':'GeneratedUIAssets','buildPhase':'resources'},target['sources'])
-        self.assertEqual(target['info']['properties']['CFBundleIcons']['CFBundlePrimaryIcon']['CFBundleIconName'],'AppIcon')
+        from app_branding import icon_properties
+        for key,value in icon_properties().items():self.assertEqual(target['info']['properties'][key],value)
         with tempfile.TemporaryDirectory(prefix='zema-bad-ui-') as folder:
             with self.assertRaises(ValueError):prepare_experimental.verify_ui(Path(folder))
 
@@ -115,7 +116,7 @@ int main(void){
 #include <string.h>
 #include <stdint.h>
 extern int ZemaBroadcastPatch(uint8_t*,size_t);
-int main(){char b[]="<PlayerBroadcastData>\n<Item><SizeOfData value=\"3600\"/>\n\t\t<NumInstances value=\"1\"/></Item>\n<Item><SizeOfData value=\"2500\"/>\n\t\t<NumInstances value=\"2\"/></Item>\n<Item><SizeOfData value=\"150\"/>\n\t\t<NumInstances value=\"4\"/></Item>\n<Item><SizeOfData value=\"80\"/>\n\t\t<NumInstances value=\"4\"/></Item>\n<Item><SizeOfData value=\"40\"/>\n\t\t<NumInstances value=\"8\"/></Item>\n</PlayerBroadcastData>";size_t n=strlen(b);assert(ZemaBroadcastPatch((uint8_t*)b,n));assert(strlen(b)==n);assert(strstr(b,"value=\"16\""));assert(ZemaBroadcastPatch((uint8_t*)b,n));char bad[]="<PlayerBroadcastData>bad</PlayerBroadcastData>",old[sizeof bad];memcpy(old,bad,sizeof bad);assert(!ZemaBroadcastPatch((uint8_t*)bad,strlen(bad)));assert(!memcmp(old,bad,sizeof bad));return 0;}'''
+int main(){char b[]="<HostBroadcastData><Item><SizeOfData value=\"7500\"/><NumInstances value=\"2\"/></Item><Item><SizeOfData value=\"4000\"/><NumInstances value=\"4\"/></Item></HostBroadcastData><PlayerBroadcastData>\n<Item><SizeOfData value=\"3600\"/>\n\t\t<NumInstances value=\"1\"/></Item>\n<Item><SizeOfData value=\"2500\"/>\n\t\t<NumInstances value=\"2\"/></Item>\n<Item><SizeOfData value=\"150\"/>\n\t\t<NumInstances value=\"4\"/></Item>\n<Item><SizeOfData value=\"80\"/>\n\t\t<NumInstances value=\"4\"/></Item>\n<Item><SizeOfData value=\"40\"/>\n\t\t<NumInstances value=\"8\"/></Item>\n</PlayerBroadcastData>";size_t n=strlen(b);assert(ZemaBroadcastPatch((uint8_t*)b,n));assert(strlen(b)==n);assert(strstr(b,"value=\"16\""));assert(ZemaBroadcastPatch((uint8_t*)b,n));char bad[]="<PlayerBroadcastData>bad</PlayerBroadcastData>",old[sizeof bad];memcpy(old,bad,sizeof bad);assert(!ZemaBroadcastPatch((uint8_t*)bad,strlen(bad)));assert(!memcmp(old,bad,sizeof bad));return 0;}'''
         with tempfile.TemporaryDirectory(prefix='zema-broadcast-') as d:
             p=Path(d);(p/'test.c').write_text(source);run(['/usr/bin/clang','-std=c11','-Wall','-Wextra','-Werror',p/'test.c',ROOT/'BroadcastOverlay.c','-o',p/'test']);run([p/'test'])
 

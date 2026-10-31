@@ -1,0 +1,42 @@
+{
+  "format": "zgta-inline-member-save-candidate-v1",
+  "status": "REAL_FILE_COMMIT_OBSERVED_AND_USER_REPORTED_REJOIN_PASS",
+  "stage": "EngineLAN-FeaturesBrowser-20261018-v23",
+  "lan_sha256": "bd0e9e40310b8a9f3f04b534aeee63d6cc1318f73a3e54bded823dd5a671eceb",
+  "offline_sha256": "640c40e09ed5b780d86ac85a56793fed6d0ed3ba51bc23bfa02e9873a8c38e48",
+  "wasm_unchanged_from_v22": true,
+  "join_sentinel": {
+    "function": 131,
+    "handle": 1,
+    "body_sha256": "dd8db231c70efaab2b871c7d180c506548d96689cbb903f07bc7471228b2802e"
+  },
+  "checks": {
+    "inline_fixture_and_prior_stage_regression": 2,
+    "pinned_engine_and_forwarding": 2,
+    "existing_local_gamer_scope": "PASS",
+    "live_source_bytes": "MATCH",
+    "prior_stage_fixture_exit": 1,
+    "candidate_fixture_exit": 0
+  },
+  "runtime_character_save_verified": false,
+  "runtime_character_restore_verified": false,
+  "current_ipa_changed": false,
+  "original_intel_changed": false,
+  "existing_save_snapshots_changed": false,
+  "private_save_contents_included": false,
+  "real_trial_2026_10_18": {
+    "user_report": "Character saved and restored after rejoining",
+    "runtime_signals": [
+      "inline local save serializer used",
+      "worker entered; builder returned result=1",
+      "worker returned state=3",
+      "operation advanced through state=7, last-cloud-error=0",
+      "member file committed: 21664 bytes; subsequent commit: 51735 bytes"
+    ],
+    "limits": [
+      "No private save bytes published",
+      "Rejoin visual restoration reported by user, not inferred only from file read",
+      "Long-session stability and inline serializer frame cost remain open"
+    ]
+  }
+}

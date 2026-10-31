@@ -21,7 +21,11 @@ class MetalBufferArena(unittest.TestCase):
         source=(APP/'Source/MetalRenderer/MRRenderer.mm').read_text()
         internal=(APP/'Source/MetalRenderer/MRInternal.h').read_text()
         buffer=span(internal,'struct Buffer : Object {','struct Shader : Object {')
-        globals=span(source,'static Renderer *R;','// ---- debug trace')
+        # Keep the actual allocator/storage lifetime code while excluding the
+        # unrelated OS-pressure/sampling globals added after this fixture.
+        # Their complete pressure paths are exercised by test_thermal_memory99.
+        globals=(span(source,'static Renderer *R;','static PGNativePerformanceSampler')+
+                 span(source,'static void retireStorage(','// ---- debug trace'))
         allocation=span(source,'static id<MTLBuffer> sharedBuffer(','// A constant buffer\'s current contents')
         copy=span(source,'static void copyRegion(const uint32_t *p) {','\tif (so->kind != OTexture || dobj->kind != OTexture) return;')+'}\n'
         readback=span(source,'static void readback(const uint32_t *p) {','\tif (o->kind != OTexture) { done(); return; }')+'}\n'
@@ -39,6 +43,9 @@ class MetalBufferArena(unittest.TestCase):
 #include <string>
 #include <vector>
 #include "MRBufferArena.h"
+#include "../NativeConstantBufferCopy.h"
+#include "../NativeRenderingDiagnostics.h"
+static PGRenderingDiagnostics renderingDiagnostics;
 #include "MRBufferPool.h"
 #include "MRProgress.h"
 static unsigned deviceAllocations=0;

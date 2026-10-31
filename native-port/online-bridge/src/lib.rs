@@ -2,9 +2,9 @@
 //! Rust here is only a static networking library: no Wasmtime/wgpu runtime.
 #![allow(dead_code)]
 pub mod engine_bridge;
-#[path = "../../../src/mp.rs"] mod mp;
-#[path = "../../../src/proto.rs"] pub mod proto;
-#[path = "../../../src/server.rs"] pub mod server;
+#[path = "../upstream/mp.rs"] mod mp;
+#[path = "../upstream/proto.rs"] pub mod proto;
+#[path = "../upstream/server.rs"] pub mod server;
 pub use engine_bridge::{coerce_args, default_val};
 use std::{ffi::{c_char, c_void, CStr}, sync::{atomic::{AtomicBool, Ordering}, OnceLock}, cell::Cell};
 

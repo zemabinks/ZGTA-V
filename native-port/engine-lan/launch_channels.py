@@ -10,7 +10,7 @@ BOOT=MARK+'''\n(function(root){
  const channels=new Set(['game-io','game-progress','game-crash','game-log','game-debug']);
  root.ZemaLaunchChannels=Object.freeze({scope,name:base=>{if(!channels.has(base))throw Error('Unknown game channel');return base+'-'+scope;},url:path=>{const url=new URL(path,root.location.href);if(url.origin!==root.location.origin)throw Error('Cross-origin game worker refused');url.searchParams.set('zgtaLaunch',scope);return url.href;}});
 })(globalThis);\n'''
-COUNTS={'loader.js':{'game-progress':2},'game.js':{'game-log':1,'game-crash':1,'game-progress':1},'io_worker.js':{'game-progress':1,'game-io':1},'wgpu_worker.js':{'game-log':1,'game-progress':2,'game-debug':1},'browser-features.js':{'game-log':4},'browser-trainer.js':{'game-log':1},'engine-lan-browser.js':{'game-log':3}}
+COUNTS={'loader.js':{'game-progress':2},'game.js':{'game-log':1,'game-crash':1,'game-progress':1},'io_worker.js':{'game-progress':1,'game-io':1,'game-log':1},'wgpu_worker.js':{'game-log':1,'game-progress':2,'game-debug':1},'browser-features.js':{'game-log':4},'browser-trainer.js':{'game-log':1},'engine-lan-browser.js':{'game-log':4}}
 LITERAL=re.compile(r'new BroadcastChannel\(([\'\"])(game-(?:io|progress|crash|log|debug))\1\)')
 
 def channels(text,expected):

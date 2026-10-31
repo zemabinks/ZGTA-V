@@ -1,0 +1,77 @@
+{
+  "format": "zgta-local-character-save-candidate-v1",
+  "date": "2026-10-18",
+  "status": "REAL_TRIAL_FAILED_BEFORE_LOCAL_GAMER_GATE",
+  "observed_trace": [
+    "file read missing; slot=0",
+    "save requested; result=1 guards=1,0,0,0,0",
+    "queue requested; guards=1,0,0,0,0"
+  ],
+  "observed_trace_limit": "No local member-file write was observed. Error 499 was reproduced in the pinned save-gate fixture, not read from the real game memory.",
+  "candidate": "Keep non-null original active gamer results. Only a prepared local queued MP save with local gamer index zero can use the existing engine record when the original returns null. Do not change global sign-in state. Local file commits do not depend on a live relay.",
+  "hook": {
+    "group": "cloud",
+    "field": "active_gamer_info",
+    "name": "NetworkInterface::GetActiveGamerInfo()",
+    "index": 83013,
+    "params": [],
+    "results": [
+      "i64"
+    ],
+    "body_sha256": "84aef3288950076de03ba1ef1db3276ade192b77868ef9d90591d5dbd8683cc9",
+    "slot": 91414,
+    "original_export": "zema:lan:original:active_gamer_info",
+    "save_caller_sha256": "8b605974e9d50e0005202b1f79cc4851b91cc5532d9e5d97ca4069edfd6540cd",
+    "scope": "local queued MP save only; no global sign-in writes"
+  },
+  "stage": "EngineLAN-FeaturesBrowser-20261018-v21",
+  "lan_sha256": "d6deba88331567937d47809db760ad938c665b896e63bd0b3d69dd713ed1526d",
+  "offline_sha256": "640c40e09ed5b780d86ac85a56793fed6d0ed3ba51bc23bfa02e9873a8c38e48",
+  "before_regression_exit": 1,
+  "after_regression_exit": 0,
+  "tests": {
+    "regressions_passed": 176,
+    "regression_seconds": 237.396,
+    "native_feature_parity_passed": 7,
+    "actual_candidate_wasm_validation_and_compile": "PASS_NOT_INSTANTIATED",
+    "ordinary_callers_and_load_scope_unchanged": "PASS",
+    "nonlocal_gamer_refused": "PASS",
+    "exception_scope_restored": "PASS",
+    "relay_interruption_local_save": "PASS",
+    "native_format_character_and_stats_commit": "PASS"
+  },
+  "unchanged": [
+    "current IPA build 41",
+    "original Intel folder",
+    "Story and Free Roam WASM",
+    "existing user save snapshots"
+  ],
+  "private_save_contents_included": false,
+  "real_game_verified": false,
+  "followup_observation": {
+    "stage": "EngineLAN-FeaturesBrowser-20261018-v21",
+    "character_file_saved": false,
+    "observed_operation_states": [
+      1,
+      2,
+      3
+    ],
+    "state_4_observed": false,
+    "active_gamer_fallback_observed": false,
+    "member_file_write_observed": false,
+    "last_cloud_error": 404,
+    "last_cloud_error_limit": "Already present after the missing-file read; not evidence of a new save error.",
+    "next_step": "Forwarding-only save worker diagnostics; character restoration remains unresolved."
+  },
+  "worker_probe_trial": {
+    "stage": "EngineLAN-FeaturesBrowser-20261018-v22",
+    "character_file_saved": false,
+    "worker_creation_requested": true,
+    "worker_creation_result": "started",
+    "worker_entry_observed": false,
+    "builder_entry_observed": false,
+    "operation_state": 3,
+    "block_state": 1,
+    "status": "UNRESOLVED_THREAD_DISPATCH_OR_BOOTSTRAP_BOUNDARY"
+  }
+}

@@ -36,5 +36,17 @@ public:
   ++misses; return {};
  }
  uint64_t bytes() const { return held; }
+ // Never discard an entry whose last GPU use has not completed. A warning can
+ // trim idle storage without waiting, resetting the device or touching live data.
+ uint64_t trim(uint64_t completed, uint64_t keepBytes) {
+  uint64_t released=0;
+  for(size_t i=0;i<entries.size()&&held>keepBytes;){
+   if(entries[i].lastUse>completed){++i;continue;}
+   const auto bytes=entries[i].bytes;held-=bytes;released+=bytes;
+   if(i+1!=entries.size())entries[i]=std::move(entries.back());
+   entries.pop_back();
+  }
+  return released;
+ }
  size_t count() const { return entries.size(); }
 };
