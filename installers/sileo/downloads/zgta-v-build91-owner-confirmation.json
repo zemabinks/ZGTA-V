@@ -1,0 +1,18 @@
+{
+  "format": "zgta-owner-confirmation-v1",
+  "recorded_utc": "2026-10-26T13:46:24.312169+00:00",
+  "build": 91,
+  "source_revision": "bb230c44fc008f7601be5ee66b2f0c7fb206d92b",
+  "owner_statement": "Yes it works now, next step now",
+  "context": "Retest of discovered mirror.rar archive access/unpacking after updating to Build91",
+  "archive_workflow": "OWNER_CONFIRMED_WORKING",
+  "evidence_kind": "owner report in this conversation; no new phone log or independent app inventory",
+  "not_established": [
+    "Independent Build91 installer/helper verification",
+    "Gameplay",
+    "Real save retention across upgrade",
+    "Two-device multiplayer",
+    "Performance improvement",
+    "Reboot persistence"
+  ]
+}

@@ -61,5 +61,27 @@
     "Windows/Android/Linux and AppleSilicon execution untested",
     "Mac ad-hoc signed, not Apple-notarized",
     "No worldwide matchmaking"
+  ],
+  "sileo_installers": [
+    {
+      "file": "com.zema.zgta-v.trollstore_0.107-2_all.deb",
+      "bytes": 2968,
+      "sha256": "18719cda78f0ee2799abe01d4c5b9a34360830e9d5e1adeca1a1cd13d1c11c69",
+      "source_inputs_sha256": {
+        "control": "d8f5f78cc7feb3a2fbdad0a1ac8eb939a02ad84dd6cb67ef10f1bf3c64e3d3f9",
+        "postinst": "3223e1cd5222c025c0ab815eb116229b90257928609c17b98a4a59a1d2cfa5f9"
+      },
+      "device_install_verified": false
+    },
+    {
+      "file": "com.zema.zgta-v.appsync_0.107-2_iphoneos-arm.deb",
+      "bytes": 2804,
+      "sha256": "0de2abcf46aaf833fe58116608b82dc5c90104d92764979fd37f12599dd5a245",
+      "source_inputs_sha256": {
+        "control": "aa107d698421521acb56f705bcd28ba3d4f29a02f86e99f800de130c58bb96c4",
+        "postinst": "f8effeb43d8e813f83ed6463bbd96eb5da6e015748246310bfc2ac0f3c4c46dc"
+      },
+      "device_install_verified": false
+    }
   ]
 }
