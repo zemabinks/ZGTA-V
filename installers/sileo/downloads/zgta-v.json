@@ -12,7 +12,7 @@
   "download_url": "https://github.com/zemabinks/repo/releases/download/zgta-v-build-107/ZGTA-V-Build107-Memory-UI-Audit-TrollStore.ipa",
   "release_url": "https://github.com/zemabinks/repo/releases/tag/zgta-v-build-107",
   "own_game_files_required": true,
-  "device_acceptance": "ZGTA V 2.0 beta 3 / Build107 preserves the corrected building rendering and separates Automatic, Standard and Reduced memory management from graphics presets, resolution and FPS. The owner confirmed Build107 graphics, launched Mac DMG107.1, connected Mac/iPhone, and confirmed automatic empty-room discovery on both after the relay1.1 update. The iPhone performance report is a hot driving run, not a measured speedup. Physical3GB/A13 gains remain unmeasured; Windows/Android/Linux and AppleSilicon execution remain untested. Installer0.107-2 changes release metadata only and pins the exact same Build107 IPA as0.107-1. AppSync remains experimental.",
+  "device_acceptance": "ZGTA V 2.0 beta 3 / Build107 preserves the corrected building rendering and separates Automatic, Standard and Reduced memory management from graphics presets, resolution and FPS. The owner confirmed Build107 graphics, launched Mac DMG107.1, connected Mac/iPhone, and confirmed automatic empty-room discovery on both after the relay1.1 update. The iPhone performance report is a hot driving run, not a measured speedup. Physical3GB/A13 gains remain unmeasured; Windows/Android/Linux and AppleSilicon execution remain untested. Installer0.107-2 changes release metadata only and pins the exact same Build107 IPA as0.107-1. AppSync remains experimental. The owner additionally confirmed TrollStore installer0.107-3 installs cleanly and GTA/data work; AppSync remains0.107-2 and experimental.",
   "last_confirmed_device_build": 107,
   "source_revision": "ad973f1beb1584c2cc9ea952c53bd979d8fee60a",
   "public_2_0_release": "https://github.com/zemabinks/ZGTA-V/releases/tag/v2.0.0-beta.3",
@@ -28,6 +28,13 @@
   "previous106_scene_result": "OWNER_CONFIRMED_TARGET_BUILDINGS_STABLE_2026-10-29; no general performance or Mac acceptance inferred.",
   "owner_publication_approved": true,
   "owner_publication_date": "2026-10-31",
-  "current_installer_version": "0.107-2",
-  "owner_confirmation": "downloads/zgta-v-build107-owner-confirmation.json"
+  "current_installer_version": "0.107-3",
+  "owner_confirmation": "downloads/zgta-v-build107-owner-confirmation.json",
+  "current_trollstore_installer_version": "0.107-3",
+  "current_appsync_installer_version": "0.107-2",
+  "installer_source_revision": "59f2707b46260c4cc582b0ddc09af4ca242f4013",
+  "current_installer_confirmation": "downloads/zgta-v-installer1073-owner-confirmation.json",
+  "installer_publication_approved": true,
+  "installer_publication_choice": "YES_PUBLISH",
+  "installer_release_url": "https://github.com/zemabinks/ZGTA-V/releases/tag/sileo-installer-0.107-3"
 }

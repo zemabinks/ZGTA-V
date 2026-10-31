@@ -19,8 +19,13 @@ class Installer(unittest.TestCase):
    helper='''#!/usr/bin/env python3
 import json,os,sys
 from pathlib import Path
-if sys.argv[1:]==['install']:sys.exit(255 if os.environ['MOCK_CASE']=='probe-fails' else 253)
+if sys.argv[1:]==['install']:
+ print('Probe diagnostic',file=sys.stderr)
+ sys.exit(255 if os.environ['MOCK_CASE']=='probe-fails' else 253)
 p=Path(sys.argv[-1]);Path(os.environ['MOCK_LOG']).write_text(json.dumps({'args':sys.argv[1:],'payload':p.read_bytes().hex()}))
+print('Applying signing details')
+print('Native helper diagnostic',file=sys.stderr)
+if os.environ['MOCK_CASE']=='helper-fails':print('Actual installation failure',file=sys.stderr)
 sys.exit(171 if os.environ['MOCK_CASE']=='helper-fails' else 0)
 '''
    for i in range(helpers):
@@ -87,4 +92,15 @@ p=Path(os.environ['MOCK_NATIVE']);shutil.copyfile(sys.argv[1],p);print(p)
   r,call,left=self.run_installer(case='probe-fails');self.assertNotEqual(r.returncode,0);self.assertIsNone(call);self.assertIn('no-install preflight',r.stderr);self.assertEqual(left,[])
  def test_trollstore_failure_not_reported_successful(self):
   r,call,left=self.run_installer(case='helper-fails');self.assertNotEqual(r.returncode,0);self.assertIsNotNone(call);self.assertIn('returned 171',r.stderr);self.assertNotIn('installation complete',r.stdout);self.assertEqual(left,[])
+ def test_successful_native_stderr_is_not_presented_as_an_error(self):
+  r,call,left=self.run_installer();self.assertEqual(r.returncode,0,r.stderr);self.assertIsNotNone(call)
+  self.assertEqual(r.stderr,'');self.assertNotIn('Native helper diagnostic',r.stdout);self.assertNotIn('Applying signing details',r.stdout)
+  self.assertIn('Download size and SHA-256 verified.',r.stdout);self.assertIn('installation complete',r.stdout);self.assertEqual(left,[])
+ def test_native_failure_replays_stdout_and_stderr(self):
+  r,call,left=self.run_installer(case='helper-fails');self.assertNotEqual(r.returncode,0);self.assertIsNotNone(call)
+  for text in ['Applying signing details','Native helper diagnostic','Actual installation failure','returned 171']:self.assertIn(text,r.stderr)
+  self.assertNotIn('installation complete',r.stdout);self.assertEqual(left,[])
+ def test_failed_probe_diagnostics_still_visible_without_download(self):
+  r,call,left=self.run_installer(case='probe-fails');self.assertNotEqual(r.returncode,0);self.assertIsNone(call)
+  self.assertIn('Probe diagnostic',r.stderr);self.assertIn('no-install preflight',r.stderr);self.assertNotIn('Downloading',r.stdout);self.assertEqual(left,[])
 if __name__=='__main__':unittest.main()

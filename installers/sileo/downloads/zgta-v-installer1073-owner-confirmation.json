@@ -1,0 +1,25 @@
+{
+  "format": "zgta-installer-owner-confirmation-v1",
+  "date": "2026-10-31",
+  "installer": "com.zema.zgta-v.trollstore",
+  "installer_version": "0.107-3",
+  "package_bytes": 3036,
+  "package_sha256": "1b371d93061c220329a08a595ad4b6275e6bb067c72c853ced90c31b9d4be3f6",
+  "app_build": 107,
+  "owner_reply": "Installed cleanly; GTA and data work",
+  "screenshot_observations": {
+    "upgraded_from": "0.107-1",
+    "configured": "0.107-3",
+    "helper_owner_uid": 33,
+    "roothide_view": 1,
+    "download_size_and_sha_verified": true,
+    "helper_reported_installation_complete": true,
+    "native_signing_debug_output_absent": true
+  },
+  "physical_result": "OWNER_CONFIRMED_INSTALL_RELAUNCH_EXISTING_DATA",
+  "failure_diagnostics": "Covered by mocks; no destructive phone failure test requested",
+  "raw_screenshot_or_phone_log_published": false,
+  "public_promotion": "OWNER_APPROVED_EXACT_TESTED_INSTALLER",
+  "publication_choice": "YES_PUBLISH",
+  "publication_approved_on": "2026-10-31"
+}

@@ -17,9 +17,8 @@ Your own matching prepared game files are required. No commercial game content i
 | Mac / Linux browser | [Build 107 ZIP](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.3/ZGTA-V-Build107-Browser-Mac-Linux.zip) | Requires installed Python 3.9+ and a compatible browser. Linux gameplay untested. |
 | Windows x64 | [Build 107 ZIP](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.3/ZGTA-V-Build107-Windows-x64.zip) | Bundled Python; Windows execution untested. |
 | Android | [Build 107 Termux ZIP](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.3/ZGTA-V-Build107-Android-Termux.zip) | Experimental browser version; no APK. Android execution untested. |
-| Mac managed LAN host | [Relay controls 1.1](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.3/ZGTA-V-Relay-Controls-1.1.zip) | Advertises its actual port and an empty default room for nearby discovery. |
 
-Read the **[installation guide](docs/START-HERE.md)** before downloading. The Mac launcher requires Chrome and compatible prepared game files; it is not a native Mac game engine. Sileo users can add **[Zema's Repo](https://zemabinks.github.io/repo/)**. Installer **0.107-2** delivers the same Build 107 IPA, with updated beta 3 metadata. Previous releases remain available.
+Read the **[installation guide](docs/START-HERE.md)** before downloading. The Mac launcher requires Chrome and compatible prepared game files; it is not a native Mac game engine. Sileo users can add **[Zema's Repo](https://zemabinks.github.io/repo/)**. TrollStore installer **0.107-3** delivers the same Build107 IPA with cleaner successful install output; AppSync remains 0.107-2. See the [installer update notes](https://github.com/zemabinks/ZGTA-V/releases/tag/sileo-installer-0.107-3). Previous releases remain available.
 
 ## What's improved
 
@@ -40,6 +39,12 @@ Read the **[installation guide](docs/START-HERE.md)** before downloading. The Ma
 - [Report a problem](docs/TEST-REPORT.md)
 
 This remains a beta. Reduced-memory behavior has not been benchmarked on a physical 3 GB iPhone SE2020; stable 60 FPS is not promised. Private LAN/Tailscale play is supported, with no worldwide server directory. See [verification and remaining limits](docs/VERIFICATION.md).
+
+## Optional hosting tools
+
+Normal hosting uses **Multiplayer → Create a lobby** in ZGTA V and needs no extra download.
+
+[Mac relay controls 1.1](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.3/ZGTA-V-Relay-Controls-1.1.zip) are for a Mac that should keep a standalone multiplayer relay available while GTA is closed, including managed ZRemote setups. The relay forwards multiplayer traffic; the game runs on the players' devices. The Mac must stay awake and logged in. See [optional relay setup](docs/PLAY-GUIDE.md#optional-standalone-mac-relay).
 
 ## Source and credits
 

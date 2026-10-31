@@ -35,7 +35,7 @@ On iOS, resolution can change during play; preset and frame-rate changes require
 
 ## Private Multiplayer
 
-Every player needs matching prepared game files. The host must remain online with ZGTA V open; iOS hosting stops when the app leaves the foreground.
+Every player needs matching prepared game files. A lobby created inside ZGTA V needs the hosting app to remain open; iOS hosting stops when the app leaves the foreground. The optional standalone Mac relay below can keep the relay available while GTA is closed.
 
 For remote setup, start with the **[Tailscale download, host and join guide](REMOTE-PLAY.md)**.
 
@@ -61,9 +61,11 @@ Use the host's LAN or Tailscale address when joining from another device; `127.0
 3. Enter your player name. On iOS, press **Connect**; in the browser, press **Use this setup**.
 4. Press **Play Multiplayer**.
 
-### Managed Mac host
+### Optional standalone Mac relay
 
-For a persistent relay, download [relay controls 1.1](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.3/ZGTA-V-Relay-Controls-1.1.zip) and extract the ZIP. Use **Relay Off.command** from the updated package to stop your owned older relay, then **Relay On.command** to install/start the new helper. Stop only when no players are using it. The commands preserve the existing private configuration; no game files are copied. A ZRemote bundle must contain the updated helper too, or its own start action may restore an older helper.
+Most players can use **Multiplayer → Create a lobby** without downloading extra tools. This optional package is for a Mac that should keep a relay available independently of the game, including managed ZRemote setups. It forwards multiplayer traffic and does not run the GTA world.
+
+For that standalone relay, download [relay controls 1.1](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.3/ZGTA-V-Relay-Controls-1.1.zip) and extract the ZIP. Use **Relay Off.command** from the updated package to stop your owned older relay, then **Relay On.command** to install/start the new helper. Stop only when no players are using it. The commands preserve the existing private configuration; no game files are copied. A ZRemote bundle must contain the updated helper too, or its own start action may restore an older helper.
 
 The updated managed host advertises an empty **LOS-SANTOS** room before anyone joins. Its actual announced port is used; clients do not scan every network port. Keep the Mac awake and logged in. LAN discovery depends on local-network permission and multicast reachability. Isolated guest Wi-Fi can prevent discovery; use an invite/address when needed.
 
