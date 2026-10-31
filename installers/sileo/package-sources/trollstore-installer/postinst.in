@@ -77,13 +77,18 @@ install_app() {
         native_ipa=$(jbroot "$ipa") || fail 'Cannot resolve the IPA outside RootHide.'
         case "$native_ipa" in /*) ;; *) fail 'RootHide returned an invalid IPA path.' ;; esac
     fi
+    say 'Download size and SHA-256 verified.'
     say 'Installing through the existing TrollStore helper…'
     # This is the same install/custom interface used by TrollStore itself.
     # No force flag, app-container deletion, global uicache or uninstall fallback.
-    if "$helper" install custom "$native_ipa"; then
+    # TrollStore writes signing/progress diagnostics to stderr even on success.
+    # Keep them private during installation; show both streams when it fails.
+    # The helper exit status still determines whether dpkg may configure us.
+    if "$helper" install custom "$native_ipa" > "$work/helper-install.log" 2>&1; then
         say 'TrollStore reports installation complete. Keep game files and saves in the existing app.'
     else
         result=$?
+        cat "$work/helper-install.log" >&2
         fail "TrollStore returned $result. Check its error above. This package is not marked configured; no fallback installer was used."
     fi
 }

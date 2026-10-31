@@ -19,7 +19,7 @@ Your own matching prepared game files are required. No commercial game content i
 | Android | [Build 107 Termux ZIP](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.3/ZGTA-V-Build107-Android-Termux.zip) | Experimental browser version; no APK. Android execution untested. |
 | Mac managed LAN host | [Relay controls 1.1](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.3/ZGTA-V-Relay-Controls-1.1.zip) | Advertises its actual port and an empty default room for nearby discovery. |
 
-Read the **[installation guide](docs/START-HERE.md)** before downloading. The Mac launcher requires Chrome and compatible prepared game files; it is not a native Mac game engine. Sileo users can add **[Zema's Repo](https://zemabinks.github.io/repo/)**. Installer **0.107-2** delivers the same Build 107 IPA, with updated beta 3 metadata. Previous releases remain available.
+Read the **[installation guide](docs/START-HERE.md)** before downloading. The Mac launcher requires Chrome and compatible prepared game files; it is not a native Mac game engine. Sileo users can add **[Zema's Repo](https://zemabinks.github.io/repo/)**. TrollStore installer **0.107-3** delivers the same Build107 IPA with cleaner successful install output; AppSync remains 0.107-2. See the [installer update notes](https://github.com/zemabinks/ZGTA-V/releases/tag/sileo-installer-0.107-3). Previous releases remain available.
 
 ## What's improved
 

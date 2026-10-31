@@ -1,0 +1,15 @@
+{
+  "format": "zgta-installer-component-manifest-v1",
+  "version": "0.107-3",
+  "app_build": 107,
+  "package": "com.zema.zgta-v.trollstore_0.107-3_all.deb",
+  "bytes": 3036,
+  "sha256": "1b371d93061c220329a08a595ad4b6275e6bb067c72c853ced90c31b9d4be3f6",
+  "source_revision": "59f2707b46260c4cc582b0ddc09af4ca242f4013",
+  "app_binary_changed": false,
+  "appsync_version": "0.107-2",
+  "owner_test": "CONFIRMED",
+  "publication_choice": "YES_PUBLISH",
+  "approved_on": "2026-10-31",
+  "release_url": "https://github.com/zemabinks/ZGTA-V/releases/tag/sileo-installer-0.107-3"
+}
