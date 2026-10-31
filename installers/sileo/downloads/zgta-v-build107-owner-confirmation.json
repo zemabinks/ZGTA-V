@@ -1,0 +1,28 @@
+{
+  "format": "zgta-owner-release-confirmation-v1",
+  "date": "2026-10-31",
+  "build": 107,
+  "ipa_sha256": "9918682d7917f8ebb1f00d7c4822bfc281729eb71824ed92cb90554fe919ae54",
+  "ipa_bytes": 117764166,
+  "public_release": "https://github.com/zemabinks/ZGTA-V/releases/tag/v2.0.0-beta.3",
+  "owner_publication_choice": "YES_PUBLISH",
+  "owner_results": {
+    "iphone107_target_graphics": "STABLE",
+    "iphone107_performance_report": "SUPPLIED_HOT_DRIVING_RUN_NOT_A_COMPARATIVE_BENCHMARK",
+    "mac107_1_install_launch": "CONFIRMED",
+    "mac_iphone_connection": "CONFIRMED",
+    "relay1_1_empty_room_discovery_both_clients": "CONFIRMED"
+  },
+  "installer_0_107_2": {
+    "change": "CONTROL_DESCRIPTION_VERSION_ONLY",
+    "ipa_changed": false,
+    "postinst_templates_changed": false,
+    "physical_install_of_new_metadata_wrapper": "NOT_SEPARATELY_TESTED"
+  },
+  "remaining_limits": [
+    "Physical3GB/A13 performance unmeasured",
+    "AppSync execution untested",
+    "Windows/Android/Linux and AppleSilicon execution untested",
+    "Mac ad-hoc signed, not Apple-notarized"
+  ]
+}
