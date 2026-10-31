@@ -146,7 +146,7 @@ print("NATIVE_BOOT_PRESENTATION_PASS")
             result = subprocess.run([str(binary)], check=True, capture_output=True, text=True)
             self.assertIn('NATIVE_BOOT_PRESENTATION_PASS', result.stdout)
         # Fatal state must stop per-frame native input queries, not only hide their views.
-        self.assertIn('@objc private func pollController() {\n        guard !engineFailed else { return }', source)
+        self.assertIn('@objc private func pollController() {\n        guard !engineFailed else { PGSetPerformanceSampling(0); return }', source)
         # Bind these two integration cases to the actual native emitters.
         renderer = (ROOT / 'Source/MetalRenderer/MRRenderer.mm').read_text()
         host = (ROOT / 'Source/MetalGraphicsHost.mm').read_text()

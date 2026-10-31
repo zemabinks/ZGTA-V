@@ -2,6 +2,7 @@
 from pathlib import Path
 import hashlib
 import shlex
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -15,6 +16,36 @@ def digest(path):
 
 
 class ObjectDependencyReuse(unittest.TestCase):
+    def test_retained_sibling_worktree_requires_same_repository_and_exact_bytes(self):
+        with tempfile.TemporaryDirectory(prefix='zgta-reuse-worktree-') as temp:
+            root=Path(temp).resolve();repo=root/'Repo';repo.mkdir()
+            def git(*args, cwd=repo):
+                return subprocess.run(['git',*args],cwd=cwd,check=True,capture_output=True)
+            git('init','-q')
+            git('-c','user.name=Fixture','-c','user.email=fixture@example.invalid',
+                'commit','-q','--allow-empty','-m','fixture')
+            sibling=root/'Sibling';git('worktree','add','--detach',str(sibling),'HEAD')
+            previous=repo/'native-port/app/Build/Previous';(previous/'AppRoot').mkdir(parents=True)
+            stage=sibling/'native-port/app/Build/Older';origin=stage/'AppRoot'
+            (origin/'Generated').mkdir(parents=True);source=origin/'Generated/game_1.c';source.write_text('source')
+            folder=stage/'DerivedData/Build/Intermediates.noindex/PlayGTA5Native.build/Release-iphoneos/PlayGTA5Native.build/Objects-normal/arm64';folder.mkdir(parents=True)
+            obj=folder/'game_1.o';obj.write_bytes(b'preserved object');dep=obj.with_suffix('.d')
+            dep.write_text('dependencies: '+shlex.quote(str(source))+'\n')
+            entry={'source':'game_1.c','object':str(obj),'object_sha256':digest(obj),
+                   'dependencies_sha256':digest(dep),'app_inputs':{'Generated/game_1.c':digest(source)}}
+            record={'generated_object_reuse':{'reused_units':[entry]},'input_hashes':{'Generated/game_1.c':digest(source)}}
+            self.assertEqual(retained_unit(previous,record,'game_1',previous.parent,digest),(obj,dep,origin))
+            source.write_text('changed source')
+            with self.assertRaisesRegex(ValueError,'compiler inputs differ'):
+                retained_unit(previous,record,'game_1',previous.parent,digest)
+            source.write_text('source')
+            unrelated=root/'Unrelated';unrelated.mkdir();git('init','-q',cwd=unrelated)
+            import shutil
+            foreign=unrelated/'native-port/app/Build/Older';shutil.copytree(stage,foreign)
+            entry['object']=str(foreign/obj.relative_to(stage))
+            with self.assertRaisesRegex(ValueError,'another repository'):
+                retained_unit(previous,record,'game_1',previous.parent,digest)
+
     def test_only_reviewed_swift_gate_may_change_without_global_c_settings(self):
         import copy
         old = {'settings': {'base': {'GCC_OPTIMIZATION_LEVEL': '2'}},

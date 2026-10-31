@@ -1,0 +1,9 @@
+{
+  "format": "zgta-desktop-ui-assets-v1",
+  "desktop-city.png": {
+    "origin": "Generated with the built-in image_gen tool from the owner-approved concept 3 city panorama",
+    "use": "Decorative launcher artwork, not a geographic map or gameplay screenshot",
+    "sha256": "4421d680d7d21f8135287aa3df0ea72eba5715231dc156ff2209c6b1ab77e879",
+    "bytes": 2459189
+  }
+}

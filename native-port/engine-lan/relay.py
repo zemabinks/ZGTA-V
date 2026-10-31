@@ -111,8 +111,11 @@ class AddressUnavailable(ValueError):
 
 
 class Relay:
-    def __init__(self, clock=time.monotonic):
+    def __init__(self, clock=time.monotonic, advertised_room=None):
+        if advertised_room is not None and (not isinstance(advertised_room, str) or not advertised_room.strip() or len(advertised_room.encode()) > 64 or any(ord(c) < 32 or 127 <= ord(c) < 160 for c in advertised_room)):
+            raise ValueError('Invalid advertised room')
         self.clock = clock
+        self.advertised_room = advertised_room
         self.epoch = secrets.token_hex(8)
         self.health_id = secrets.token_hex(16)
         self.rooms = {}
@@ -130,9 +133,14 @@ class Relay:
 
     def catalog(self):
         self.expire()
-        return [{'room':room,'players':sum(p.writer is not None for p in peers.values()),
+        rows = [{'room':room,'players':sum(p.writer is not None for p in peers.values()),
                  'slots':len(peers),'capacity':32,
                  'player_names':[p.name for p in peers.values() if p.writer is not None]} for room,peers in self.rooms.items()]
+        # An explicitly hosted default room stays joinable before the first
+        # player and after the last reservation expires. Other rooms stay open.
+        if self.advertised_room is not None and self.advertised_room not in self.rooms and len(rows) < 32:
+            rows.insert(0, {'room':self.advertised_room,'players':0,'slots':0,'capacity':32,'player_names':[]})
+        return rows
 
     def health(self):
         lobbies=self.catalog()
@@ -147,7 +155,7 @@ class Relay:
                 else:budget-=size
         return {'service':'zgta-engine-lan','protocol':PROTOCOL,'build':BUILD,
                 'instance':self.health_id,'peers':sum(p.writer is not None for ps in self.rooms.values() for p in ps.values()),
-                'rooms':len(self.rooms),'catalog_version':1,'lobbies':lobbies,'room_policy':'open'}
+                'rooms':len(lobbies),'catalog_version':1,'lobbies':lobbies,'room_policy':'open'}
 
     def admit(self, message, writer):
         if self.closing:
@@ -336,8 +344,8 @@ class Relay:
         self.rooms.clear()
 
 
-async def serve(address, port, duration, vpn_address=None):
-    relay = Relay()
+async def serve(address, port, duration, vpn_address=None, advertised_room=None):
+    relay = Relay(advertised_room=advertised_room)
     server = await asyncio.start_server(relay.client, address, port, limit=8192)
     servers = [server]
     stopped = asyncio.Event(); loop = asyncio.get_running_loop()
@@ -372,6 +380,7 @@ def main(argv=None):
                         help='bind only the specified, already assigned Mac Tailscale IPv4; no VPN setup')
     parser.add_argument('--port', type=int, default=47540)
     parser.add_argument('--vpn-bind', help='add one already assigned Tailscale IPv4 to the same LAN relay; no VPN setup')
+    parser.add_argument('--advertise-room', help='keep this explicitly hosted room listed when empty; does not restrict other rooms')
     lifetime = parser.add_mutually_exclusive_group()
     lifetime.add_argument('--duration', type=int, default=1800)
     lifetime.add_argument('--service', action='store_true', help='run until stopped; explicit managed-service mode without the test timer')
@@ -385,7 +394,15 @@ def main(argv=None):
     if not 1024 <= args.port <= 65535 or not 60 <= args.duration <= 3600:
         parser.error('use port 1024–65535 and duration 60–3600')
     duration = None if args.service else args.duration
-    asyncio.run(serve(address, args.port, duration, vpn_address) if vpn_address else serve(address, args.port, duration))
+    advertised_room = args.advertise_room if args.advertise_room is not None else 'LOS-SANTOS' if args.service else None
+    try:
+        Relay(advertised_room=advertised_room)
+    except ValueError as error:
+        parser.error(str(error))
+    if advertised_room is not None:
+        asyncio.run(serve(address, args.port, duration, vpn_address, advertised_room=advertised_room))
+    else:
+        asyncio.run(serve(address, args.port, duration, vpn_address) if vpn_address else serve(address, args.port, duration))
 
 
 if __name__ == '__main__':

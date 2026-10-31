@@ -113,6 +113,11 @@ final class GameSettings {
         get { defaults.object(forKey: "graphicsPreset") != nil ? GraphicsPreset(rawValue: defaults.integer(forKey: "graphicsPreset")) ?? tier.recommended : tier.recommended }
         set { defaults.set(newValue.rawValue, forKey: "graphicsPreset") }
     }
+    /// Applied at launch; never changes preset, resolution or frame-rate choices.
+    var memoryProfile: MemoryProfile {
+        get { MemoryProfile(rawValue: defaults.integer(forKey: "memoryProfile")) ?? .automatic }
+        set { defaults.set(newValue.rawValue, forKey: "memoryProfile") }
+    }
     var resolutionScale: Double {
         get { defaults.object(forKey: "resolutionScale") as? Double ?? 1.0 }
         set { defaults.set(min(max(newValue, 0.5), 1.0), forKey: "resolutionScale") }

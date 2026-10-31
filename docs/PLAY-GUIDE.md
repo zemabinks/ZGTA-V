@@ -1,6 +1,6 @@
 # Mods, graphics and multiplayer
 
-[Installation](START-HERE.md) · [Downloads](https://github.com/zemabinks/ZGTA-V/releases/tag/v2.0.0-beta.2)
+[Installation](START-HERE.md) · [Downloads](https://github.com/zemabinks/ZGTA-V/releases/tag/v2.0.0-beta.3)
 
 ## Import mods
 
@@ -26,12 +26,12 @@ If a mod causes a problem, disable it and relaunch before changing other setting
 
 ## Change graphics
 
-1. Open **Settings → Graphics & FPS** on iOS, or **Settings → Graphics** in the browser.
+1. Open **Settings → Graphics & FPS** on iOS, or **Graphics** in the main browser navigation.
 2. Start with the recommended preset. In the browser, run **Check this GPU** first.
 3. For smoother play, try a lower preset or resolution. Change one setting at a time so you can compare.
 4. Choose your frame-rate cap. A higher cap does not guarantee the device can reach it.
 
-On iOS, resolution can change during play; preset and frame-rate changes require restarting the game. Browser graphics settings apply on the next launch. If iOS reports that it cannot reserve engine memory, try a lower **Game Memory** value; the minimum setting is 3 GB. This cannot raise the memory allowance granted by iOS or your signing method.
+On iOS, resolution can change during play; preset and frame-rate changes require restarting the game. Browser graphics settings apply on the next launch. **Memory management** has independent Automatic, Standard and Reduced choices; selecting a graphics preset does not lock memory management to that preset. Reduced mode limits optional prefetch and releases completed idle graphics storage earlier. It can help reduce resource pressure, but a physical 3 GB device performance improvement has not been measured. If iOS reports that it cannot reserve engine memory, try a lower **Game Memory** value; the minimum setting is 3 GB. This cannot raise the memory allowance granted by iOS or your signing method.
 
 ## Private Multiplayer
 
@@ -61,6 +61,12 @@ Use the host's LAN or Tailscale address when joining from another device; `127.0
 3. Enter your player name. On iOS, press **Connect**; in the browser, press **Use this setup**.
 4. Press **Play Multiplayer**.
 
+### Managed Mac host
+
+For a persistent relay, download [relay controls 1.1](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.3/ZGTA-V-Relay-Controls-1.1.zip) and extract the ZIP. Use **Relay Off.command** from the updated package to stop your owned older relay, then **Relay On.command** to install/start the new helper. Stop only when no players are using it. The commands preserve the existing private configuration; no game files are copied. A ZRemote bundle must contain the updated helper too, or its own start action may restore an older helper.
+
+The updated managed host advertises an empty **LOS-SANTOS** room before anyone joins. Its actual announced port is used; clients do not scan every network port. Keep the Mac awake and logged in. LAN discovery depends on local-network permission and multicast reachability. Isolated guest Wi-Fi can prevent discovery; use an invite/address when needed.
+
 ### Join from the lobby list
 
 1. Open **With friends → Find lobby** and choose your network.
@@ -68,11 +74,11 @@ Use the host's LAN or Tailscale address when joining from another device; `127.0
 3. Confirm your player details and connection, then press **Play Multiplayer**.
 4. Tap the heart to save a lobby under **Favorites**. Offline favorites stay saved, but cannot be joined until the host is online.
 
-If a lobby is missing, ask the host to start it and send an invite. Check the network/VPN connection on both devices. On Windows, check that the host was allowed through the firewall on the intended private network. If changing host or room after connecting requires it, reopen ZGTA V first.
+Nearby LAN hosts must advertise their ZGTA service to appear automatically. Updated managed Mac relays are discoverable with zero players. If a lobby is missing, confirm the host is using relay controls 1.1 or send an invite. Check the network/VPN connection on both devices. On Windows, check that the host was allowed through the firewall on the intended private network. If changing host or room after connecting requires it, reopen ZGTA V first.
 
 ## Back up saves
 
-Open **Settings → Saves & support** on iOS, or **Settings → Saves** in the browser, and export a backup before updating or importing saves. Story, Free Roam and multiplayer progress are separate.
+Open **Settings → Saves & support** on iOS, or **Saves** in the main browser navigation, and export a backup before updating or importing saves. Story, Free Roam and multiplayer progress are separate.
 
 Keep the same browser profile and localhost address when playing in a browser. Close the game before importing a backup. Each simultaneously playing multiplayer device needs its own character identity; do not clone one save across active players.
 

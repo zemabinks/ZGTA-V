@@ -31,6 +31,9 @@ def patch(name, data):
         import io_lifecycle
         text = io_lifecycle.apply(text)
     if name == 'io_worker.js':
+        import io_scratch
+        text = io_scratch.apply(text)
+    if name == 'io_worker.js':
         import ui_asset_refresh
         text=ui_asset_refresh.apply(text)
         return once(text, "indexedDB.open('gta5-userdata', 1)",

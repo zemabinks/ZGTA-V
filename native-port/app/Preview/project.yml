@@ -8,12 +8,16 @@ targets:
     platform: iOS
     sources:
       - PreviewApp.swift
+      - PreviewStubs.swift
+      - ../App/GameSettings.swift
+      - ../App/GraphicsOptions.swift
+      - ../App/LowMemoryGraphics.swift
+      - ../App/SettingsViewController.swift
       - ../App/HomeView.swift
       - ../App/Theme.swift
       - ../App/Assets.xcassets
       - ../App/Localization.swift
       - ../App/LocalizationUI.swift
-      - ../App/OnlineSettingsViewController.swift
       - path: ../Resources/Localizations.json
         buildPhase: resources
     settings:
@@ -25,7 +29,7 @@ targets:
     info:
       path: Info.plist
       properties:
-        CFBundleDisplayName: Mugoat
+        CFBundleDisplayName: ZGTA UI QA
         CFBundleShortVersionString: '1.1.7'
         CFBundleVersion: '17'
         UILaunchScreen: {}

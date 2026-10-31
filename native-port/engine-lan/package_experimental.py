@@ -64,6 +64,8 @@ def package(run,receipt,output_name="Package"):
         if struct.unpack('<II',source.read(8))!=(0xfeedfacf,0x100000c):raise ValueError('Expected ARM64 iPhone executable')
     if record.get('format')!='zema-engine-lan-build-v1' or record.get('exit_code')!=0 or record.get('tool_head')!=head or record.get('app_executable_sha256')!=digest_file(executable) or record.get('input_hashes')!=staged_sources(run):raise ValueError('Successful exact-source build receipt required')
     verify_pair(app)
+    import prepare_stipple_shaders
+    prepare_stipple_shaders.verify(app/'shader-reflection.jsonl',app)
     if digest_file(app/'Assets.car')!=UI_SHA:raise ValueError('Intel cached device UI catalog differs')
     selected=profile(stage)
     if not re.fullmatch(r'Package(?:-[A-Za-z0-9]+)*',output_name):raise ValueError('Use a separate Package output name')

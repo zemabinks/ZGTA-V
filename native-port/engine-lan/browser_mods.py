@@ -344,7 +344,7 @@ class BrowserMods:
                     'limits': {'packBytes': MAX_ARCHIVE, 'totalBytes': MAX_TOTAL, 'packs': MAX_PACKS},
                     'supported': 'Open GTA V Legacy vehicle/character DLC RPF7 packs, directly or inside ZIP.',
                     'unsupported': 'Encrypted/Enhanced packs, code plugins, loose-file replacements and non-ZIP archives.',
-                    'launchNote': 'Changes apply to the next Story or Free Roam launch. LAN uses original assets; cross-device mod parity is unverified.'}
+                    'launchNote': 'Changes apply to the next launch. For multiplayer, install the same compatible packs on every device; packs are not shared automatically. Paired mod visibility still needs testing.'}
 
     def import_bytes(self, filename, data):
         with self._lock:
@@ -446,8 +446,6 @@ class BrowserMods:
         if mode not in ('story', 'sandbox', 'lan', 'multiplayer'):
             raise ModError('Unknown launch mode.')
         with self._lock:
-            if mode in ('lan', 'multiplayer') and any(record['enabled'] for record in self._state):
-                raise ModError('Browser DLC mods are available only in Story and Free Roam. LAN asset parity is unverified.')
             try:
                 manifest = json.loads(base_manifest_bytes)
                 files = manifest['files']

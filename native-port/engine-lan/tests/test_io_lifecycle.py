@@ -67,7 +67,9 @@ class IOLifecycle(unittest.TestCase):
         namespace='zema-engine-lan-userdata-v1' if mode=='lan' else 'zema-browser-'+mode+'-userdata-v1'
         self.assertIn(namespace.encode(),result);self.assertIn(b'readFromStore(id, off, len, dst)',result)
         self.assertNotIn(b'removeEntry(',result)
-        worker=launch_channels.worker('io_worker.js',result).decode();prior=launch_channels.worker('io_worker.js',original).decode();self.assertNotRegex(worker,launch_channels.LITERAL)
+        worker=launch_channels.worker('io_worker.js',result).decode()
+        prior=launch_channels.BOOT+launch_channels.channels(original.decode(),{'game-progress':1,'game-io':1})
+        self.assertNotRegex(worker,launch_channels.LITERAL)
         page=serve_browser.index((MIRROR/'index.html').read_bytes(),mode).decode();a=page.index("const bc = new BroadcastChannel(ZemaLaunchChannels.name('game-progress'))");b=page.index('// Between reports',a)
         payload.append({'mode':mode,'proposed':fragments(worker),'original':fragments(prior),'page':page[a:b],'worker_sha256':hashlib.sha256(result).hexdigest(),'served_worker_sha256':hashlib.sha256(worker.encode()).hexdigest()})
         with tempfile.NamedTemporaryFile(suffix='.js') as script:

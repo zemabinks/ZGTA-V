@@ -80,6 +80,19 @@ int main(int argc,char **argv){
  assert(write(pipes[1],"y",1)==1);void *result;pthread_join(thread,&result);assert((uintptr_t)result==1&&observed(0)==1);watchPoll=0;
  close(pipes[1]);close(other[1]);row(0,20,1);assert(w2c_env_0x5F_syscall_poll(&env,100,1,0)==1&&(observed(0)&16));w2c_wasi__snapshot__preview1_fd_close(&wasi,20);
  row(0,0,1);row(1,1,4);row(2,2,1);assert(w2c_env_0x5F_syscall_poll(&env,100,3,0)==2);assert(observed(0)==1&&observed(1)==4&&observed(2)==0);
+ // Enumerating a directory owns a separate fdopendir duplicate. Closing the
+ // guest handle must release both OS handles, including after repeated scans.
+ for(int round=0;round<2048;round++){
+  strcpy((char *)env.bytes+1000,"/userdata/Documents");
+  u32 fd=w2c_env_0x5F_syscall_openat(&env,(u32)-100,1000,65536,0);assert(fd>=3&&fd<PG_FDS);
+  int original=descriptors[fd].native;
+  assert(w2c_env_0x5F_syscall_getdents64(&env,fd,4096,560)>0);
+  int duplicate=dirfd(descriptors[fd].dir);assert(duplicate>=0&&duplicate!=original);
+  assert(w2c_wasi__snapshot__preview1_fd_close(&wasi,fd)==0);
+  errno=0;assert(fcntl(original,F_GETFD)==-1&&errno==EBADF);
+  errno=0;assert(fcntl(duplicate,F_GETFD)==-1&&errno==EBADF);
+  assert(w2c_wasi__snapshot__preview1_fd_close(&wasi,fd)==8);
+ }
  puts("NATIVE_ENTROPY_AND_POLL_PASS");
 }
 '''

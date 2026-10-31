@@ -45,7 +45,7 @@ class NativeReconnect(unittest.TestCase):
         self.assertEqual(target['settings']['base']['PRODUCT_BUNDLE_IDENTIFIER'],'com.zemabinks.gtamp.enginelanlab')
         self.assertEqual(next(x for x in target['sources'] if isinstance(x,dict) and x['path']=='Generated')['excludes'],['game_21.c'])
         self.assertEqual(len([x for x in target['sources'] if isinstance(x,dict) and 'compilerFlags' in x]),7)
-    def test_ui_preserves_admission_and_manual_handoff(self):
+    def test_research_planner_stays_disabled_shipping_uses_direct_restart(self):
         source=(ROOT/'SettingsReconnectIntent.swift').read_text()
         self.assertIn('guard let self, self.intent == token',source)
         self.assertIn('dismissSettings {',source)
@@ -58,7 +58,9 @@ class NativeReconnect(unittest.TestCase):
         ui=(ROOT/'EngineLanLabUI.swift').read_text()
         self.assertNotIn('SettingsReconnectIntent',ui)
         self.assertNotIn('ZemaNativeRecoveryReconnectStart',ui)
-        self.assertIn('Reconnect network',ui)
+        self.assertIn('if ready { queueSessionRestart() }',ui)
+        self.assertIn('guard PGRequestSessionRestart()',ui)
+        self.assertIn('let status = PGSessionRestartStatus()',ui)
         for name in ['prepare_experimental.py','build_experimental.py']:
             self.assertNotIn('native_session_reconnect',(ROOT/name).read_text())
 

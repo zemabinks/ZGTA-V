@@ -40,7 +40,7 @@
         read.onsuccess=()=>{const actual=read.result===undefined?null:new Uint8Array(read.result);if(!equal(actual,prior)){tx.abort();return;}if(prior!==null&&!equal(bytes,prior))store.put(prior,'previous');store.put(bytes,'current');};
         tx.oncomplete=resolve;tx.onabort=()=>reject(Error('Profile changed or write failed'));tx.onerror=()=>{};});this.expected=bytes.slice();return true;}
   }
-  async function serve(buffer,storage,Profile,identity,ready,report=()=>{}){
+  async function serve(buffer,storage,Profile,identity,ready,report=()=>{},control={}){
     if(!(buffer instanceof SharedArrayBuffer)||buffer.byteLength!==SIZE||typeof Atomics.waitAsync!=='function')throw Error('Shared profile worker unsupported');
     const w=new Int32Array(buffer,0,16),bytes=new Uint8Array(buffer);const saved=await storage.load();
     const profile=saved===null?new Profile(identity.id,identity.name):Profile.decode(saved);
@@ -49,6 +49,10 @@
     const renamed=profile.name!==identity.name;
     if(!profile.rename(identity.name))throw Error('Profile name must be 1–16 English characters');
     if((saved===null||renamed)&&await storage.commit(profile.encode())!==true)throw Error('Profile name could not be saved');
+    let requestedCheckpoint=0;
+    // Control messages only wake the existing owner loop. They never start a
+    // concurrent IndexedDB transaction or acknowledge data before commit.
+    control.requestCheckpoint=id=>{if(!Number.isSafeInteger(id)||id<1)return;requestedCheckpoint=Math.max(requestedCheckpoint,id);Atomics.notify(w,1);};
     ready({protocol:PROTOCOL,buffer,id:profile.id,name:profile.name});
     // Fallback stats do not necessarily lead to a cloud-file save. Checkpoint
     // the complete shared profile even when the engine never calls commit().
@@ -63,7 +67,14 @@
     async function checkpoint(){lastAttempt=Date.now();if(await storage.commit(profile.encode())!==true)throw Error('Profile checkpoint refused');savedRevision=profile.revision;notify('saved');}
     notify('saved');
     while(!Atomics.load(w,2)){
+      if(requestedCheckpoint){
+        const id=requestedCheckpoint;requestedCheckpoint=0;
+        try{if(profile.revision!==savedRevision)await checkpoint();report({type:'profile-checkpoint',id,state:'saved'});}
+        catch{notify('error');report({type:'profile-checkpoint',id,state:'error'});}
+        continue; // Recheck requests received while the transaction was awaited.
+      }
       if(profile.revision!==savedRevision&&Date.now()-lastAttempt>=1000){try{await checkpoint();}catch{notify('error');}}
+      if(requestedCheckpoint)continue; // A lifecycle request can arrive during the periodic disk await too.
       const state=Atomics.load(w,1);if(state!==1){await Atomics.waitAsync(w,1,state,profile.revision===savedRevision?Infinity:Math.max(1,1000-(Date.now()-lastAttempt))).value;continue;}
       try{
         const n=w[3],size=w[4];if(n<1||n>2048||size<0||size>LIMIT)throw Error('Profile request limit');

@@ -63,6 +63,11 @@ struct ShaderInfo {
 	NSUInteger constOffset = 0;
 	id<MTLFunction> function = nil;
 	bool functionFailed = false;
+	id<MTLLibrary> stippleLibrary = nil;
+	id<MTLFunction> stippleFunctions[32] = {};
+	uint32_t stippleFailedMask = 0;
+	uint32_t stippleRequestedMask = 0;
+	bool stippleCompiling = false;
 	uint32_t uid = 0;
 	uint32_t textureFloatSamplers = 0;		// bit per sampler index that is paired with some texture
 };
@@ -175,6 +180,7 @@ MTLVertexFormat vertexFormat(uint32_t dxgi, uint32_t *bytes);
 // ---- shader library ---------------------------------------------------------------------------------------------------
 bool loadShaderLibrary(id<MTLDevice> device);
 ShaderInfo *findShader(const std::string &hash);
-id<MTLFunction> shaderFunction(ShaderInfo *info);
+id<MTLFunction> shaderFunction(ShaderInfo *info, uint32_t stipple = 0);
+bool shaderFunctionPending(ShaderInfo *info, uint32_t stipple);
 
 }  // namespace mr

@@ -22,7 +22,7 @@ class RelayServiceCLI(unittest.TestCase):
     def test_only_explicit_service_removes_timer(self):
         with patch.object(relay,'serve',AsyncMock()) as serve:
             relay.main(['--bind','192.168.1.2','--service'])
-            serve.assert_awaited_once_with('192.168.1.2',47540,None)
+            serve.assert_awaited_once_with('192.168.1.2',47540,None,None,advertised_room='LOS-SANTOS')
         with patch.object(relay,'serve',AsyncMock()) as serve:
             relay.main([]);serve.assert_awaited_once_with('127.0.0.1',47540,1800)
         with contextlib.redirect_stderr(io.StringIO()),self.assertRaises(SystemExit):
@@ -133,7 +133,7 @@ class LobbyCatalog(unittest.IsolatedAsyncioTestCase):
         self.assertIsNone(control.checked_catalog({'peers':2,'rooms':1}))
 
     def test_browser_host_is_independent_and_read_only(self):
-        info={'running':True,'owned':True,'join':'ws://127.0.0.1:47541/engine-lan','remote':'ws://100.75.192.42:47541/engine-lan'}
+        info={'running':True,'owned':True,'join':'ws://127.0.0.1:47541/engine-lan','remote':'ws://100.70.1.9:47541/engine-lan'}
         opener=Mock();opener.open.return_value=io.BytesIO(json.dumps(info).encode())
         with patch.object(control.urllib.request,'build_opener',return_value=opener),patch.object(control,'health_at',return_value={'peers':2,'rooms':1}) as health:
             result=control.browser_host_status();self.assertEqual(result['peers'],2);self.assertEqual(result['address'],info['remote']);health.assert_called_once_with('127.0.0.1',47541)

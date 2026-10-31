@@ -31,26 +31,44 @@ struct RPFArchive {
         let compressed: Bool
         let resourceVersion: Int?
     }
-    let bytes: Data
+    // Nested archives retain the same immutable mapping. Offsets in Entry stay
+    // relative to this archive's bounds, never to the containing file.
+    private let backing: Data
+    private let bounds: Range<Int>
     let entries: [Entry]
+    // Preserve the data accessor for callers that explicitly need a standalone
+    // archive. Parsing and nesting do not materialize this potentially large copy.
+    var bytes: Data {
+        if bounds == backing.startIndex..<backing.endIndex { return backing }
+        return backing.subdata(in: bounds)
+    }
 
     init(url: URL) throws { try self.init(bytes: Data(contentsOf: url, options: .mappedIfSafe)) }
     init(bytes: Data) throws {
-        self.bytes = bytes
+        try self.init(backing: bytes, bounds: bytes.startIndex..<bytes.endIndex)
+    }
+    private init(backing: Data, bounds: Range<Int>) throws {
+        guard bounds.lowerBound >= backing.startIndex, bounds.upperBound <= backing.endIndex else { throw ModError("RPF data is truncated.") }
+        self.backing = backing; self.bounds = bounds
+        let countOfBytes = bounds.count
+        func byte(_ at: Int) -> UInt8 { backing[bounds.lowerBound + at] }
         func word(_ at: Int) throws -> UInt32 {
-            guard at >= 0, at <= bytes.count - 4 else { throw ModError("RPF data is truncated.") }
-            return bytes[at..<(at + 4)].enumerated().reduce(UInt32(0)) { $0 | UInt32($1.element) << (8 * $1.offset) }
+            guard at >= 0, at <= countOfBytes - 4 else { throw ModError("RPF data is truncated.") }
+            return (0..<4).reduce(UInt32(0)) { $0 | UInt32(byte(at + $1)) << (8 * $1) }
         }
         guard try word(0) == 0x52504637 else { throw ModError("This is not a GTA V Legacy RPF7 archive.") }
         let count = Int(try word(4)), namesSize = Int(try word(8))
         guard count > 0, count <= 100_000, namesSize > 0, namesSize <= 8 * 1024 * 1024,
-              16 + count * 16 + namesSize <= bytes.count else { throw ModError("The RPF file table is corrupt.") }
+              16 + count * 16 + namesSize <= countOfBytes else { throw ModError("The RPF file table is corrupt.") }
         guard try word(12) == 0x4e45504f else { throw ModError("The RPF table is encrypted. Export an open archive using OpenIV before importing.") }
         let namesStart = 16 + count * 16
         func name(_ offset: Int) throws -> String {
             guard offset >= 0, offset < namesSize else { throw ModError("Invalid RPF filename.") }
-            let tail = bytes[(namesStart + offset)..<(namesStart + namesSize)]
-            guard let zero = tail.firstIndex(of: 0), let text = String(data: bytes[(namesStart + offset)..<zero], encoding: .utf8),
+            let start = bounds.lowerBound + namesStart + offset
+            // A valid name contains at most 255 UTF-8 bytes plus its terminator.
+            // Do not rescan the remaining (up to 8 MiB) name table per entry.
+            let end = min(bounds.lowerBound + namesStart + namesSize, start + 256)
+            guard let zero = backing[start..<end].firstIndex(of: 0), let text = String(data: backing[start..<zero], encoding: .utf8),
                   text.utf8.count <= 255, !text.contains("/"), !text.contains("\\"), text != ".", text != ".." else { throw ModError("Invalid path in RPF archive.") }
             return text.lowercased()
         }
@@ -74,11 +92,11 @@ struct RPFArchive {
                 let offset = Int(packed >> 40 & (resource ? 0x7fffff : 0xffffff)) * 512
                 let unpacked = Int(try word(at + 8)), flags = try word(at + 12)
                 if resource && size == 0xffffff {
-                    guard offset <= bytes.count - 16 else { throw ModError("RPF resource is truncated.") }
-                    size = Int(bytes[offset + 7]) | Int(bytes[offset + 14]) << 8 | Int(bytes[offset + 5]) << 16 | Int(bytes[offset + 2]) << 24
+                    guard offset <= countOfBytes - 16 else { throw ModError("RPF resource is truncated.") }
+                    size = Int(byte(offset + 7)) | Int(byte(offset + 14)) << 8 | Int(byte(offset + 5)) << 16 | Int(byte(offset + 2)) << 24
                 }
                 if !resource && size == 0 { size = unpacked }
-                guard offset >= namesStart + namesSize, size >= 0, offset <= bytes.count, size <= bytes.count - offset else { throw ModError("RPF file data exceeds bounds.") }
+                guard offset >= namesStart + namesSize, size >= 0, offset <= countOfBytes, size <= countOfBytes - offset else { throw ModError("RPF file data exceeds bounds.") }
                 output.append(Entry(path: path, offset: offset, size: size, unpacked: unpacked,
                                     encrypted: !resource && flags != 0, compressed: compressed,
                                     resourceVersion: resource ? Int(((UInt32(unpacked) >> 28) << 4) | (flags >> 28)) : nil))
@@ -89,14 +107,21 @@ struct RPFArchive {
         entries = output
     }
 
+    private func range(_ entry: Entry) throws -> Range<Int> {
+        guard entry.offset >= 0, entry.size >= 0, entry.offset <= bounds.count,
+              entry.size <= bounds.count - entry.offset else { throw ModError("RPF file data exceeds bounds.") }
+        let start = bounds.lowerBound + entry.offset
+        return start..<(start + entry.size)
+    }
+
     func metadata(_ entry: Entry) throws -> Data {
         guard entry.resourceVersion == nil, !entry.encrypted, entry.unpacked > 0,
-              entry.unpacked <= 8 * 1024 * 1024 else { throw ModError("Mod metadata is encrypted or too large: %@", entry.path) }
-        let data = bytes.subdata(in: entry.offset..<(entry.offset + entry.size))
-        if !entry.compressed { return data }
+              entry.unpacked <= 8 * 1024 * 1024, entry.size <= Int(UInt32.max) else { throw ModError("Mod metadata is encrypted or too large: %@", entry.path) }
+        let inputRange = try range(entry)
+        if !entry.compressed { return backing.subdata(in: inputRange) }
         var result = Data(count: entry.unpacked)
-        let valid = result.withUnsafeMutableBytes { out in data.withUnsafeBytes { input in
-            gi_inflate_raw(input.baseAddress, UInt32(data.count), out.baseAddress, UInt32(entry.unpacked))
+        let valid = result.withUnsafeMutableBytes { out in backing.withUnsafeBytes { input in
+            gi_inflate_raw(input.baseAddress?.advanced(by: inputRange.lowerBound - backing.startIndex), UInt32(entry.size), out.baseAddress, UInt32(entry.unpacked))
         } }
         guard valid == 1 else { throw ModError("Could not decompress metadata: %@", entry.path) }
         return result
@@ -104,8 +129,9 @@ struct RPFArchive {
 
     func nested(_ entry: Entry) throws -> RPFArchive {
         guard !entry.encrypted, entry.resourceVersion == nil, !entry.compressed else { throw ModError("Nested RPF is encrypted or compressed: %@", entry.path) }
-        return try RPFArchive(bytes: bytes.subdata(in: entry.offset..<(entry.offset + entry.size)))
+        return try RPFArchive(backing: backing, bounds: range(entry))
     }
+
 }
 
 final class ModXML: NSObject, XMLParserDelegate {

@@ -1,0 +1,148 @@
+{
+  "format": "zgta-render-lifetime-pins106-v1",
+  "offline_sha256": "1e41856fee7ec1ad6b373d6a12caa7fd532ea9ea7f1660f8ff70a1070a6d3928",
+  "online_sha256": "634b0e312662d48e1c327755175afa7e1eaacbdb142c24111b05e674e9049ca9",
+  "functions": [
+    {
+      "index": 9299,
+      "name": "rage::grmShader::DrawInternal(rage::grmShader::eDrawType, rage::grmModel const&, int, bool) const",
+      "params": [
+        "i64",
+        "i32",
+        "i64",
+        "i32"
+      ],
+      "results": [],
+      "file": "game_63.c",
+      "native_sha256": "622e27e7b732793f903c3cac95e8a7dbcd1c6c0060a21c1af235e0f2d8c0d93f",
+      "native_reset": "  var_j0 = 12432408ull;\n  var_j1 = 0ull;\n  i64_store_shared(wasm_rt_local_memory_base, wasm_rt_local_memory_size, instance->w2c_env_memory, (u64)(var_j0), var_j1);",
+      "body_sha256": "e8251640feeefd16e5b2033fdc2641c262c1452cd3c6d23a5367b17209e74207",
+      "online_body_sha256": "8c29b6f3283f8d3f4e11f91e764cd5411930fb5897a9445861687f17abd0b66e",
+      "wasm_reset_hex": "4298e8f6054200370300"
+    },
+    {
+      "index": 9302,
+      "name": "rage::grmModel::DrawSkinnedPortion(rage::grmShader::eDrawType, int, int, rage::grmShaderGroup const&, rage::grmMatrixSet const&, unsigned int, int, unsigned short) const",
+      "params": [
+        "i64",
+        "i32",
+        "i32",
+        "i32",
+        "i64",
+        "i64",
+        "i32",
+        "i32"
+      ],
+      "results": [],
+      "file": "game_63.c",
+      "native_sha256": "d5f2e627a6730c710add582f6ebd7f903bff48a2d80257c13c5a189be55c1345",
+      "native_reset": "    var_j0 = 12432408ull;\n    var_j1 = 0ull;\n    i64_store_shared(wasm_rt_local_memory_base, wasm_rt_local_memory_size, instance->w2c_env_memory, (u64)(var_j0), var_j1);",
+      "body_sha256": "7180472515a27a00d92a1496dbb16ee1ef5dcb4872f9fe89f8dd9b8aeecc3caf",
+      "online_body_sha256": "668fbcb95e428be220ab74e743d1f2a456b3e84eef93fd7560e44af19a7ddb6b",
+      "wasm_reset_hex": "4298e8f6054200370300"
+    },
+    {
+      "index": 10896,
+      "name": "rage::bwMovie::ShaderEndDraw(rage::bwMovie*)",
+      "params": [
+        "i64"
+      ],
+      "results": [],
+      "file": "game_0.c",
+      "native_sha256": "081b3e2c8952cd6d542e18f2727e12ca7adf4c83d0898c52fd2db0ef4b4b2fe2",
+      "native_reset": "  var_j0 = 12432408ull;\n  var_j1 = 0ull;\n  i64_store_shared(wasm_rt_local_memory_base, wasm_rt_local_memory_size, instance->w2c_env_memory, (u64)(var_j0), var_j1);",
+      "body_sha256": "ea3280f2f16c96f2a6619eb0d785debfac1db0a1ac3ebad1ce3e99abee8f72a1",
+      "online_body_sha256": "ea3280f2f16c96f2a6619eb0d785debfac1db0a1ac3ebad1ce3e99abee8f72a1",
+      "wasm_reset_hex": "4298e8f6054200370300"
+    },
+    {
+      "index": 12921,
+      "name": "rage::rmcRopeDrawable::Draw(rage::Matrix34 const&, unsigned int, int, unsigned short, int) const",
+      "params": [
+        "i64",
+        "i32",
+        "i32"
+      ],
+      "results": [],
+      "file": "game_2.c",
+      "native_sha256": "9b59bd0b8b05b2b898baef059d7a6bc40bbcd249a6f8c2df6901021713a3b1c8",
+      "native_reset": "          var_j0 = 12432408ull;\n          var_j1 = 0ull;\n          i64_store_shared(wasm_rt_local_memory_base, wasm_rt_local_memory_size, instance->w2c_env_memory, (u64)(var_j0), var_j1);",
+      "body_sha256": "0d0f3a3c9173bacc72e086c54d535df7fc010a2effd086bc966906b23c8bef45",
+      "online_body_sha256": "6bf8c7fe45e7d64ffa755f50659142b705d8df6125712cf55c8580aca5c7fa5c",
+      "wasm_reset_hex": "4298e8f6054200370300"
+    },
+    {
+      "index": 13024,
+      "name": "rage::bgDrawable::DrawPanes(int, int, bool, float const*, int, int) const",
+      "params": [
+        "i64",
+        "i32",
+        "i32",
+        "i32",
+        "i64",
+        "i32"
+      ],
+      "results": [],
+      "file": "game_2.c",
+      "native_sha256": "dbbd04587df94f336e2797be2968ded68c8ea22d05d3fcf049c5bd6eae43a4cf",
+      "native_reset": "    var_j0 = 12432408ull;\n    var_j1 = 0ull;\n    i64_store_shared(wasm_rt_local_memory_base, wasm_rt_local_memory_size, instance->w2c_env_memory, (u64)(var_j0), var_j1);",
+      "body_sha256": "6f66537da4cd316971c7a8a1493bb7202358b5f10552d09c15cb353c9b9cad08",
+      "online_body_sha256": "6f66537da4cd316971c7a8a1493bb7202358b5f10552d09c15cb353c9b9cad08",
+      "wasm_reset_hex": "4298e8f6054200370300"
+    },
+    {
+      "index": 44353,
+      "name": "CDrawEntityInstancedDC::ExecuteStatic(rage::dlCmdBase&)",
+      "params": [
+        "i64"
+      ],
+      "results": [],
+      "file": "game_26.c",
+      "native_sha256": "455a664f86f42f235be9d6770fd305d5f19b53ecf747a0dc9640348c5c528dfc",
+      "native_reset": "          var_j0 = 12432408ull;\n          var_j1 = 0ull;\n          i64_store_shared(wasm_rt_local_memory_base, wasm_rt_local_memory_size, instance->w2c_env_memory, (u64)(var_j0), var_j1);",
+      "body_sha256": "f07e00407b883ee24c2ea3d94955c8015c01d5fd8f61b71c35dc0120cee80740",
+      "online_body_sha256": "162a3bc51aec505896ee034c7e2f84568e54fdeec08a3170e2c610974c83ba26",
+      "wasm_reset_hex": "4298e8f6054200370300"
+    },
+    {
+      "index": 44384,
+      "name": "CDrawBreakableGlassDC::ExecuteStatic(rage::dlCmdBase&)",
+      "params": [
+        "i64"
+      ],
+      "results": [],
+      "file": "game_26.c",
+      "native_sha256": "d39d4fffae154a8d3b4a5b226744f332144ba7e3ea402f2d2530bf0c676cdbdb",
+      "native_reset": "      var_j0 = 12432408ull;\n      var_j1 = 0ull;\n      i64_store_shared(wasm_rt_local_memory_base, wasm_rt_local_memory_size, instance->w2c_env_memory, (u64)(var_j0), var_j1);",
+      "body_sha256": "0f3741e289034b6fc8d9f63adf0647451c9437d686d787b5a5f103490d28d1e2",
+      "online_body_sha256": "0f3741e289034b6fc8d9f63adf0647451c9437d686d787b5a5f103490d28d1e2",
+      "wasm_reset_hex": "4298e8f6054200370300"
+    },
+    {
+      "index": 44392,
+      "name": "dlCmdDebug3dStaticRender::ExecuteStatic(rage::dlCmdBase&)",
+      "params": [
+        "i64"
+      ],
+      "results": [],
+      "file": "game_26.c",
+      "native_sha256": "f0b68ab1ecf32bcb7e3cc1bb05cb205c1c3e7cef1697708bcab593ba53675bfb",
+      "native_reset": "        var_j0 = 12432408ull;\n        var_j1 = 0ull;\n        i64_store_shared(wasm_rt_local_memory_base, wasm_rt_local_memory_size, instance->w2c_env_memory, (u64)(var_j0), var_j1);",
+      "body_sha256": "4e919d345205fc988ec84618d3ac7c2cadcdb1ae6ddccc9036b3117cb62e86be",
+      "online_body_sha256": "f795385240105415d2eacc582b014dae1f0b563114f36ef0ea0e30ea4655e89c",
+      "wasm_reset_hex": "4298e8f6054200370300"
+    },
+    {
+      "index": 44660,
+      "name": "CRenderPhaseCascadeShadowsInterface::ShadowReveal()",
+      "params": [],
+      "results": [],
+      "file": "game_27.c",
+      "native_sha256": "bc8940785ecd063d33286f49a584b698e6c75ddf02a6b29571088eb6d0123100",
+      "native_reset": "  var_j0 = 12432408ull;\n  var_j1 = 0ull;\n  i64_store_shared(wasm_rt_local_memory_base, wasm_rt_local_memory_size, instance->w2c_env_memory, (u64)(var_j0), var_j1);",
+      "body_sha256": "1768259019551b13a1a26219bac601aeae589d1c35b8826083bb2c8a3867fc70",
+      "online_body_sha256": "9ff65bc0ad55e6bcc344b2586c11fe3c267065085b999f20c97f06807a30e800",
+      "wasm_reset_hex": "4298e8f6054200370300"
+    }
+  ]
+}

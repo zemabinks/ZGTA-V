@@ -1,4 +1,5 @@
 #include "WasmFutex.h"
+#include "NativeAssetNotify.h"
 #include <pthread.h>
 #include <stdatomic.h>
 #include <stdbool.h>
@@ -16,6 +17,9 @@ typedef struct Waiter {
 
 static pthread_mutex_t queueLock = PTHREAD_MUTEX_INITIALIZER;
 static Waiter *waiters;
+static const void *observedAddress;
+static void (*notifyObserver)(void *);
+static void *notifyObserverContext;
 
 static void *checkedAddress(wasm_rt_shared_memory_t *memory, uint64_t offset,
                             uint32_t width) {
@@ -87,6 +91,7 @@ uint32_t pg_atomic_notify(wasm_rt_shared_memory_t *m, uint64_t offset,
                            uint32_t count) {
   void *address = checkedAddress(m, offset, 4);
   uint32_t total = 0;
+  void (*observer)(void *) = NULL;void *observerContext = NULL;
   pthread_mutex_lock(&queueLock);
   for (Waiter *w = waiters; w && total < count; w = w->next) {
     if (w->address == address && !w->notified) {
@@ -95,6 +100,19 @@ uint32_t pg_atomic_notify(wasm_rt_shared_memory_t *m, uint64_t offset,
       total++;
     }
   }
+  if(count&&address==observedAddress){observer=notifyObserver;observerContext=notifyObserverContext;}
   pthread_mutex_unlock(&queueLock);
+  if(observer)observer(observerContext);
   return total;
+}
+
+bool pg_atomic_observe_notify(wasm_rt_shared_memory_t *m,uint64_t offset,
+                              void (*observer)(void *),void *context){
+  if(!m||!m->data||!observer||offset%4||offset>m->size||m->size-offset<4)return false;
+  const void *address=(uint8_t *)(void *)m->data+offset;
+  pthread_mutex_lock(&queueLock);
+  bool same=observedAddress==address&&notifyObserver==observer&&notifyObserverContext==context;
+  bool accepted=!notifyObserver||same;
+  if(accepted){observedAddress=address;notifyObserver=observer;notifyObserverContext=context;}
+  pthread_mutex_unlock(&queueLock);return accepted;
 }

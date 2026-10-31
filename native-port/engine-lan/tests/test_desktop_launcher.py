@@ -132,15 +132,32 @@ class DesktopLauncher(unittest.TestCase):
     def test_repeat_launch_reopens_browser_without_restarting_or_reading_game(self):
         with tempfile.TemporaryDirectory() as folder:
             package, data, target, manifest, _ = self.fixture(Path(folder))
-            with patch.object(launcher, 'PACKAGE', package), patch.object(launcher, 'verify_package', return_value=manifest), patch.object(launcher, 'existing_launcher', return_value=True), patch.object(launcher, 'load_mirror') as load, patch.object(launcher, 'open_browser') as browser, patch.object(desktop, 'install', return_value=target / 'ZGTA V.app') as install, contextlib.redirect_stdout(io.StringIO()):
+            with patch.object(launcher, 'PACKAGE', package), patch.object(launcher, 'verify_package', return_value=manifest), patch.object(launcher, 'existing_launcher', return_value={'service':'zgta-browser-launcher','identity':None}), patch.object(launcher, 'load_mirror') as load, patch.object(launcher, 'open_browser') as browser, patch.object(desktop, 'install', return_value=target / 'ZGTA V.app') as install, contextlib.redirect_stdout(io.StringIO()):
                 launcher.main(['--data', str(data)])
             browser.assert_called_once(); load.assert_not_called()
             install.assert_called_once_with(package, data, manifest)
 
+    def test_running_identity_never_claims_new_candidate_is_active(self):
+        manifest={'build':101,'browser_revision':'101','source_revision':'a'*40,
+                  'runtime_provenance':{'stage_manifest_sha256':'b'*64,'module_metadata_sha256':'c'*64}}
+        identity=launcher.package_identity(manifest)
+        same={'service':'zgta-browser-launcher','identity':identity}
+        self.assertIn('Build 101 is already running',launcher.existing_notice(same,identity))
+        updated=dict(identity,build=102,browser_revision='102',source_revision='d'*40)
+        warning=launcher.existing_notice(same,updated)
+        self.assertIn('still running Build 101',warning)
+        self.assertIn('Build 102 has not started',warning)
+        self.assertIn('current game and lobby were preserved',warning)
+        self.assertIn('older or unidentified',launcher.existing_notice(dict(same,identity=None),updated))
+        changed_runtime=dict(identity,module_metadata_sha256='e'*64)
+        self.assertIn('has not started',launcher.existing_notice(same,changed_runtime))
+        for bad in [dict(manifest,build=True),dict(manifest,source_revision='/private/path'),dict(manifest,browser_revision='../101'),dict(manifest,runtime_provenance={})]:
+            self.assertIsNone(launcher.package_identity(bad))
+
     def test_desktop_permission_error_keeps_existing_host_usable_and_opt_out_works(self):
         with tempfile.TemporaryDirectory() as folder:
             package, data, target, manifest, _ = self.fixture(Path(folder))
-            with patch.object(launcher, 'PACKAGE', package), patch.object(launcher, 'verify_package', return_value=manifest), patch.object(launcher, 'existing_launcher', return_value=True), patch.object(launcher, 'open_browser') as browser, patch.object(desktop, 'install', side_effect=PermissionError('Desktop denied')) as install, contextlib.redirect_stderr(io.StringIO()) as errors, contextlib.redirect_stdout(io.StringIO()):
+            with patch.object(launcher, 'PACKAGE', package), patch.object(launcher, 'verify_package', return_value=manifest), patch.object(launcher, 'existing_launcher', return_value={'service':'zgta-browser-launcher','identity':None}), patch.object(launcher, 'open_browser') as browser, patch.object(desktop, 'install', side_effect=PermissionError('Desktop denied')) as install, contextlib.redirect_stderr(io.StringIO()) as errors, contextlib.redirect_stdout(io.StringIO()):
                 launcher.main(['--data', str(data)])
                 self.assertIn('Desktop denied', errors.getvalue())
                 launcher.main(['--data', str(data), '--no-desktop'])

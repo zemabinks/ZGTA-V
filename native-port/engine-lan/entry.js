@@ -2,6 +2,12 @@
 (function(){'use strict';
   let resolveReady,rejectReady,closed=false,network=null,profile=null,recoveryTimer=null,hostTimer=null,restartTimer=null;
   const pending=new Set();
+  let profileOwnerReady=false,checkpointSequence=0;
+  function checkpointProfile(){
+    if(closed||!profileOwnerReady||!profile)return 0;
+    const id=++checkpointSequence;try{profile.postMessage({type:'checkpoint',id});return id;}catch{return 0;}
+  }
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)checkpointProfile();});
   const ready=new Promise((resolve,reject)=>{resolveReady=resolve;rejectReady=reject;});
   ready.catch(()=>{}); // Runtime owns the visible failure path; never start a game after failure.
   window.ZemaLanReady=ready;
@@ -42,10 +48,11 @@
       const name=settings.player;if(!/^[\x20-\x7e]{1,16}$/.test(name)||!name.trim())throw Error('Use a name of 1–16 English characters.');
       profile=new Worker(ZemaLaunchChannels.url(base+'profile-worker.js'));
       const profileContext=await expect(profile,'ready',{buffer:new SharedArrayBuffer(4096+8*1024*1024+36),name});
+      profileOwnerReady=true;
       let saveStatus={state:'checking'},saveOutput=null,onSaveStatus=()=>{};
       const showSave=()=>{if(!saveOutput)return;saveOutput.textContent=saveStatus.state==='error'?'LAN profile save failed. Keep this tab open; check browser storage before restarting.':saveStatus.state==='pending'?'Saving LAN profile…':saveStatus.state!=='saved'?'Checking stored character data…':!saveStatus.characterFiles?'Profile stored; the game has not saved a character file yet.':saveStatus.characterReads?'Character save stored and read by the game.':'Character save stored; not yet read by the game.';};
-      profile.onmessage=event=>{if(event.data.type==='profile-status'){saveStatus=event.data;showSave();onSaveStatus();if(saveStatus.state==='error')window.ZemaConnectionPanel?.render('profile-error');}};
-      profile.onerror=()=>{saveStatus={state:'error'};showSave();onSaveStatus();window.ZemaConnectionPanel?.render('profile-error');};
+      profile.onmessage=event=>{if(closed)return;if(event.data.type==='profile-status'){saveStatus=event.data;showSave();onSaveStatus();if(saveStatus.state==='error')window.ZemaConnectionPanel?.render('profile-error');}};
+      profile.onerror=()=>{if(closed)return;saveStatus={state:'error'};showSave();onSaveStatus();window.ZemaConnectionPanel?.render('profile-error');};
       network=new Worker(ZemaLaunchChannels.url(base+'network-worker.js'));
       const context=await expect(network,'joined',{type:'connect',url:settings.relay,room,name:profileContext.name});
       if(closed)return;context.profile=profileContext;
@@ -146,5 +153,17 @@
       resolveReady(context);
     }catch(error){failed(error);}
   });
-  addEventListener('pagehide',()=>{closed=true;if(recoveryTimer)clearTimeout(recoveryTimer);if(hostTimer)clearInterval(hostTimer);if(restartTimer)clearInterval(restartTimer);for(const cancel of pending)cancel();rejectReady(Error('Startup cancelled.'));if(network)network.terminate();if(profile)profile.terminate();window.ZemaConnectionPanel?.destroy();});
+  addEventListener('pagehide',()=>{
+    if(closed)return;const id=checkpointProfile(),owner=profile;closed=true;
+    if(recoveryTimer)clearTimeout(recoveryTimer);if(hostTimer)clearInterval(hostTimer);if(restartTimer)clearInterval(restartTimer);for(const cancel of pending)cancel();rejectReady(Error('Startup cancelled.'));if(network)network.terminate();
+    if(owner&&id){
+      // Best effort only: a closing browser can terminate workers regardless.
+      // Give an already-ready owner a bounded chance to finish its transaction.
+      let ended=false;const finish=()=>{if(ended)return;ended=true;clearTimeout(deadline);owner.terminate();};
+      const deadline=setTimeout(finish,1500);
+      owner.onmessage=event=>{const m=event.data;if(m?.type==='profile-checkpoint'&&m.state==='saved'&&m.id>=id)finish();};
+      owner.onerror=()=>{}; // No late UI errors after the game has closed.
+    }else if(owner)owner.terminate();
+    window.ZemaConnectionPanel?.destroy();
+  });
 })();

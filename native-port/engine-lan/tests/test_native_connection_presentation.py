@@ -113,6 +113,7 @@ func ZemaLanTransportReady() -> Int32 { transport }
 func ZemaLanGameReady() -> Int32 { transport == 1 && prepared == 1 ? 1 : 0 }
 func ZemaLanPrepared(_ value: Int32) { prepared=value }
 func ZemaProfileReady() -> Int32 { 1 }
+func ZemaProfileRevision() -> UInt64 { 0 }
 func ZemaProfileConfigure(_ id: UInt32, _ bytes: UnsafePointer<UInt8>?, _ count: Int) -> Int32 { profileConfigureCount+=1;return 1 }
 func ZemaProfileName(_ bytes: UnsafeMutablePointer<UInt8>?, _ capacity: Int) -> Int {
     let name=Array(profileDisplayName.utf8);precondition(capacity>name.count)
@@ -337,7 +338,7 @@ func action(_ panel: UIAlertController, _ title: String) -> UIAlertAction {
                 print("OFFLINE_UI_LOGIC_ONLY_NO_DEVICE_OR_GAMEPLAY_CLAIM")
                 return
             }
-            form.textFields![0].text="100.75.192.42"
+            form.textFields![0].text="100.70.1.9"
         } else {
             ui.present(from:controller,running:false)
         }
@@ -358,7 +359,7 @@ func action(_ panel: UIAlertController, _ title: String) -> UIAlertAction {
         switch CommandLine.arguments[1] {
         case "remote-success":
             check(session.connectCount==1,"Remote starts exactly one attempt")
-            check(testPreferences.string(forKey:EngineLanPreferences.remoteRelayKey)=="ws://100.75.192.42:47540/engine-lan","Remember remote address")
+            check(testPreferences.string(forKey:EngineLanPreferences.remoteRelayKey)=="ws://100.70.1.9:47540/engine-lan","Remember remote address")
             check(testPreferences.string(forKey:EngineLanPreferences.relayKey)==nil,"Remote must not overwrite LAN address")
             session.result("Fixture remote admitted.",admitted:true);spin(0.47)
             check(ui.ready && controller.presentedViewController==nil,"Remote success returns home without repeated prompt")
@@ -494,7 +495,8 @@ enum LobbyBrowserPresenter {
     static func present(from:UIViewController,selected:@escaping(LobbyRecord)->Void) { selection=selected }
 }
 '''
-        fixture.write_text(DOUBLES+'\n'+preferences+'\n'+invitation+'\n'+browser+'\n'+source+'\n'+HARNESS)
+        checkpoint=(ROOT/'EngineLanProfileCheckpoint.swift').read_text()
+        fixture.write_text(DOUBLES+'\n'+preferences+'\n'+invitation+'\n'+browser+'\n'+checkpoint+'\n'+source+'\n'+HARNESS)
         result=subprocess.run(['/usr/bin/swiftc','-warnings-as-errors','-parse-as-library',
             '-module-cache-path',str(cls.directory/'cache'),str(fixture),'-o',str(cls.binary)],
             capture_output=True,text=True,timeout=90)

@@ -6,6 +6,24 @@ from pathlib import Path
 import browser_wasm as b
 import social_tables as social
 g=b.gate
+FEATURE_BASE_SHA256='1f532d3c3d06f664c8698509652b9b19c646d1b5d574b93b4c399dd5e8261c79'
+
+def feature_base(data,contract):
+    """Produce the pinned 60-hook input consumed by browser_features.
+
+    socket_close was introduced after the base feature transform. Its existing
+    append_socket_close producer must run there, rather than shifting the base
+    function table and all later phase hashes. General transform stays intact.
+    """
+    hooks=contract['hooks']
+    close=[h for h in hooks if h['field']=='socket_close']
+    if len(hooks)!=61 or len(close)!=1 or close[0]['index']!=184:
+        raise ValueError('Reviewed feature-base hook phase changed')
+    selected=dict(contract,hooks=[h for h in hooks if h['field']!='socket_close'])
+    output,metadata=transform(data,selected)
+    if hashlib.sha256(output).hexdigest()!=FEATURE_BASE_SHA256:
+        raise ValueError('Reviewed feature-base output changed')
+    return output,metadata
 
 def signed(r):
     for _ in range(10):
@@ -129,6 +147,6 @@ def transform(data,contract):
 if __name__=='__main__':
     p=argparse.ArgumentParser();p.add_argument('--engine',type=Path,required=True);p.add_argument('--output',type=Path,required=True);a=p.parse_args()
     if a.output.exists() or a.output.parent.absolute()!=b.APP.absolute()/'Build' or any(x.is_symlink() for x in (a.output,*a.output.parents)):raise ValueError('New isolated Build child required')
-    data,metadata=transform(a.engine.read_bytes(),json.loads(g.CONTRACT.read_text()));a.output.mkdir(mode=0o700)
+    data,metadata=feature_base(a.engine.read_bytes(),json.loads(g.CONTRACT.read_text()));a.output.mkdir(mode=0o700)
     (a.output/'game.engine-lan.wasm').write_bytes(data);(a.output/'engine-lan-module.json').write_text(json.dumps(metadata)+'\n');(a.output/'engine-lan-module.js').write_text('globalThis.ZemaEngineLanModule='+json.dumps(metadata)+';\n')
     print(json.dumps({'output':str(a.output),'hooks':len(metadata['hooks']),'typed_social_entries':metadata['social']['count'],'indirect_sites':metadata['indirect_sites_rewritten'],'runtime_verified':False}))

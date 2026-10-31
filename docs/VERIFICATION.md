@@ -1,8 +1,32 @@
-# 2.0 beta verification
+# Beta 3 verification
 
-## Current Build 96 candidate / Sileo 0.96-1
+## Current scope — 31 October 2026
 
-[Build 96](https://github.com/zemabinks/ZGTA-V/releases/tag/host-capacity-candidate-96) applies the revised bounded multiplayer host-broadcast fix to iOS and browser. The Sileo source now pins that exact IPA through installer **0.96-1**; signed indexes, both package archives and all 23 isolated installer/catalog/index test methods pass. Physical Build96 installation, paired gameplay and small-job reproduction remain pending. Prior Build91 evidence below is historical and does not establish Build96 device acceptance.
+The owner approved publication of iOS 107, Mac DMG 107.1, browser 107 and relay controls 1.1 after the following checks. Exact package sizes and SHA-256 values are in [BETA3-MANIFEST.json](BETA3-MANIFEST.json).
+
+- **Physical iPhone 15 Pro:** Build107 gameplay and graphical report supplied; the previously flickering buildings remained stable through the troublesome camera angles. A 180-second run while driving through new areas averaged 31.2 presented FPS with serious thermal state and an approximately 30 FPS active guard. This is not a matched speedup benchmark. The saved 60 FPS choice remained intact. Memory grew as new areas loaded; a long-session plateau is not established.
+- **Mac/browser:** the owner installed/launched DMG107.1 and confirmed connection with the iPhone. Both clients listed the empty managed LOS-SANTOS room without entering an address after the relay1.1 update. Earlier reconnect visibility was also owner-confirmed; no new universal loss/recovery guarantee is inferred.
+- **iOS layouts:** production UIKit views were inspected in iPhone15Pro and compact SE2020 Simulator sizes. Simulator layout checks do not establish physical SE2020 memory, heat or GPU behavior.
+- **Local validation:** native build, strict signature, icons and IPA archive checks; portable CRC/source/runtime checks; memory policy/resource lifetime checks; relay catalog/advertisement lifecycle, bounded directory and arbitrary announced-port discovery checks pass. Production Swift discovery and Python Bonjour resolved a disposable non-default port. Public source fixture checks are recorded with the release.
+- **Sileo:** metadata installer0.107-2 pins the unchanged Build107 IPA. Existing installer methods, app data and older packages remain preserved. Scripted installer tests do not establish AppSync phone compatibility.
+
+## Remaining limits
+
+- No physical 3 GB/A13 Reduced-mode benchmark, cold matched thermal comparison, universal 60 FPS or guaranteed long-session memory bound.
+- Windows, Android and Linux gameplay/execution, and Apple Silicon execution remain untested. Android is Termux/browser, not an APK.
+- Mac app is ad-hoc signed, not Apple-notarized. Requires Chrome and compatible prepared game files.
+- AppSync and other sideloading methods remain experimental. Reboot persistence, physical controller/audio matrix and save migration across every installation method are not established.
+- LAN discovery requires compatible advertisements, local-network permission and reachable multicast. Tailscale remains a private invite/address route, without a worldwide directory.
+- Fresh-machine native compilation still requires the matching generated engine/shader/toolchain inputs; the checked build reused pinned inputs.
+
+## Historical evidence
+
+The records below describe their original versions. Their pending results are not claims about current Build107 acceptance.
+
+
+## Historical Build 96 candidate / Sileo 0.96-1
+
+[Build 96](https://github.com/zemabinks/ZGTA-V/releases/tag/host-capacity-candidate-96) applies the revised bounded multiplayer host-broadcast fix to iOS and browser. The historical Sileo source pinned that exact IPA through installer **0.96-1**; signed indexes, both package archives and all 23 isolated installer/catalog/index test methods pass. Physical Build96 installation, paired gameplay and small-job reproduction remain pending. Prior Build91 evidence below is historical and does not establish Build96 device acceptance.
 
 ## Native iOS — historical Build 91
 

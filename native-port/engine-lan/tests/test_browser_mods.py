@@ -101,10 +101,9 @@ class BrowserModsTests(unittest.TestCase):
 
     def test_compressed_xml_and_modes(self):
         self.manager.import_bytes('car.rpf', pack(compressed=('setup2.xml', 'content.xml', 'vehicles.meta')))
-        versions = {self.manager.snapshot(mode, BASE, DLC).version for mode in ('story', 'sandbox')}
-        self.assertEqual(len(versions), 2)
-        with self.assertRaisesRegex(mods.ModError, 'LAN asset parity'):
-            self.manager.snapshot('lan', BASE, DLC)
+        versions = {self.manager.snapshot(mode, BASE, DLC).version for mode in ('story', 'sandbox', 'lan')}
+        self.assertEqual(len(versions), 3)
+        self.assertEqual(self.manager.snapshot('lan', BASE, DLC).catalog[0]['vehicleModels'], ['testvehicle'])
         with self.assertRaises(mods.ModError):
             self.manager.snapshot('forged', BASE, DLC)
 

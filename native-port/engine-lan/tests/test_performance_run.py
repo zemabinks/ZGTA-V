@@ -1,5 +1,6 @@
 """Execute browser/Swift measurement cores against identical clock/FPS traces."""
 import json
+import os
 from pathlib import Path
 from public_test_inputs import game_file
 import subprocess
@@ -74,7 +75,7 @@ print(String(data: output, encoding: .utf8)!)
         js = r'''
 const {Run}=require(process.argv[1]);const r=new Run();r.start(0);
 for(let n=500;n<=32000;n+=500){
- const v={availableMemoryBytes:1000000-n,appFootprintBytes:-1,thermalState:n<16000?0:2,requestedRenderHeight:n<16000?540:432,resourceBytesReleased:n<16000?n:100,resourceBytesReused:n*2,thermalScale:NaN,requestedFrameInterval:n<16000?1:2,secondsSinceWorldReady:n/1000+120,unapproved:99};
+ const v={availableMemoryBytes:1000000-n,appFootprintBytes:-1,thermalState:n<16000?0:2,requestedRenderHeight:n<16000?540:432,resourceBytesReleased:n<16000?n:100,resourceBytesReused:n*2,thermalScale:NaN,requestedFrameInterval:n<16000?1:2,secondsSinceWorldReady:n/1000+120,unapproved:99,metalAllocatedBytes:104857600,cpuGPUFenceWaitMSPerFrame:n/1000,assetReadCount:n/500,bufferArenaLiveBytes:8192,bufferArenaRequestedBytes:7272,bufferArenaPendingBytes:512,bufferArenaReusableBytes:1024,textureCreateFailures:n/1000,textureDecodeFailures:0};
  r.observeConditions(v,n);r.observeConditions({availableMemoryBytes:0},n+1);r.sample(60,n);
 }
 console.log(JSON.stringify(r.result));r.start(40000);if(Object.keys(r.conditions).length)throw Error('Restart retained conditions');r.cancel();r.observeConditions({thermalState:3},42000);if(Object.keys(r.conditions).length)throw Error('Cancelled observation');
@@ -83,7 +84,7 @@ console.log(JSON.stringify(r.result));r.start(40000);if(Object.keys(r.conditions
 import Foundation
 let r = PerformanceRun(); r.start(now: 0)
 for n in stride(from: 500.0, through: 32000.0, by: 500.0) {
- let v: [String: Double] = ["availableMemoryBytes":1000000-n,"appFootprintBytes": -1,"thermalState":n<16000 ? 0:2,"requestedRenderHeight":n<16000 ? 540:432,"resourceBytesReleased":n<16000 ? n:100,"resourceBytesReused":n*2,"thermalScale":Double.nan,"requestedFrameInterval":n<16000 ? 1:2,"secondsSinceWorldReady":n/1000+120,"unapproved":99]
+ let v: [String: Double] = ["availableMemoryBytes":1000000-n,"appFootprintBytes": -1,"thermalState":n<16000 ? 0:2,"requestedRenderHeight":n<16000 ? 540:432,"resourceBytesReleased":n<16000 ? n:100,"resourceBytesReused":n*2,"thermalScale":Double.nan,"requestedFrameInterval":n<16000 ? 1:2,"secondsSinceWorldReady":n/1000+120,"unapproved":99,"metalAllocatedBytes":104857600,"cpuGPUFenceWaitMSPerFrame":n/1000,"assetReadCount":n/500,"bufferArenaLiveBytes":8192,"bufferArenaRequestedBytes":7272,"bufferArenaPendingBytes":512,"bufferArenaReusableBytes":1024,"textureCreateFailures":n/1000,"textureDecodeFailures":0]
  r.observeConditions(v, now:n);r.observeConditions(["availableMemoryBytes":0], now:n+1);r.sample(fps:60, now:n)
 }
 print(String(data:try JSONEncoder().encode(r.result!), encoding:.utf8)!)
@@ -106,6 +107,11 @@ assert(r.result == nil && r.state == .cancelled)
             self.assertTrue(c['resourceBytesReleased']['counterReset']);self.assertNotIn('delta',c['resourceBytesReleased'])
             self.assertEqual(c['requestedFrameInterval']['maximum'],2)
             self.assertEqual(c['secondsSinceWorldReady']['minimum'],122)
+            self.assertEqual(c['metalAllocatedBytes']['maximum'],104857600)
+            self.assertEqual(c['cpuGPUFenceWaitMSPerFrame']['maximum'],32)
+            self.assertEqual(c['assetReadCount']['delta'],60)
+            self.assertEqual(c['bufferArenaLiveBytes']['last'],8192)
+            self.assertEqual(c['textureCreateFailures']['delta'],30)
             self.assertEqual(len(native['comparisonWarnings']),5)
 
 
@@ -139,7 +145,7 @@ print(String(data:try JSONEncoder().encode(r.result!),encoding:.utf8)!)
         self.assertEqual(p.returncode,0,p.stdout+p.stderr)
 
     def test_real_worker_channel_transform_and_launcher_wiring(self):
-        stage=APP/'Build/Browser-UpstreamStability-20261021-v42'
+        stage=Path(os.environ.get('ZGTA_TEST_BROWSER_STAGE',str(APP/'Build/Browser-UpstreamStability-20261021-v42')))
         loader=serve_browser.fps_transport('loader.js',(stage/'loader.js').read_bytes()).decode()
         gpu=serve_browser.fps_transport('wgpu_worker.js',(stage/'wgpu_worker.js').read_bytes()).decode()
         for data,name in [(loader,'loader.js'),(gpu,'wgpu_worker.js')]:

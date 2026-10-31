@@ -2,10 +2,27 @@ import UIKit
 import ZemaLanBackend
 
 private var laboratoryProfile: EngineLanProfileFile?
+private var laboratoryCheckpoint: EngineLanProfileCheckpoint?
 @_cdecl("ZemaExperimentalCommit") func zemaExperimentalCommit() -> Int32 {
-    guard let profile = laboratoryProfile else { return 0 }
-    do { try profile.commit(); return 1 } catch { return 0 }
+    guard let checkpoint = laboratoryCheckpoint else { return 0 }
+    do { try checkpoint.commitNow(); return 1 } catch { return 0 }
 }
+
+#if canImport(UIKit)
+/// UIKit owns expiration; completion and expiration both release this one lease
+/// on the main queue. No profile serialization or fsync occurs on that queue.
+private final class EngineLanProfileBackgroundLease {
+    private var identifier: UIBackgroundTaskIdentifier = .invalid
+    init() {
+        identifier = UIApplication.shared.beginBackgroundTask(withName: "Save multiplayer profile") { [weak self] in self?.end() }
+    }
+    func end() {
+        guard identifier != .invalid else { return }
+        let current = identifier; identifier = .invalid
+        UIApplication.shared.endBackgroundTask(current)
+    }
+}
+#endif
 
 /// Included only in the separate experimental bundle. No automatic connection.
 final class ZemaEngineLANUI {
@@ -59,8 +76,18 @@ final class ZemaEngineLANUI {
     private init() {
         lifecycleObservers = [UIApplication.didEnterBackgroundNotification, UIApplication.willTerminateNotification].map { notification in
             NotificationCenter.default.addObserver(forName: notification, object: nil, queue: .main) { [weak self] _ in
-                guard let self, self.phoneHost != nil else { return }
-                self.stopHosting(message: "Hosting stopped because ZGTA V left the foreground. Return to Multiplayer and start hosting again; your character is saved.")
+                guard let self else { return }
+                if let checkpoint = laboratoryCheckpoint {
+#if canImport(UIKit)
+                    let lease = EngineLanProfileBackgroundLease()
+                    checkpoint.requestCheckpoint { DispatchQueue.main.async { lease.end() } }
+#else
+                    checkpoint.requestCheckpoint()
+#endif
+                }
+                if self.phoneHost != nil {
+                    self.stopHosting(message: "Hosting stopped because ZGTA V left the foreground. Return to Multiplayer and start hosting again; your saved character is preserved.")
+                }
             }
         }
         session.status = { [weak self] message in
@@ -124,12 +151,21 @@ final class ZemaEngineLANUI {
         // numeric identity and every saved character/stat record. Reconnect uses
         // the admitted name and never a later text-field edit.
         if let requestedName, let profile = laboratoryProfile {
-            try profile.rename(to: requestedName)
+            if let checkpoint = laboratoryCheckpoint { try checkpoint.withCommitLane { try profile.rename(to: requestedName) } }
+            else { try profile.rename(to: requestedName) }
         }
         var bytes = [UInt8](repeating: 0, count: 17)
         let count = bytes.withUnsafeMutableBufferPointer { ZemaProfileName($0.baseAddress, $0.count) }
         guard count > 0 else { throw EngineLanProfileFile.Failure.unavailable }
         name = String(decoding: bytes.prefix(Int(count)), as: UTF8.self)
+        if laboratoryCheckpoint == nil, let file = laboratoryProfile {
+            let checkpoint = EngineLanProfileCheckpoint(revision: { ZemaProfileRevision() }, commit: { try file.commit() }, report: { [weak self] error in
+                DispatchQueue.main.async {
+                    self?.log?(error.map { "Multiplayer profile checkpoint failed; existing snapshot kept: \($0)" } ?? "Multiplayer profile checkpoint recovered.")
+                }
+            })
+            laboratoryCheckpoint = checkpoint
+        }
     }
     func reconnectSession(from controller: UIViewController) {
         guard ZemaLabEnabled() != 0, !connecting else { return }
@@ -153,6 +189,7 @@ final class ZemaEngineLANUI {
         }
     }
     private func connect(from controller: UIViewController, running: Bool) {
+        laboratoryCheckpoint?.start()
         connectionAttempt &+= 1
         pendingController = controller
         showingRunningPanel = running
@@ -194,6 +231,8 @@ final class ZemaEngineLANUI {
         connectionAttempt &+= 1
         pendingController = nil
         pendingPlay = nil
+        laboratoryCheckpoint?.requestCheckpoint()
+        laboratoryCheckpoint?.stop()
         session.disconnect()
         connecting = false
         lastMessage = nil

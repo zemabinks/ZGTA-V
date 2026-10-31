@@ -1,0 +1,189 @@
+{
+  "offline_sha256": "1e41856fee7ec1ad6b373d6a12caa7fd532ea9ea7f1660f8ff70a1070a6d3928",
+  "online_sha256": "634b0e312662d48e1c327755175afa7e1eaacbdb142c24111b05e674e9049ca9",
+  "functions": [
+    {
+      "name": "wasm_d3d_map_hint",
+      "index": 244,
+      "params": [
+        "i64",
+        "i32",
+        "i32"
+      ],
+      "results": [],
+      "body_sha256": "9752c4d9c6c4284440afeb2708bc69181b2762bb4edf41f739b455c0c6b0352c",
+      "length": 140,
+      "online_body_sha256": "9752c4d9c6c4284440afeb2708bc69181b2762bb4edf41f739b455c0c6b0352c",
+      "online_length": 140
+    },
+    {
+      "name": "rage::grmShader::BeginDraw(rage::grmShader::eDrawType, bool, rage::grcEffectTechnique__) const",
+      "index": 9291,
+      "params": [
+        "i64",
+        "i32",
+        "i32",
+        "i32"
+      ],
+      "results": [
+        "i32"
+      ],
+      "body_sha256": "1eb57d34af959f346c53142828334e437ec53797bd34e1233868cbab52a462c3",
+      "length": 394,
+      "online_body_sha256": "1eb57d34af959f346c53142828334e437ec53797bd34e1233868cbab52a462c3",
+      "online_length": 394
+    },
+    {
+      "name": "rage::grmShader::EndDraw() const",
+      "index": 9295,
+      "params": [],
+      "results": [],
+      "body_sha256": "6f115269876713e74af1e38cd8c42fd15347737891027b222a4f8f8fa64c34b8",
+      "length": 125,
+      "online_body_sha256": "ff0ddc2ed8862e64b492ad055a85185385901be474402edc53903d36d50a9ac6",
+      "online_length": 129
+    },
+    {
+      "name": "rage::grcVertexBufferD3D11::UnlockInternal() const",
+      "index": 9952,
+      "params": [
+        "i64"
+      ],
+      "results": [],
+      "body_sha256": "c4f9b2d9fda43c1b3a42685cc853f6d03c9447e24e289265aac4fb24e4bf7017",
+      "length": 13,
+      "online_body_sha256": "c4f9b2d9fda43c1b3a42685cc853f6d03c9447e24e289265aac4fb24e4bf7017",
+      "online_length": 13
+    },
+    {
+      "name": "CShaderLib::ResetStippleAlpha()",
+      "index": 43886,
+      "params": [],
+      "results": [],
+      "body_sha256": "424b128b29a2b2e72d43d1b4e5d36a5d271de76b42e67cab300f197d6a448136",
+      "length": 23,
+      "online_body_sha256": "424b128b29a2b2e72d43d1b4e5d36a5d271de76b42e67cab300f197d6a448136",
+      "online_length": 23
+    },
+    {
+      "name": "CLODLights::RenderLODLights()",
+      "index": 44583,
+      "params": [],
+      "results": [],
+      "body_sha256": "9b766f5cbc65acc8efb2fd9539aca77c7226ee98503f3827ce882a44356f8d67",
+      "length": 5088,
+      "online_body_sha256": "18ba8de6bd05888e09ff9c4fa942dca0e0c931a9c824a7b3db1b684ed2f2c6c3",
+      "online_length": 5112
+    },
+    {
+      "name": "CShaderLib::SetStippleAlpha(unsigned int, bool)",
+      "index": 64694,
+      "params": [
+        "i32",
+        "i32"
+      ],
+      "results": [],
+      "body_sha256": "2c9c7ba0b43e9ec48d613b7c49cf81b41c7707fa2f0f4d7059463f0d1bd53a2d",
+      "length": 511,
+      "online_body_sha256": "2c9c7ba0b43e9ec48d613b7c49cf81b41c7707fa2f0f4d7059463f0d1bd53a2d",
+      "online_length": 511
+    },
+    {
+      "name": "_emscripten_stack_restore",
+      "index": 91107,
+      "params": [
+        "i64"
+      ],
+      "results": [],
+      "body_sha256": "e2a3b887db6b28a81b17607bc1bc7a9460f5079de8ae04a55d0f2a31b282bd89",
+      "length": 6,
+      "online_body_sha256": "e2a3b887db6b28a81b17607bc1bc7a9460f5079de8ae04a55d0f2a31b282bd89",
+      "online_length": 6
+    },
+    {
+      "name": "_emscripten_stack_alloc",
+      "index": 91108,
+      "params": [
+        "i64"
+      ],
+      "results": [
+        "i64"
+      ],
+      "body_sha256": "7426776421c5cfa61e73bc140193cdf3513612014936db88f666dcf98d029216",
+      "length": 16,
+      "online_body_sha256": "7426776421c5cfa61e73bc140193cdf3513612014936db88f666dcf98d029216",
+      "online_length": 16
+    },
+    {
+      "name": "emscripten_stack_get_current",
+      "index": 91109,
+      "params": [],
+      "results": [
+        "i64"
+      ],
+      "body_sha256": "32f856496c21bbfeff773972a552ed1c9a8fbc44c7378fb1a330a907c9aa4666",
+      "length": 4,
+      "online_body_sha256": "32f856496c21bbfeff773972a552ed1c9a8fbc44c7378fb1a330a907c9aa4666",
+      "online_length": 4
+    },
+    {
+      "name": "wasm_gpu::Emit(unsigned int, unsigned int const*, unsigned int)",
+      "index": 550,
+      "params": [
+        "i32",
+        "i64",
+        "i32"
+      ],
+      "results": [],
+      "body_sha256": "b279df74315035bf5f0c26a61d66870a63b6da3b7af4f9ab26c43018bd5c87ea",
+      "length": 318,
+      "online_body_sha256": "b279df74315035bf5f0c26a61d66870a63b6da3b7af4f9ab26c43018bd5c87ea",
+      "online_length": 318
+    }
+  ],
+  "native": [
+    {
+      "index": 43886,
+      "file": "game_26.c",
+      "signature": "void w2c_game_f43886(w2c_game* instance)",
+      "sha256": "28932c108f6868c34bc7209b473803686423814ded47d398ff488141b99b2968"
+    },
+    {
+      "index": 44583,
+      "file": "game_26.c",
+      "signature": "void w2c_game_f44583(w2c_game* instance)",
+      "sha256": "299ae243c478f5185b70339f9d9487193935f6a1ca72eb42012bdf9705a1c089"
+    },
+    {
+      "index": 64694,
+      "file": "game_42.c",
+      "signature": "void w2c_game_f64694(w2c_game* instance, u32 var_p0, u32 var_p1)",
+      "sha256": "4e0295fcf9466cc99025526611cb16f516b340a4a6a93468f31b9006f1924533"
+    },
+    {
+      "index": 9291,
+      "file": "game_63.c",
+      "signature": "u32 w2c_game_f9291(w2c_game* instance, u64 var_p0, u32 var_p1, u32 var_p2, u32 var_p3)",
+      "sha256": "7f37fcf58d033168a34c0917e7bd73debd2bf7af64798be70c7caa711a35ed01"
+    },
+    {
+      "index": 9295,
+      "file": "game_63.c",
+      "signature": "void w2c_game_f9295(w2c_game* instance)",
+      "sha256": "cf178dca76de04cd79cd36e030bc7c1a8e6a6a0caf22e773557ccf9fb0254684"
+    },
+    {
+      "index": 9952,
+      "file": "game_63.c",
+      "signature": "void w2c_game_f9952(w2c_game* instance, u64 var_p0)",
+      "sha256": "a4572366a8a08525c80c5e890b38a5c3468f4fd80b4349c02dcc5a65a9f4c3aa"
+    },
+    {
+      "index": 244,
+      "file": "game_11.c",
+      "signature": "void w2c_game_f244(w2c_game* instance, u64 var_p0, u32 var_p1, u32 var_p2)",
+      "sha256": "50dcf08db1a89c50d1fdf70872d46ee25876d20a54625e404c86feddd4c31f23"
+    }
+  ],
+  "format": "zgta-render-hooks98-v1"
+}

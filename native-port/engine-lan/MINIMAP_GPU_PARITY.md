@@ -1,0 +1,15 @@
+# Browser radar parity candidate
+
+The pinned native renderer at glue5 `a62e56a5b6423071c2f32c9c3446bca74734d9c3` contains three radar fixes absent from the original browser GPU worker (SHA-256 `9f94832b93b5c4ada84a0cdffb65157a05e71890c1904d298c74b12c00da32e2`):
+
+- `shader.rs::with_radar_coverage` supplies full edge coverage for `radar::PS_TexturedUnlitAA`. Its location-5 geometry-stage output is unavailable in WebGPU; leaving it zero makes the radar transparent. The shader's texture, depth and clipping calculations remain intact.
+- `draw.rs::draw` / `minimap_mask.wgsl` select a filtered HUD mask with the original b5/s2/t2 registers. `pipeline.rs` / `shader.rs::with_hud_coordinates` convert that pair's normalized, downward-y vertices to clip coordinates.
+- The same original blit pair also draws pause-map exploration. `shader.rs::pause_map_blend` distinguishes enabled MIN color/alpha, alpha-only writes. That path retains its original fragment program and uses `im::VS_TransformUnlit_IM`, with its world-transform constant buffer, instead of HUD coordinates.
+
+`minimap_gpu.apply(text)` adds these distinctions to a caller-owned worker string. The stage builder must validate its original worker pin first. The helper performs exact boundary checks and rejects a repeated patch. It does not write the original mirror, alter native engine state, force a radar during character creation, or change game saves. The character-creation screenshots alone do not establish a missing gameplay radar: the game normally does not show the minimap there.
+
+Program selection happens before draw bind-group reflection and in compile-ahead, so the HUD mask's bindings replace the original two-texture fragment bindings. Variants have independent program/resource caches. Browser pipeline keys already include the original shader pair and complete blend words; these uniquely determine the radar variant. Recipes retain real shader hashes and remain replayable. This differs from the native renderer's explicit `hud_mask` recipe field while preserving the same selection behavior.
+
+`minimap_mask.wgsl` is copied byte-for-byte from that pinned glue5 revision. `minimap_pause_vertex.wgsl` is the original browser shader `028921879df627f5.wgsl`, copied into the new isolated source helper; both files are hash-checked before patching. Existing third-party attribution remains in `THIRD_PARTY_NOTICES.md`.
+
+Offline verification: `python3 -B -m unittest discover -s native-port/engine-lan/tests -p test_minimap_gpu.py -v` passes 2 tests. The Node fixture executes the real worker's reflection and selectors with a recording shader-module factory, verifies 64-byte HUD constants / b5+s2+t2 bindings, 192-byte pause-map transform constants, independent memoized variants, unchanged ordinary blits, and narrow radar input rewriting. It syntax-checks the composed worker and verifies the original mirror stayed unchanged. It does **not** compile WGSL on a GPU or prove in-game rendering. GPU validation and a gameplay minimap observation remain pending.

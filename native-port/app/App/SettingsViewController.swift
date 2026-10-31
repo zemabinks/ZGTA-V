@@ -64,7 +64,7 @@ final class SettingsViewController: UITableViewController {
             let row = arguments[i + 1] == "resolution" ? settings.tier.allowed.count : 0
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                 if self.isOverview { self.openCategory(section) }
-                else { self.tableView.scrollToRow(at: IndexPath(row: row, section: 0), at: .middle, animated: false) }
+                else { self.tableView.scrollToRow(at: IndexPath(row: 0, section: row == 0 ? 0 : 1), at: .middle, animated: false) }
             }
         }
     }
@@ -75,7 +75,18 @@ final class SettingsViewController: UITableViewController {
         if isOverview { tableView.reloadData() }
     }
 
-    override func numberOfSections(in tableView: UITableView) -> Int { 1 }
+    override func numberOfSections(in tableView: UITableView) -> Int { selectedSection == .graphics ? 3 : 1 }
+
+    // Keep the action model stable while displaying three clearly separate groups.
+    private func settingsIndex(_ path: IndexPath) -> IndexPath {
+        let row: Int
+        if selectedSection == .graphics, path.section == 1 {
+            row = settings.tier.allowed.count + [0, 1, 3][path.row]
+        } else if selectedSection == .graphics, path.section == 2 {
+            row = settings.tier.allowed.count + [4, 2][path.row]
+        } else { row = path.row }
+        return IndexPath(row: row, section: selectedSection!.rawValue)
+    }
 
     private func category(_ section: Section) -> (title: String, detail: String, icon: String) {
         switch section {
@@ -138,7 +149,7 @@ final class SettingsViewController: UITableViewController {
         return cell
     }
     override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat { isOverview ? 68 : UITableView.automaticDimension }
-    override func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat { isOverview ? 0.01 : 14 }
+    override func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat { isOverview ? 0.01 : selectedSection == .graphics ? UITableView.automaticDimension : 14 }
     override func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat { isOverview ? 0.01 : UITableView.automaticDimension }
 
     // Focused detail lists share the same spacing, type and control treatment.
@@ -193,11 +204,12 @@ final class SettingsViewController: UITableViewController {
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         if isOverview { return 4 }
+        let group = section
         let section = selectedSection!.rawValue
         switch Section(rawValue: section)! {
         case .cheat: return reconnectSession == nil ? 1 : 2
         case .mode: return GameMode.allCases.count
-        case .graphics: return settings.tier.allowed.count + 4
+        case .graphics: return group == 0 ? settings.tier.allowed.count : group == 1 ? 3 : 2
         case .controls: return 12
         case .gyro: return (settings.gyroAim == .off ? 1 : 3) + (settings.tiltSteer == .off ? 1 : 2)
         case .files: return fileRows.count
@@ -206,11 +218,25 @@ final class SettingsViewController: UITableViewController {
     }
 
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        return nil
+        guard selectedSection == .graphics else { return nil }
+        return ["Graphics presets", "Display & frame rate", "Memory management"][section]
     }
 
     override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
         guard let selectedSection else { return nil }
+        if selectedSection == .graphics {
+            if section == 0 {
+                return "Presets choose a bundle of detail settings. Auto resolution follows the preset; explicit resolution, frame rate and memory choices stay independent. Preset changes apply on the next launch."
+            }
+            if section == 1 {
+                let resolution = engineRunning && PGWorldToolsMode() == 2
+                    ? "Multiplayer resolution changes apply after restarting the app. "
+                    : "Resolution changes apply immediately. "
+                return resolution + "Frame rate applies on the next launch; automatic thermal protection can temporarily reduce it when the phone gets hot."
+            }
+            let reduced = LowMemoryGraphics.isEnabled(profile: settings.memoryProfile)
+            return "Memory management: \(reduced ? "reduced" : "standard") on next launch. Reduced uses smaller texture budgets, fewer background prefetch reads and earlier idle-cache cleanup. It does not change graphics, resolution or FPS. Automatic selects this for devices below 3400 MiB RAM. All modes keep the operating system memory guard."
+        }
         let section = selectedSection.rawValue
         switch Section(rawValue: section)! {
         case .cheat:
@@ -239,7 +265,7 @@ final class SettingsViewController: UITableViewController {
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         if isOverview { return overviewCell(indexPath.row) }
-        let indexPath = IndexPath(row: indexPath.row, section: selectedSection!.rawValue)
+        let indexPath = settingsIndex(indexPath)
         let cell = UITableViewCell(style: .subtitle, reuseIdentifier: nil)
         cell.selectionStyle = .default
         var content = cell.defaultContentConfiguration()
@@ -267,7 +293,7 @@ final class SettingsViewController: UITableViewController {
             if indexPath.row < presets.count {
                 let preset = presets[indexPath.row]
                 content.text = preset.title + (preset == settings.tier.recommended ? L10n.text(" (recommended)") : "")
-                content.secondaryText = "Detail level, default \(preset.height)p · " + preset.detail + (settings.tier.risky(preset) ? L10n.text("\n⚠︎ Heavier than this phone's recommended setting: may run out of memory or overheat.") : "")
+                content.secondaryText = preset.detail + (settings.tier.risky(preset) ? L10n.text("\n⚠︎ Heavier than this phone's recommended setting: may run out of memory or overheat.") : "")
                 if settings.tier.risky(preset) { content.secondaryTextProperties.color = .systemOrange }
                 cell.accessoryType = preset == settings.graphicsPreset ? .checkmark : .none
             } else {
@@ -299,7 +325,7 @@ final class SettingsViewController: UITableViewController {
                     }
                 } else if row == 2 {
                     ramCell(cell, &content)
-                } else {
+                } else if row == 3 {
                     content.text = L10n.text("Frame rate")
                     content.secondaryText = L10n.text("Higher uses more power and heat; 30 FPS is steadiest. Unlocked goes up to 120 on ProMotion iPhones.")
                     let button = UIButton(type: .system)
@@ -309,6 +335,21 @@ final class SettingsViewController: UITableViewController {
                     button.menu = UIMenu(children: [30, 60, 0].map { cap in
                         UIAction(title: GameSettings.frameRateTitle(cap), state: cap == settings.frameRateCap ? .on : .off) { [weak self] _ in
                             self?.settings.frameRateCap = cap; self?.reloadFooters(); self?.tableView.reloadData()
+                        }
+                    })
+                    button.sizeToFit()
+                    cell.accessoryView = button
+                } else {
+                    content.text = "Memory management"
+                    content.secondaryText = "Independent of presets, resolution and FPS · applies next launch"
+                    let button = UIButton(type: .system)
+                    button.setTitle(settings.memoryProfile.title + " ▾", for: .normal)
+                    button.accessibilityLabel = "Memory management"
+                    button.showsMenuAsPrimaryAction = true
+                    button.menu = UIMenu(children: MemoryProfile.allCases.map { profile in
+                        UIAction(title: profile.title, state: settings.memoryProfile == profile ? .on : .off) { [weak self] _ in
+                            self?.settings.memoryProfile = profile
+                            self?.reloadFooters()
                         }
                     })
                     button.sizeToFit()
@@ -464,8 +505,8 @@ final class SettingsViewController: UITableViewController {
 
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         guard !isOverview else { return }
-        tableView.deselectRow(at: IndexPath(row: indexPath.row, section: 0), animated: true)
-        let indexPath = IndexPath(row: indexPath.row, section: selectedSection!.rawValue)
+        tableView.deselectRow(at: indexPath, animated: true)
+        let indexPath = settingsIndex(indexPath)
         if indexPath.section == Section.device.rawValue, indexPath.row == 4 {
             if engineRunning { openPerformance?() }
             return
@@ -491,7 +532,7 @@ final class SettingsViewController: UITableViewController {
         guard indexPath.section == Section.graphics.rawValue, indexPath.row < presets.count else { return }
         settings.graphicsPreset = presets[indexPath.row]
         resolutionChanged?()
-        UIView.performWithoutAnimation { tableView.reloadSections([0], with: .none) }
+        UIView.performWithoutAnimation { tableView.reloadData() }
     }
 
     // MARK: Game files
@@ -710,7 +751,7 @@ final class SettingsViewController: UITableViewController {
         return height == GraphicsConfiguration.nativeHeight ? "Native (\(height)p)" : "\(height)p"
     }
     private func reloadFooters() {
-        UIView.performWithoutAnimation { tableView.reloadSections([0], with: .none) }
+        UIView.performWithoutAnimation { tableView.reloadData() }
     }
     private func slider(_ value: Double, _ low: Float, _ high: Float, label: String, changed: @escaping (Double) -> Void) -> UIView {
         let control = UISlider()
@@ -734,12 +775,12 @@ final class SettingsViewController: UITableViewController {
     // MARK: RAM for the game
 
     private func ramTitle(_ mb: Int) -> String {
-        mb == 0 ? String(format: L10n.text("All RAM (%.1f GB)"), Double(settings.tier.physicalMemoryMB) / 1024)
+        mb == 0 ? String(format: L10n.text("Automatic (%.1f GB)"), Double(settings.tier.physicalMemoryMB) / 1024)
                 : String(format: "%.1f GB (%d MB)", Double(mb) / 1024, mb)
     }
     private func ramCell(_ cell: UITableViewCell, _ content: inout UIListContentConfiguration) {
         content.text = L10n.text("Game Memory")
-        content.secondaryText = L10n.text("By default the engine requests all device RAM. If startup fails with \"iOS could not reserve the engine memory\" or the game crashes, choose a lower amount. Minimum: 3 GB. Applies on the next launch.")
+        content.secondaryText = L10n.text("Sets engine address-space capacity, not preallocated RAM. Keep Automatic unless startup cannot reserve memory. Minimum: 3 GB. Applies next launch.")
         let button = UIButton(type: .system)
         button.setTitle(ramTitle(settings.engineMemoryMB) + " ▾", for: .normal)
         button.showsMenuAsPrimaryAction = true
@@ -759,7 +800,7 @@ final class SettingsViewController: UITableViewController {
     private func askRAM() {
         let physical = settings.tier.physicalMemoryMB
         let alert = UIAlertController(title: L10n.text("Game Memory"),
-            message: String(format: L10n.text("Enter the memory allowance in MB (3072 – %d). Leave blank or enter 0 to request all device RAM."), max(3072, physical)),
+            message: String(format: L10n.text("Enter engine capacity in MB (3072 – %d). Leave blank or enter 0 for Automatic. This is not a physical RAM allocation."), max(3072, physical)),
             preferredStyle: .alert)
         alert.addTextField { field in
             field.keyboardType = .numberPad

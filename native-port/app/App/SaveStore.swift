@@ -35,11 +35,19 @@ struct SaveStore {
     private let manager = FileManager.default
     static let totalLimit = 16 * 1024 * 1024
 
+    // Match the browser's native-transfer rule on case-sensitive volumes too.
+    // An archive must not rely on which spelling a device filesystem chooses.
+    private static func pathKey(_ path: String) -> String {
+        path.folding(options: .caseInsensitive, locale: Locale(identifier: "en_US_POSIX"))
+            .precomposedStringWithCanonicalMapping
+    }
+
     private func destination(_ path: String) throws -> URL {
         let parts = path.split(separator: "/", omittingEmptySubsequences: false)
         guard parts.count > 1, parts[1] == "Documents", ["userdata", "sandbox"].contains(String(parts[0])),
               parts.allSatisfy({ !$0.isEmpty && $0 != "." && $0 != ".." }),
-              !path.contains("\\"), !path.contains("\0"), path.utf8.count < 1024 else { throw Failure.invalid }
+              !path.contains("\\"), !path.unicodeScalars.contains(where: { $0.value < 32 || (127...159).contains($0.value) }),
+              parts.last?.lowercased() != "settings.xml", path.utf8.count < 1024 else { throw Failure.invalid }
         let base = root.standardizedFileURL.resolvingSymlinksInPath()
         let url = base.appendingPathComponent(path).standardizedFileURL
         guard url.resolvingSymlinksInPath().path.hasPrefix(base.path + "/") else { throw Failure.invalid }
@@ -52,7 +60,8 @@ struct SaveStore {
         return url
     }
 
-    func files() throws -> [File] {
+    func files(limit: Int = 256) throws -> [File] {
+        guard (1...4096).contains(limit) else { throw Failure.invalid }
         var result: [File] = []
         for mode in ["userdata", "sandbox"] {
             let folder = try destination(mode + "/Documents")
@@ -67,7 +76,7 @@ struct SaveStore {
                 let path = mode + "/Documents/" + String(canonicalPath.dropFirst(basePath.count + 1))
                 _ = try destination(path)
                 result.append(File(url: url, path: path, size: values.fileSize ?? 0, modified: values.contentModificationDate ?? .distantPast))
-                if result.count > 256 { throw Failure.tooLarge }
+                if result.count > limit { throw Failure.tooLarge }
             }
         }
         return result.sorted { $0.modified > $1.modified }
@@ -107,13 +116,29 @@ struct SaveStore {
         for entry in archive.entries {
             guard entry.path.split(separator: "/").count > 2 else { throw Failure.invalid }
             _ = try destination(entry.path)
-            guard paths.insert(entry.path).inserted, entry.sha256 == Self.digest(entry.data) else { throw Failure.invalid }
+            guard paths.insert(Self.pathKey(entry.path)).inserted, entry.sha256 == Self.digest(entry.data) else { throw Failure.invalid }
             total += entry.data.count
             guard total <= Self.totalLimit else { throw Failure.tooLarge }
         }
+        // Restoring overlays files. Independently valid backups and current
+        // saves can otherwise merge into a profile that cannot be exported.
+        // Validate this union before creating a rollback file or any directory.
+        let current = try files()
+        var merged: [String: (path: String, size: Int)] = [:]
+        for file in current {
+            let key = Self.pathKey(file.path)
+            guard file.size >= 0, file.size <= Self.totalLimit, merged[key] == nil else { throw Failure.invalid }
+            merged[key] = (file.path, file.size)
+        }
+        for entry in archive.entries {
+            let key = Self.pathKey(entry.path)
+            if let old = merged[key], old.path != entry.path { throw Failure.invalid }
+            merged[key] = (entry.path, entry.data.count)
+        }
+        guard merged.count <= 256, merged.values.reduce(0, { $0 + $1.size }) <= Self.totalLimit else { throw Failure.tooLarge }
         // Verify the entire package before touching existing saves. Save a
         // rollback copy first, and roll back each replaced file on I/O failure.
-        if !(try files()).isEmpty { _ = try export() }
+        if !current.isEmpty { _ = try export() }
         var originals: [(URL, Data?)] = []
         do {
             for entry in archive.entries {

@@ -15,12 +15,18 @@
 #include "MRBufferPool.h"
 #include "BCTextureDecoder.h"
 #include "NativeFrameRate.h"
+#include "NativeGraphics.h"
+#include "NativePerformanceSampler.h"
+#include "NativeConstantBufferCopy.h"
+#include "NativeRenderingDiagnostics.h"
+#include <os/proc.h>
 #import <UIKit/UIKit.h>
 #include <TargetConditionals.h>
 #include <pthread.h>
 #include <mutex>
 #include <functional>
 #include <algorithm>
+#include <unordered_set>
 #include <cmath>
 #include <cstdio>
 #include <cstdarg>
@@ -52,6 +58,7 @@ enum Op : uint32_t {
 	COPY_REGION = 34, COPY_RESOURCE = 35, RESOLVE = 36, CREATE_UAV = 37, SET_UAVS = 38, DISPATCH = 39, CLEAR_UAV = 40,
 	GENERATE_MIPS = 41, READBACK = 42, COPY_COUNTER = 43, CREATE_QUERY = 44, BEGIN_QUERY = 45, END_QUERY = 46,
 	UPLOAD_BUFFER_NO_OVERWRITE = 47,
+	STIPPLE = 65, // 0: solid; 1..15: legacy Bayer; 16|mask: exact 2x2 phase bits
 };
 static const uint32_t BIND_VB = 1, BIND_IB = 2, BIND_CB = 4, BIND_SRV = 8, BIND_RT = 0x20, BIND_DS = 0x40, BIND_UAV = 0x80;
 static const int FRAME_SLOTS = 3;
@@ -89,6 +96,10 @@ public:
 		if (--pages[pi]->live == 0 && pi + 1 < pages.size()) { delete pages[pi]; pages[pi] = nullptr; }
 	}
 	template <class T> T *as(uint32_t id, ObjKind k) const { Object *o = id ? get(id) : nullptr; return o && o->kind == k ? static_cast<T *>(o) : nullptr; }
+	template <class Visit> void forEachBuffer(Visit visit) {
+		for (const auto *page : pages) if (page && page->live)
+			for (Object *object : page->slot) if (object && object->kind == OBuffer) visit(static_cast<Buffer *>(object));
+	}
 };
 
 // ---- per-frame ring of shared memory (constant buffer versions, staging for uploads) -------------------------------------
@@ -96,9 +107,11 @@ struct FrameRing {
 	static const NSUInteger CHUNK = 8 << 20;
 	std::vector<id<MTLBuffer>> chunks, big;
 	size_t chunk = 0;
+	size_t lastUsedChunks = 0;
 	NSUInteger off = 0;
 	uint64_t lastSerial = 0;
-	void reset() { chunk = 0; off = 0; big.clear(); }
+	double lastTrimAt = 0;
+	void reset() { lastUsedChunks = off ? chunk + 1 : 0; chunk = 0; off = 0; big.clear(); }
 };
 
 struct Alloc { id<MTLBuffer> buf; NSUInteger off; uint8_t *ptr; };
@@ -170,6 +183,9 @@ struct Renderer {
 	struct RTB { uint32_t tex, mip, slice, fmt; } rt[8] = {};
 	struct DSB { uint32_t tex, mip, slice, fmt, flags; } ds = {};
 	uint32_t blendId = 0, blendMask = 0xffffffff, dssId = 0, dssRef = 0, rsId = 0;
+	uint32_t stipple = 0;
+	bool captureDraw = false;
+	PGRenderingObservation captureObservation;
 	float blendFactor[4] = {1, 1, 1, 1};
 	float viewport[6] = {};
 	bool hasViewport = false, hasScissor = false;
@@ -237,6 +253,31 @@ static Renderer *R;
 static PGGraphicsProgress graphicsProgress;
 static PGSharedBufferPool<id<MTLBuffer>> sharedBufferPool;
 static PGBufferArena<id<MTLBuffer>> bufferArena;
+static PGNativePerformanceSampler performanceSampler;
+static PGRenderingDiagnostics renderingDiagnostics;
+static std::atomic<bool> memoryTrimRequested{false};
+static double lastMemoryCheck=0, warningHoldUntil=0;
+static bool bufferCachePressure=false;
+static uint64_t bufferCacheTrimmedBytes=0;
+static void trimIdleBufferCaches(double now) {
+ const bool warning=memoryTrimRequested.exchange(false);
+ if(!warning&&now-lastMemoryCheck<1000)return;
+ lastMemoryCheck=now;
+ if(warning){bufferCachePressure=true;warningHoldUntil=now+30000;}
+#if !TARGET_OS_SIMULATOR
+ const auto available=os_proc_available_memory();
+ // Reduced memory stops streaming growth at 640 MiB and requests eviction
+ // below 512 MiB. Release completed idle caches at the growth boundary,
+ // rather than waiting until after that eviction threshold was crossed.
+ // Keep the original Standard thresholds and the warning cooling hold.
+ if(available<((PGIsLowMemoryDevice()?640ull:192ull)<<20))bufferCachePressure=true;
+ else if(available>((PGIsLowMemoryDevice()?768ull:384ull)<<20)&&now>=warningHoldUntil)bufferCachePressure=false;
+#endif
+ if(!bufferCachePressure)return;
+ const auto completed=R->completed.load(std::memory_order_acquire);
+ bufferCacheTrimmedBytes+=sharedBufferPool.trim(completed,(PGIsLowMemoryDevice()?0ull:8ull)<<20);
+ bufferCacheTrimmedBytes+=bufferArena.trimEmpty(completed);
+}
 static void retireStorage(const PGBufferArena<id<MTLBuffer>>::Allocation& storage,uint64_t serial) {
 	if(storage.slab!=PGBufferArena<id<MTLBuffer>>::NoSlab) bufferArena.retire(storage,serial);
 	else sharedBufferPool.retire(storage.resource,storage.bytes,serial);
@@ -343,20 +384,35 @@ static inline bool inFlight(uint64_t lastUse) { return lastUse > R->completed.lo
 // ---- frame ring ---------------------------------------------------------------------------------------------------------
 static Alloc frameAlloc(NSUInteger size, NSUInteger align = 256) {
 	FrameRing &f = R->frames[R->frame % FRAME_SLOTS];
+	auto failed = []() -> Alloc {
+		memoryTrimRequested.store(true, std::memory_order_relaxed);
+		logOnce("frame-alloc", "Metal renderer: frame staging allocation failed; preserving existing resources.");
+		return {nil, 0, nullptr};
+	};
 	size = std::max<NSUInteger>(size, 4);
 	if (size > FrameRing::CHUNK / 4) {
 		id<MTLBuffer> b = [R->device newBufferWithLength:size options:MTLResourceStorageModeShared];
+		if (!b || !b.contents) return failed();
 		f.big.push_back(b);
 		return {b, 0, (uint8_t *)b.contents};
 	}
-	f.off = (f.off + align - 1) & ~(align - 1);
-	if (f.chunk >= f.chunks.size() || f.off + size > FrameRing::CHUNK) {
-		if (f.chunk < f.chunks.size()) { f.chunk++; f.off = 0; }
-		if (f.chunk >= f.chunks.size()) f.chunks.push_back([R->device newBufferWithLength:FrameRing::CHUNK options:MTLResourceStorageModeShared]);
+	if (!align || (align & (align - 1)) || f.off > NSUIntegerMax - (align - 1)) return failed();
+	NSUInteger off = (f.off + align - 1) & ~(align - 1);
+	size_t chunk = f.chunk;
+	if (chunk >= f.chunks.size() || off > FrameRing::CHUNK - size) {
+		if (chunk < f.chunks.size()) { chunk++; off = 0; }
+		if (chunk >= f.chunks.size()) {
+			off = 0;
+			id<MTLBuffer> fresh = [R->device newBufferWithLength:FrameRing::CHUNK options:MTLResourceStorageModeShared];
+			if (!fresh || !fresh.contents) return failed();
+			f.chunks.push_back(fresh);
+		}
 	}
-	id<MTLBuffer> b = f.chunks[f.chunk];
-	NSUInteger off = f.off;
-	f.off += size;
+	id<MTLBuffer> b = f.chunks[chunk];
+	if (!b || !b.contents) return failed();
+	// Publish cursor changes only after storage succeeds. A later request may
+	// retry without retaining nil chunks or consuming a failed allocation.
+	f.chunk = chunk; f.off = off + size;
 	return {b, off, (uint8_t *)b.contents + off};
 }
 
@@ -562,6 +618,7 @@ static void uploadTextureInner(const uint32_t *p) {
 			else for (uint32_t l = 0; l < d; l++) [t->tex replaceRegion:MTLRegionMake2D(x, y, w, h) mipmapLevel:mip slice:slice + l withBytes:data + (size_t)l * imageBytes bytesPerRow:bpr bytesPerImage:0];
 		} else {
 			Alloc a = frameAlloc((size_t)imageBytes * d, 16);
+			if (!a.buf) return;
 			memcpy(a.ptr, data, std::min<size_t>((size_t)imageBytes * d, size));
 			id<MTLBlitCommandEncoder> b = blitEncoder();
 			if (three) [b copyFromBuffer:a.buf sourceOffset:a.off sourceBytesPerRow:bpr sourceBytesPerImage:imageBytes sourceSize:MTLSizeMake(w, h, d) toTexture:t->tex destinationSlice:0 destinationLevel:mip destinationOrigin:MTLOriginMake(x, y, z)];
@@ -577,14 +634,11 @@ static void uploadTextureInner(const uint32_t *p) {
 		if (!w || !h) return;
 		storeCompressed(t, mip, slice, x, y, z, w, h, d, bpr, rpi, data, size);
 		size_t outSize = 0;
-		decoded = PGDecodeBC(t->bcKind, w, h, d, bpr, rpi, data, size, &outSize);
+		// Preserve the existing packed format's exact pixels without a full RGBA8 intermediate.
+		decoded = t->format == MTLPixelFormatA1BGR5Unorm
+		    ? PGDecodeBC1Packed(w, h, d, bpr, rpi, data, size, &outSize)
+		    : PGDecodeBC(t->bcKind, w, h, d, bpr, rpi, data, size, &outSize);
 		if (!decoded) { gTextureStats.decodeFailures++; logOnce("bcfail", "Metal renderer: BC decode failed"); return; }
-		if (t->format == MTLPixelFormatA1BGR5Unorm) {		// RGBA8 to A1BGR5 in place: Metal names components from the lowest bit (A bit 0, B 1-5, G 6-10, R 11-15)
-			const uint8_t *in = (const uint8_t *)decoded; uint16_t *out = (uint16_t *)decoded;
-			for (size_t i = 0, n = outSize / 4; i < n; i++, in += 4)
-				out[i] = (uint16_t)((in[0] >> 3) << 11 | (in[1] >> 3) << 6 | (in[2] >> 3) << 1 | (in[3] >= 128));
-			outSize /= 2;
-		}
 		data = (const uint8_t *)decoded; bpr = w * bytesPerTexel(t->format); rpi = h; size = (uint32_t)outSize;
 	}
 	uint32_t imageBytes = bpr * (rpi ? rpi : h);
@@ -596,6 +650,7 @@ static void uploadTextureInner(const uint32_t *p) {
 	} else {
 		size_t total = (size_t)imageBytes * d;
 		Alloc a = frameAlloc(total, 16);
+		if (!a.buf) { if (decoded) free(decoded); return; }
 		memcpy(a.ptr, data, std::min<size_t>(total, size));
 		id<MTLBlitCommandEncoder> b = blitEncoder();
 		if (three) [b copyFromBuffer:a.buf sourceOffset:a.off sourceBytesPerRow:bpr sourceBytesPerImage:imageBytes sourceSize:MTLSizeMake(w, h, d) toTexture:t->tex destinationSlice:0 destinationLevel:mip destinationOrigin:MTLOriginMake(x, y, z)];
@@ -663,6 +718,7 @@ static void uploadBuffer(const uint32_t *p, bool noOverwrite) {
 	if (!noOverwrite && inFlight(b->lastUse)) {
 		if (b->bind & BIND_UAV) {		// the GPU may write it: the new bytes go in order through the command buffer
 			Alloc a = frameAlloc(size, 16);
+			if (!a.buf) return;
 			memcpy(a.ptr, data, size);
 			[blitEncoder() copyFromBuffer:a.buf sourceOffset:a.off toBuffer:b->buf destinationOffset:b->offset()+offset size:size & ~3u];
 			b->lastUse = R->serial;
@@ -685,15 +741,40 @@ static void uploadBuffer(const uint32_t *p, bool noOverwrite) {
 // A constant buffer's current contents at a GPU address valid for this frame, with at least `need` bytes readable.
 static Alloc constantBuffer(Buffer *b, uint32_t need) {
 	if (b->cbFrame != R->frame || b->cbCap < need) {
-		uint32_t cap = std::max<uint32_t>((uint32_t)b->shadow.size(), std::max(need, b->cbPad));
-		cap = (cap + 15) & ~15u;
-		b->cbPad = std::max(b->cbPad, need);
+		uint64_t capacity = std::max<uint64_t>(b->shadow.size(), std::max(need, b->cbPad));
+		if (capacity > UINT32_MAX - 15) return {nil, 0, nullptr};
+		uint32_t cap = (uint32_t)(capacity + 15) & ~15u;
 		Alloc a = frameAlloc(cap);
+		if (!a.buf) return a;
+		b->cbPad = std::max(b->cbPad, need);
 		memcpy(a.ptr, b->shadow.data(), b->shadow.size());
 		if (cap > b->shadow.size()) memset(a.ptr + b->shadow.size(), 0, cap - b->shadow.size());
 		b->cbBuf = a.buf; b->cbOff = a.off; b->cbCap = cap; b->cbFrame = R->frame;
 	}
 	return {b->cbBuf, b->cbOff, nullptr};
+}
+
+// Called only for the just-reset, completed ring slot. Pressure cleanup keeps
+// the slot's observed demand plus a spare chunk, without touching another slot.
+static uint64_t trimCompletedFrameRing(FrameRing &frame, uint64_t completed, double now) {
+	if (!bufferCachePressure || !frame.lastSerial || frame.lastSerial > completed || now - frame.lastTrimAt < 1000) return 0;
+	if (frame.chunk || frame.off || !frame.big.empty()) return 0;
+	const size_t keep = std::max<size_t>(1, frame.lastUsedChunks + 1);
+	if (frame.chunks.size() <= keep) return 0;
+	std::unordered_set<const void *> unused;
+	for (size_t i = keep; i < frame.chunks.size(); i++) unused.insert((__bridge const void *)frame.chunks[i]);
+	// Constant buffers cache a strong reference to their last materialization.
+	// Invalidate only stale references into this completed, unused tail. Their
+	// CPU shadows survive, so the next bind materializes fresh frame-local data.
+	R->objs.forEachBuffer([&](Buffer *b) {
+		if (b->cbFrame != R->frame && unused.count((__bridge const void *)b->cbBuf)) {
+			b->cbBuf = nil; b->cbFrame = UINT64_MAX; b->cbOff = 0; b->cbCap = 0;
+		}
+	});
+	const uint64_t released = (frame.chunks.size() - keep) * FrameRing::CHUNK;
+	frame.chunks.resize(keep);
+	frame.lastTrimAt = now;
+	return released;
 }
 
 // ---- views --------------------------------------------------------------------------------------------------------------
@@ -939,15 +1020,30 @@ static Pipe *getPipeline(Shader *vs, Shader *ps, Layout *lay) {
 	key = fnv(key, lay->oid);
 	for (auto &s : lay->slots) { Buffer *b = buffer(R->vb[s.first].buf); key = fnv(key, b && b->buf ? R->vb[s.first].stride : 0xffffffffu); }
 	key = fnv(fnv(key, topologyClass(R->topo)), blend ? blend->hash : 0);
+	key = fnv(key, ps && ps->info ? R->stipple : 0);
 	auto it = R->pipes.find(key);
 	if (it != R->pipes.end()) return it->second;
 
+	ShaderInfo *vsi = vs->info, *psi = ps ? ps->info : nullptr;
+	id<MTLFunction> vfn = shaderFunction(vsi), pfn = psi ? shaderFunction(psi, R->stipple) : nil;
+	if (psi && !pfn && shaderFunctionPending(psi, R->stipple)) {
+		// No cache entry until the background shader compiler finishes. The
+		// existing pending-draw path marks pipeDirty, so later draws retry.
+		static Pipe pendingShader;
+		return &pendingShader;
+	}
+	// The compiler may have completed between the lookup and pending query.
+	if (psi && !pfn) pfn = shaderFunction(psi, R->stipple);
 	auto *pipe = new Pipe();
 	R->pipes[key] = pipe;
-	ShaderInfo *vsi = vs->info, *psi = ps ? ps->info : nullptr;
 	pipe->label = vsi->label + " + " + (psi ? psi->label : "-");
-	id<MTLFunction> vfn = shaderFunction(vsi), pfn = psi ? shaderFunction(psi) : nil;
-	if (!vfn || (psi && !pfn)) { pipe->failed = true; return pipe; }
+	if (!vfn || (psi && !pfn)) {
+		pipe->failed = true;
+		// A permanent shader failure is finished, not an ongoing compile.
+		// Do not spend the per-frame pending budget waiting on it forever.
+		pipe->ready.store(true, std::memory_order_release);
+		return pipe;
+	}
 	if (psi) for (uint32_t loc : psi->inputs) if (std::find(vsi->outputs.begin(), vsi->outputs.end(), loc) == vsi->outputs.end()) {
 		logOnce("varying" + pipe->label, "Metal renderer: %s reads varying %u that the vertex shader does not write", pipe->label.c_str(), loc);
 		break;
@@ -1071,6 +1167,17 @@ static void refreshDepthProxy(Texture *t) {
 		d.textureType = px->depthOrLayers > 1 ? MTLTextureType2DArray : MTLTextureType2D; d.arrayLength = px->depthOrLayers;
 		d.usage = MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget; d.storageMode = MTLStorageModePrivate;
 		px->tex = [R->device newTextureWithDescriptor:d];
+		if (!px->tex) {
+			gTextureStats.createFailures++;
+			logOnce("depth-proxy", "Metal renderer: depth proxy %ux%u (%u layers, %u mips) could not be created", px->width, px->height, px->depthOrLayers, px->mips);
+		} else {
+			px->gpuBytes = px->tex.allocatedSize;
+			if (!px->gpuBytes) for (uint32_t mip = 0; mip < px->mips; mip++)
+				px->gpuBytes += (uint64_t)std::max(1u, px->width >> mip) * std::max(1u, px->height >> mip) * px->depthOrLayers * 4;
+			// The proxy is owned by its source texture; its existing destructor
+			// subtracts these bytes when that source is destroyed.
+			gTextureStats.gpuBytes += (int64_t)px->gpuBytes;
+		}
 		t->depthProxy = px;
 		t->proxyDirty = true;
 	}
@@ -1150,6 +1257,32 @@ static Buffer *storageBuffer(int stage, const ResBinding &b, uint32_t &offset) {
 	return buf;
 }
 
+static id<MTLBuffer> counterOf(Buffer *b);
+
+// Consumer-side only: inspect the exact CPU-written frame allocation passed to
+// setFragmentBuffer. Never compare delayed consumption with live guest memory.
+static void captureFadeBinding(ShaderInfo *info, const ResBinding &binding, const Alloc *allocation) {
+ if (!R->captureDraw || binding.binding != 2 || binding.kind != RUbo) return;
+ auto &o=R->captureObservation;
+ const auto &c=R->cb[1][2];Buffer *b=buffer(c.buf);
+ o.constantBuffer=c.buf;o.first=c.first;o.num=c.num;o.metalIndex=binding.index;
+ snprintf(o.pixelShader,sizeof o.pixelShader,"%s",info->hash.c_str());
+ if (b) {
+  o.version=b->version;o.snapshotFrame=b->cbFrame;
+  const uint64_t offset=uint64_t(c.first)*16;
+  if(offset<=b->shadow.size() && b->shadow.size()-offset>=16) {
+   memcpy(o.shadow,b->shadow.data()+offset,16);o.shadowValid=true;
+  }
+ }
+ if(allocation && allocation->buf) {
+  const NSUInteger offset=allocation->off+c.first*16;
+  const NSUInteger length=allocation->buf.length;
+  if(allocation->buf.contents && offset<=length && length-offset>=16) {
+   memcpy(o.bound,(const uint8_t *)allocation->buf.contents+offset,16);o.boundValid=true;
+  }
+ }
+}
+
 // Binds every resource the shader declares; false if the draw must be skipped.
 static bool bindStage(int stage, ShaderInfo *info) {
 	uint32_t sizes[32] = {};
@@ -1166,7 +1299,9 @@ static bool bindStage(int stage, ShaderInfo *info) {
 			Buffer *buf = buffer(c.buf);
 			if (!buf || buf->shadow.empty()) { setBuffer(stage, R->zeroBuffer, 0, b.index); break; }
 			Alloc a = constantBuffer(buf, c.first * 16 + b.size);
+			if (!a.buf) return false;
 			setBuffer(stage, a.buf, a.off + c.first * 16, b.index);
+			if(stage==1)captureFadeBinding(info,b,&a);
 			break;
 		}
 		case RStorageRO: case RStorageRW: {
@@ -1174,8 +1309,7 @@ static bool bindStage(int stage, ShaderInfo *info) {
 			Buffer *buf = storageBuffer(stage, b, offset);
 			uint32_t size = 65536;
 			if (b.binding >= 176) {
-				if (buf && !buf->counter) { buf->counter = [R->device newBufferWithLength:16 options:MTLResourceStorageModeShared]; memset(buf->counter.contents, 0, 16); }
-				if (buf) { setBuffer(stage, buf->counter, 0, b.index); size = 16; buf->lastUse = R->serial; }
+				if (buf) { id<MTLBuffer> counter = counterOf(buf); if (!counter) return false; setBuffer(stage, counter, 0, b.index); size = 16; buf->lastUse = R->serial; }
 				else setBuffer(stage, R->zeroBuffer, 0, b.index);
 			} else if (buf) { setBuffer(stage, buf->buf, buf->offset()+offset, b.index); size = buf->bytes - offset; buf->lastUse = R->serial; }
 			else setBuffer(stage, R->zeroBuffer, 0, b.index);
@@ -1376,11 +1510,29 @@ static void capture(Texture *t, const std::string &name, id<MTLRenderPipelineSta
 static void drawInner(const uint32_t *p);
 static const char *drawOutcome;
 static void draw(const uint32_t *p) {
+	R->captureDraw=renderingDiagnostics.wantsFrame(R->frame);
+	if(R->captureDraw)R->captureObservation={};
 	drawOutcome = "ok";
 	Shader *waterVs = R->objs.as<Shader>(R->shader[0], OShader), *waterPs = R->objs.as<Shader>(R->shader[1], OShader);
 	bool water = (waterVs && waterVs->info && waterVs->info->water) || (waterPs && waterPs->info && waterPs->info->water);
 	uint64_t before = R->draws;
 	drawInner(p);
+ if(R->captureDraw && waterPs && waterPs->info) {
+  bool hasB2=false;
+  for(const auto &binding:waterPs->info->res)if(binding.kind==RUbo && binding.binding==2){
+   hasB2=true;
+   if(!R->captureObservation.constantBuffer)captureFadeBinding(waterPs->info,binding,nullptr);
+   break;
+  }
+  if(hasB2) {
+   auto &o=R->captureObservation;o.frame=R->frame;o.kind=p[0];o.count=p[1];o.instances=p[2];
+   o.vertexBuffer=R->vb[0].buf;o.target=R->rt[0].tex;o.depth=R->ds.tex;o.stipple=R->stipple;
+   o.encoded=R->draws!=before;
+   if(waterVs && waterVs->info)snprintf(o.vertexShader,sizeof o.vertexShader,"%s",waterVs->info->hash.c_str());
+   snprintf(o.outcome,sizeof o.outcome,"%s",drawOutcome);
+   renderingDiagnostics.record(o);
+  }
+ }
 	if (water) {
 		if (R->draws != before) R->waterDraws++;
 		else if (!strcmp(drawOutcome, "SKIP-pending")) R->waterPending++;
@@ -1485,14 +1637,17 @@ static void drawInner(const uint32_t *p) {
 	if (!pipe->ready.load(std::memory_order_acquire) && R->pipeWaitMs < 8) {
 		double start = nowMs();
 		while (!pipe->ready.load(std::memory_order_acquire) && R->pipeWaitMs + (nowMs() - start) < 8) usleep(250);
-		R->pipeWaitMs += nowMs() - start;
+		const double waited = nowMs() - start;
+		R->pipeWaitMs += waited;
+		R->work.pipeline += waited;
 	}
 	if (!pipe->ready.load(std::memory_order_acquire)) { drawOutcome = "SKIP-pending"; R->pendingSkips++; R->skipped++; R->pipeDirty = true; return; }
 	if (!pipe->state) { drawOutcome = "SKIP-pipefail"; R->skipped++; R->skipReasons[3]++; return; }
 	if (pipe->state != R->appliedPipe) { [R->pass setRenderPipelineState:pipe->state]; R->appliedPipe = pipe->state; }
 	applyDynamicState();
-	bindStage(0, vs->info);
-	if (ps) bindStage(1, ps->info);
+	if (!bindStage(0, vs->info) || (ps && !bindStage(1, ps->info))) {
+		drawOutcome = "SKIP-memory"; R->skipped++; return;
+	}
 	if (pipe->zeroStream) setBuffer(0, R->zeroBuffer, 0, kZeroVertexBuffer);
 
 	bool indexed = kind == 4 || (kind < 4 && (kind & 1));
@@ -1580,7 +1735,7 @@ static void dispatch(uint32_t x, uint32_t y, uint32_t z) {
 	}
 	[R->compute setComputePipelineState:cp.state];
 	for (size_t i = 0; i < info->wgMem.size(); i++) [R->compute setThreadgroupMemoryLength:(info->wgMem[i] + 15) & ~15u atIndex:i];
-	bindStage(2, info);
+	if (!bindStage(2, info)) return;
 	[R->compute dispatchThreadgroups:MTLSizeMake(x, y, z) threadsPerThreadgroup:MTLSizeMake(info->wg[0], info->wg[1], info->wg[2])];
 }
 
@@ -1592,8 +1747,19 @@ static void copyRegion(const uint32_t *p) {
 	if (!so || !dobj) return;
 	if (so->kind == OBuffer && dobj->kind == OBuffer) {
 		Buffer *s = (Buffer *)so, *d = (Buffer *)dobj;
-		if (!s->buf || !d->buf) return;
+		if (hasBox && r < l) return;
 		uint32_t sOff = hasBox ? l : 0, size = hasBox ? r - l : std::min(s->size, d->size);
+		// Constant buffers may have only CPU shadows, with no GPU backing.
+		// Preserve the current snapshot until a real copy occurs, then force a
+		// fresh frame-ring materialization before the next constant-buffer bind.
+		uint64_t shadowCopied=0;
+		if (!s->shadow.empty() && !d->shadow.empty() && !(s->bind & BIND_UAV)) {
+			shadowCopied=PGCopyConstantBufferShadow(d->shadow, s->shadow, dx, sOff, size & ~3u, d->cbFrame, d->version);
+		}
+		if(d->bind & BIND_CB)renderingDiagnostics.copy(shadowCopied!=0,size!=0 && (s->shadow.empty() || (s->bind & BIND_UAV)));
+		// GPU-only or GPU-writable source -> CB and pure CB -> GPU-only copies
+		// remain outside this correction; no synchronous GPU readback is added.
+		if (!s->buf || !d->buf) return;
 		size = std::min(size, std::min(s->bytes - std::min(s->bytes, sOff), d->bytes - std::min(d->bytes, dx))) & ~3u;
 		if (!size) return;
 		[blitEncoder() copyFromBuffer:s->buf sourceOffset:s->offset()+sOff toBuffer:d->buf destinationOffset:d->offset()+dx size:size];
@@ -1648,6 +1814,7 @@ static void copyRegion(const uint32_t *p) {
 		logOnce("copyraw" + std::to_string(s->format) + "-" + std::to_string(d->format), "Metal renderer: raw copy between formats %lu and %lu (%ux%u, mip %u to %u)",
 		        (unsigned long)s->format, (unsigned long)d->format, w, h, sMip, dMip);
 		Alloc a = frameAlloc((size_t)bpr * h, 16);
+		if (!a.buf) return;
 		id<MTLBlitCommandEncoder> e = blitEncoder();
 		[e copyFromTexture:s->tex sourceSlice:three ? 0 : sLayer sourceLevel:sMip sourceOrigin:MTLOriginMake(sx, sy, three ? sz : 0) sourceSize:MTLSizeMake(w, h, 1)
 		          toBuffer:a.buf destinationOffset:a.off destinationBytesPerRow:bpr destinationBytesPerImage:bpr * h];
@@ -1707,23 +1874,34 @@ static void generateMips(uint32_t srvId) {
 
 // ---- UAV counters and clears ------------------------------------------------------------------------------------------
 static id<MTLBuffer> counterOf(Buffer *b) {
-	if (!b->counter) { b->counter = [R->device newBufferWithLength:16 options:MTLResourceStorageModeShared]; memset(b->counter.contents, 0, 16); }
+	if (!b->counter) {
+		id<MTLBuffer> counter = [R->device newBufferWithLength:16 options:MTLResourceStorageModeShared];
+		if (!counter || !counter.contents) {
+			memoryTrimRequested.store(true, std::memory_order_relaxed);
+			logOnce("counter-alloc", "Metal renderer: UAV counter allocation failed; command skipped.");
+			return nil;
+		}
+		memset(counter.contents, 0, 16); b->counter = counter;
+	}
 	return b->counter;
 }
 static void setUavCounter(uint32_t uavId, uint32_t value) {
 	View *u = view(uavId, OUav);
 	Buffer *b = u && u->isBuf ? buffer(u->res) : nullptr;
 	if (!b) return;
+	id<MTLBuffer> counter = counterOf(b); if (!counter) return;
 	Alloc a = frameAlloc(4, 16);
+	if (!a.buf) return;
 	memcpy(a.ptr, &value, 4);
-	[blitEncoder() copyFromBuffer:a.buf sourceOffset:a.off toBuffer:counterOf(b) destinationOffset:0 size:4];
+	[blitEncoder() copyFromBuffer:a.buf sourceOffset:a.off toBuffer:counter destinationOffset:0 size:4];
 }
 static void copyCounter(uint32_t dstId, uint32_t offset, uint32_t uavId) {
 	Buffer *d = buffer(dstId);
 	View *u = view(uavId, OUav);
 	Buffer *s = u && u->isBuf ? buffer(u->res) : nullptr;
 	if (!d || !d->buf || !s || offset + 4 > d->bytes) return;
-	[blitEncoder() copyFromBuffer:counterOf(s) sourceOffset:0 toBuffer:d->buf destinationOffset:d->offset()+offset size:4];
+	id<MTLBuffer> counter = counterOf(s); if (!counter) return;
+	[blitEncoder() copyFromBuffer:counter sourceOffset:0 toBuffer:d->buf destinationOffset:d->offset()+offset size:4];
 	d->lastUse = R->serial;
 }
 static void clearUav(const uint32_t *p) {
@@ -1738,6 +1916,7 @@ static void clearUav(const uint32_t *p) {
 		if (zero) [blitEncoder() fillBuffer:b->buf range:NSMakeRange(b->offset(), b->bytes) value:0];
 		else {
 			Alloc a = frameAlloc(b->bytes, 16);
+			if (!a.buf) return;
 			uint32_t *w = (uint32_t *)a.ptr;
 			for (uint32_t i = 0; i < b->bytes / 4; i++) w[i] = values[i & 3];
 			[blitEncoder() copyFromBuffer:a.buf sourceOffset:a.off toBuffer:b->buf destinationOffset:b->offset() size:b->bytes & ~3u];
@@ -1778,6 +1957,7 @@ static void readback(const uint32_t *p) {
 		uint32_t from = hasBox ? l : 0, n = hasBox ? r - l : std::min(size, s->size);
 		n = std::min<uint64_t>(std::min(n, s->bytes - std::min(s->bytes, from)), R->memSize - addr);
 		Alloc a = frameAlloc((n + 3) & ~3u, 16);
+		if (!a.buf) { done(); return; }
 		[blitEncoder() copyFromBuffer:s->buf sourceOffset:s->offset()+from toBuffer:a.buf destinationOffset:a.off size:(n + 3) & ~3u];
 		s->lastUse = R->serial;
 		uint8_t *dst = R->mem + addr, *src = a.ptr;
@@ -1798,6 +1978,7 @@ static void readback(const uint32_t *p) {
 		if (!w || !h || rowBytes > rowPitch) { done(); return; }
 		uint32_t layers = three ? d : 1;
 		Alloc a = frameAlloc((size_t)bpr * rows * layers, 16);
+		if (!a.buf) { done(); return; }
 		[blitEncoder() copyFromTexture:s->tex sourceSlice:three ? 0 : layer sourceLevel:mip sourceOrigin:MTLOriginMake(x0, y0, three ? z0 : 0) sourceSize:MTLSizeMake(w, h, layers)
 		                      toBuffer:a.buf destinationOffset:a.off destinationBytesPerRow:bpr destinationBytesPerImage:bpr * rows];
 		uint8_t *src = a.ptr, *mem = R->mem;
@@ -1834,6 +2015,7 @@ static void readback(const uint32_t *p) {
 	if (rowBytes > rowPitch) { logOnce("rbpitch", "Metal renderer: readback row pitch too small"); done(); return; }
 	uint32_t layers = three ? d : 1;
 	Alloc a = frameAlloc((size_t)bpr * h * layers, 16);
+	if (!a.buf) { done(); return; }
 	[blitEncoder() copyFromTexture:s->tex sourceSlice:three ? 0 : layer sourceLevel:mip sourceOrigin:MTLOriginMake(x0, y0, three ? z0 : 0) sourceSize:MTLSizeMake(w, h, layers)
 	                      toBuffer:a.buf destinationOffset:a.off destinationBytesPerRow:bpr destinationBytesPerImage:bpr * h];
 	uint8_t *src = a.ptr;
@@ -1963,8 +2145,29 @@ static void present(uint32_t texId) {
 	if (next.lastSerial) waitSerial(next.lastSerial);
 	R->work.gpuWait += nowMs() - w0;
 	next.reset();
+	// Reclaim completed retirements even when no new buffer is allocated.
+	// This only returns completed ranges; it does not submit or wait for GPU work.
+	bufferArena.collect(R->completed.load(std::memory_order_acquire));
 	double tn = nowMs();
+	trimIdleBufferCaches(tn);
+	bufferCacheTrimmedBytes += trimCompletedFrameRing(next, R->completed.load(std::memory_order_acquire), tn);
 	if (R->lastPresentMs) frameReportsRecord(tn, tn - R->lastPresentMs, d, R->worldSent, R->work);
+	if (R->lastPresentMs && R->worldSent) {
+	 const PGFrameWork work{R->work.idle,R->work.pipeline,0,R->work.uploads,R->work.uploadBytes,R->work.gpuWait,R->work.submit};
+	 performanceSampler.record(tn,tn-R->lastPresentMs,d,work,[]{
+	  PGNativePerformanceMetrics value{};
+	  value.metalBytes=R->device.currentAllocatedSize;
+	  value.textureBytes=std::max<int64_t>(0,gTextureStats.gpuBytes.load());
+	  value.textureShadowBytes=std::max<int64_t>(0,gTextureStats.shadowBytes.load());
+	  value.pooledBufferBytes=sharedBufferPool.bytes();
+	  value.bufferArenaBytes=bufferArena.backingSlabs()*PGBufferArena<id<MTLBuffer>>::SlabBytes;
+	  value.arenaLiveBytes=bufferArena.activeBytes();value.arenaRequestedBytes=bufferArena.activeRequestedBytes();
+	  value.arenaPendingBytes=bufferArena.pendingAllocationBytes();value.arenaReusableBytes=bufferArena.reusableBytes();
+	  value.textureCreateFailures=gTextureStats.createFailures.load();value.textureDecodeFailures=gTextureStats.decodeFailures.load();
+	  value.cacheTrimmedBytes=bufferCacheTrimmedBytes;value.pendingPipelines=R->pipesPending.load();
+	  return value;
+	 });
+	}
 	R->lastPresentMs = tn;
 	R->work = FrameWork();
 }
@@ -2049,6 +2252,7 @@ static void resetState() {
 	memset(R->rt, 0, sizeof R->rt); memset(&R->ds, 0, sizeof R->ds);
 	R->blendId = 0; R->blendFactor[0] = R->blendFactor[1] = R->blendFactor[2] = R->blendFactor[3] = 1; R->blendMask = 0xffffffff;
 	R->dssId = 0; R->dssRef = 0; R->rsId = 0; R->hasViewport = R->hasScissor = false;
+	R->stipple = 0;
 	R->rtDirty = true; R->pipeDirty = true;
 }
 
@@ -2059,7 +2263,7 @@ static bool isStateOp(uint32_t op) {
 	case CREATE_UAV: case CREATE_QUERY: case SET_SHADER: case SET_INPUT_LAYOUT: case SET_TOPOLOGY: case SET_VERTEX_BUFFERS: case SET_INDEX_BUFFER:
 	case SET_CBUFFERS: case SET_SRVS: case SET_SAMPLERS: case SET_RENDER_TARGETS: case SET_BLEND: case SET_DEPTH_STENCIL: case SET_RASTER:
 	case SET_VIEWPORTS: case SET_SCISSORS: case DRAW: case CLEAR_STATE: case CLEAR_RT: case CLEAR_DS: case UPLOAD_BUFFER: case UPLOAD_BUFFER_NO_OVERWRITE:
-	case DESTROY_OBJECT: case LOG: case BEGIN_QUERY: case END_QUERY: case SET_UAVS: case WRAP:
+	case DESTROY_OBJECT: case LOG: case BEGIN_QUERY: case END_QUERY: case SET_UAVS: case WRAP: case STIPPLE:
 		return true;
 	default: return false;
 	}
@@ -2155,6 +2359,12 @@ static void execute(uint32_t op, const uint32_t *p, uint32_t n) {
 		break;
 	}
 	case SET_BLEND: if (R->blendId != p[0]) R->pipeDirty = true; R->blendId = p[0]; R->blendFactor[0] = pf[1]; R->blendFactor[1] = pf[2]; R->blendFactor[2] = pf[3]; R->blendFactor[3] = pf[4]; R->blendMask = p[5]; break;
+	case STIPPLE: {
+		if (n != 1) { logOnce("stipple-packet", "Metal renderer: malformed stipple packet"); break; }
+		const uint32_t level = p[0] < 32u ? p[0] : 0u;
+		if (R->stipple != level) { R->stipple = level; R->pipeDirty = true; }
+		break;
+	}
 	case SET_DEPTH_STENCIL: R->dssId = p[0]; R->dssRef = p[1]; break;
 	case SET_RASTER: R->rsId = p[0]; break;
 	case SET_VIEWPORTS: R->hasViewport = p[0] > 0; if (p[0]) memcpy(R->viewport, pf + 1, sizeof R->viewport); break;
@@ -2377,6 +2587,38 @@ static void *threadMain(void *) {
 }  // namespace mr
 
 using namespace mr;
+
+extern "C" void PGMetalRendererSetPerformanceSampling(int enabled) { performanceSampler.enable(enabled!=0); }
+extern "C" int PGMetalRendererReadPerformanceMetrics(PGNativePerformanceMetrics *metrics) { return performanceSampler.read(metrics)?1:0; }
+extern "C" void PGMetalRendererSetRenderingDiagnostics(int enabled) {renderingDiagnostics.enable(enabled!=0);}
+extern "C" uint32_t PGMetalRendererCopyRenderingDiagnostics(char *output,uint32_t capacity) {
+ if(!output || capacity<2)return 0;
+ @autoreleasepool {
+  auto data=renderingDiagnostics.read();NSMutableArray *events=[NSMutableArray new];
+  for(const auto &o:data.observations) {
+   NSMutableDictionary *event=[NSMutableDictionary new];
+   auto number=[&](NSString *key,uint64_t value){event[key]=[NSString stringWithFormat:@"%llu",(unsigned long long)value];};
+   number(@"frame",o.frame);number(@"snapshotFrame",o.snapshotFrame);number(@"drawKind",o.kind);
+   number(@"drawArg1",o.count);number(@"drawArg2",o.instances);number(@"vertexBuffer",o.vertexBuffer);
+   number(@"target",o.target);number(@"depth",o.depth);number(@"stipple",o.stipple);
+   number(@"constantBuffer",o.constantBuffer);number(@"version",o.version);number(@"first",o.first);number(@"num",o.num);
+   number(@"metalIndex",o.metalIndex);number(@"shadowValid",o.shadowValid);number(@"boundValid",o.boundValid);number(@"encoded",o.encoded);
+   event[@"vs"]=[NSString stringWithUTF8String:o.vertexShader];event[@"ps"]=[NSString stringWithUTF8String:o.pixelShader];event[@"outcome"]=[NSString stringWithUTF8String:o.outcome];
+   for(uint32_t i=0;i<4;i++) {
+    event[[NSString stringWithFormat:@"shadow%u",i]]=[NSString stringWithFormat:@"%08x",o.shadow[i]];
+    event[[NSString stringWithFormat:@"bound%u",i]]=[NSString stringWithFormat:@"%08x",o.bound[i]];
+   }
+   [events addObject:event];
+  }
+  NSDictionary *document=@{@"format":@"zgta-rendering-consumer105-v1",@"observations":events,
+   @"counters":@{@"generation":@(data.generation),@"observedDraws":@(data.observedDraws),@"constantBufferCopies":@(data.cbCopies),@"shadowCopiesUpdated":@(data.cbCopiesUpdated),@"unknownSourceCopies":@(data.cbCopiesUnsupported)},
+   @"note":@"Explicit bounded consumer-side capture; original DRAW arguments preserved, including indirect buffer IDs. cb2 is a binding candidate, not proof of world identity. Raw words are float32 bit patterns. Bound words are from the CPU-written frame allocation supplied to Metal, not GPU readback. Different targets/passes can legitimately use different fade values. No live guest-state comparison, asset retention, GPU wait or per-draw file logging. Diagnostic run is not a clean FPS benchmark."};
+  NSData *json=[NSJSONSerialization dataWithJSONObject:document options:0 error:nil];
+  if(!json || json.length+1>capacity)return 0;
+  memcpy(output,json.bytes,json.length);output[json.length]=0;return (uint32_t)json.length;
+ }
+}
+extern "C" void PGMetalRendererRequestMemoryTrim(void) { memoryTrimRequested.store(true); }
 
 static CAMetalLayer *pendingLayer;
 

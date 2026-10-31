@@ -20,6 +20,7 @@
 #include <mach/mach.h>
 #include "NativeEngineMemory.h"
 #include "NativeMemoryBudget.h"
+#include "NativeLowMemoryPolicy.h"
 #include "NativeResourceReclaim.h"
 #include "MugoatOnline.h"
 
@@ -101,6 +102,9 @@ f64 w2c_env_wasm_now_ms(struct w2c_env *host) { return timeMS(CLOCK_REALTIME); }
 f64 w2c_env_emscripten_date_now(struct w2c_env *host) { return timeMS(CLOCK_REALTIME); }
 u64 w2c_env_emscripten_get_heap_max(struct w2c_env *host) { wasm_rt_shared_memory_t *memory=w2c_env_memory(host);return memory->max_pages*memory->page_size; }
 static bool nativeMemoryGuard;
+static bool lowMemoryDevice;
+static int memoryProfileMode; // 0 automatic, 1 standard, 2 reduced; immutable after launch
+int PGIsLowMemoryDevice(void){return lowMemoryDevice;}
 static _Atomic uint64_t memoryBudgetClamps,memoryBudgetEvictions,memoryBudgetQueries;
 uint64_t PGMemoryBudgetQueries(void){return atomic_load(&memoryBudgetQueries);}
 // Times the guard stopped streaming from growing, and times it asked the engine to evict.
@@ -129,7 +133,7 @@ static bool nativeProcessHeadroom(uint64_t *headroom){
 uint64_t pg_streaming_available_memory(uint64_t engineAvailable){
  uint64_t available;
  if(!nativeProcessHeadroom(&available))return engineAvailable;
- uint64_t result=pg_streaming_headroom_budget(engineAvailable,available,384ull*1048576,256ull*1048576);
+ uint64_t result=pg_streaming_headroom_budget(engineAvailable,available,(lowMemoryDevice?512ull:384ull)<<20,(lowMemoryDevice?128ull:256ull)<<20);
  return result;
 }
 // The engine heap has its own ceiling (the reservation), below the process limit on phones that
@@ -148,7 +152,7 @@ static int64_t heapCeilingBudget(int64_t result){
 uint64_t pg_streaming_resource_memory(uint64_t engineAvailable){
  uint64_t available;
  int64_t result=(int64_t)engineAvailable;
- if(nativeProcessHeadroom(&available))result=pg_streaming_resource_budget((int64_t)engineAvailable,available,384ull*1048576,256ull*1048576);
+ if(nativeProcessHeadroom(&available))result=pg_streaming_resource_budget((int64_t)engineAvailable,available,(lowMemoryDevice?512ull:384ull)<<20,(lowMemoryDevice?128ull:256ull)<<20);
  result=heapCeilingBudget(result);
  pg_resource_reclaim_pressure(nativeMemoryGuard && result<=0);
  if(result<(int64_t)engineAvailable&&result<=0)atomic_fetch_add(result<0?&memoryBudgetEvictions:&memoryBudgetClamps,1);
@@ -188,6 +192,9 @@ u64 pg_video_memory(u64 reported){
  uint64_t mb=0;
  const char *configured=getenv("PG_VIDEO_MEMORY_MB");
  if(configured)mb=(uint64_t)atol(configured);
+ else if(processLimitMB && lowMemoryDevice){
+  mb=pg_low_memory_texture_mb(processLimitMB,PGGPUReadsBC());
+ }
  else if(processLimitMB){
   uint64_t textures=processLimitMB>1800+640?processLimitMB-1800:640;
   mb=PGGPUReadsBC()?textures:textures/2;
@@ -1878,6 +1885,9 @@ void PGConfigureEngine(const char *const *quality,unsigned count,int width,int h
   if(width>=320&&width<=3840&&height>=180&&height<=2160){configuredWidth=width&~1;configuredHeight=height&~1;}
   if(frameLimit>=0&&frameLimit<=4)configuredFrameLimit=frameLimit;
 }
+void PGSetMemoryProfile(int mode){
+  if(!atomic_load(&started))memoryProfileMode=mode>=0&&mode<=2?mode:0;
+}
 void PGSetEngineMemoryMB(int mb){
   if(atomic_load(&started))return;
   configuredEngineMB=mb>0?(uint64_t)mb:0;
@@ -1927,7 +1937,7 @@ static void *boot(void *ignored) {
   const char *limit=getenv("PG_STREAM_MEMORY_LIMIT_MB");
   if(limit){char *end;unsigned long mb=strtoul(limit,&end,10);if(end!=limit&&!*end&&mb>=2048&&mb<=8192)simulatedProcessLimit=(uint64_t)mb*1048576;}
 #endif
-  if(nativeMemoryGuard)pg_log("Native streaming memory guard enabled with 384 MB of reserve.");
+  if(nativeMemoryGuard)pg_log("Native streaming memory guard enabled; device reserve selected before engine launch.");
   pg_assets_prewarm();
   nativeEngineCores=pg_engine_core_configuration(getenv("PG_ENGINE_CORES"));
   char coresOption[32];snprintf(coresOption,sizeof coresOption,"-numCores=%u",nativeEngineCores);
@@ -1938,13 +1948,17 @@ static void *boot(void *ignored) {
   (void)pg_engine_memory_mb();
   uint64_t physicalMemory=0;size_t physicalMemorySize=sizeof physicalMemory;
   if(sysctlbyname("hw.memsize",&physicalMemory,&physicalMemorySize,NULL,0)!=0)pg_log("Physical RAM query failed; using the engine's declared maximum address space.");
+#if !TARGET_OS_SIMULATOR
+  lowMemoryDevice=pg_memory_profile(physicalMemory,memoryProfileMode);
+#endif
+  if(lowMemoryDevice)pg_log("Low-memory protection: smaller decoded-texture budget and 512 MB streaming reserve; engine address space unchanged.");
   // Automatic RAM sizing: defaults to full physical RAM. If iOS refuses a large reservation
   // (e.g. installs signed without extended-virtual-addressing, or memory pressure), the engine
   // automatically steps down the reservation to avoid "iOS could not reserve the engine memory".
   uint64_t sizingBytes=configuredEngineMB?configuredEngineMB*1048576:physicalMemory;
   if(configuredEngineMB){char line[128];snprintf(line,sizeof line,"RAM for the game configured: %llu MB (device %llu MB).",(unsigned long long)configuredEngineMB,(unsigned long long)(physicalMemory/1048576));pg_log(line);}
   PGEngineMemory memoryConfiguration=pg_engine_memory(sizingBytes,wasm2c_game_pagesize_env_memory);
-  char memoryLog[256];snprintf(memoryLog,sizeof memoryLog,"Device RAM: %llu MB; engine virtual capacity: %llu MB; initial logical heap: %llu MB. Native streaming RAM clamp active with 384 MB headroom reserve.",physicalMemory/1048576,memoryConfiguration.maximumPages*wasm2c_game_pagesize_env_memory/1048576,memoryConfiguration.initialPages*wasm2c_game_pagesize_env_memory/1048576);pg_log(memoryLog);
+  char memoryLog[256];snprintf(memoryLog,sizeof memoryLog,"Device RAM: %llu MB; engine virtual capacity: %llu MB; initial logical heap: %llu MB. Native streaming RAM clamp active with %u MB headroom reserve.",physicalMemory/1048576,memoryConfiguration.maximumPages*wasm2c_game_pagesize_env_memory/1048576,memoryConfiguration.initialPages*wasm2c_game_pagesize_env_memory/1048576,lowMemoryDevice?512:384);pg_log(memoryLog);
 #if defined(PG_HAS_ARM64_SHARED_VECTORS) && !defined(PG_SHARED_SIMD_BYTEWISE)
   pg_log("Shared vector memory uses native ARM64 instructions with bounds checks.");
 #else

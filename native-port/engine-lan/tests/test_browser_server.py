@@ -14,7 +14,8 @@ import unittest
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 import serve_browser as server
 
-FIXTURE=b'<PlayerBroadcastData>'+b''.join(('<Item><SizeOfData value="%d"/>\n\t\t<NumInstances value="1"/></Item>'%n).encode() for n in server.SIZES)+b'</PlayerBroadcastData>'
+HOST_FIXTURE=b'<HostBroadcastData>'+b''.join(('<Item><SizeOfData value="%d"/>\n\t\t<NumInstances value="1"/></Item>'%n).encode() for n in server.HOST_SIZES)+b'</HostBroadcastData>'
+FIXTURE=HOST_FIXTURE+b'<PlayerBroadcastData>'+b''.join(('<Item><SizeOfData value="%d"/>\n\t\t<NumInstances value="1"/></Item>'%n).encode() for n in server.SIZES)+b'</PlayerBroadcastData>'
 
 class BrowserServer(unittest.TestCase):
     def test_fixed_length_idempotent_preserves_higher_values(self):

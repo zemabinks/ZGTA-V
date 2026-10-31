@@ -98,9 +98,10 @@ def verify(package,mirror,source_manifest=None,python_archive=None):
             finally:connection.close()
         try:
             require(get('/')[1]==(code/'launcher.html').read_bytes(),'Packaged launcher bytes differ')
-            for name in ('vehicle-catalog.js','vehicle-ui.js','browser-trainer.js','trainer-ui.js','launcher.js','launcher.css'):
+            for name in ('vehicle-catalog.js','vehicle-ui.js','browser-trainer.js','trainer-ui.js','launcher.js','launcher.css','desktop-launcher.js','desktop-launcher.css','lobby-ui.js'):
                 expected=graphics_status.worker(name,launch_channels.worker(name,(code/name).read_bytes()))
                 require(get('/zema-lab/'+name)[1]==expected,'Packaged shared UI differs: '+name)
+            require(get('/zema-lab/desktop-city.png')[1]==(code/'desktop-city.png').read_bytes(),'Desktop artwork differs')
             import mod_previews
             for row in mod_previews.load().values():
                 require(get('/zema-lab/'+row['file'])[1]==(mod_previews.RESOURCES/row['file']).read_bytes(),'Packaged mod preview differs')

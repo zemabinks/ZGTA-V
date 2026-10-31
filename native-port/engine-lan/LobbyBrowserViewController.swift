@@ -13,6 +13,7 @@ final class LobbyBrowserViewController: UITableViewController {
     private var probes: [String: LobbyHealthProbe] = [:]
     private var pending: [LobbyRecord] = []
     private var nearby = Set<String>()
+    private var discoveryMessage: String?
     private var refreshTimer: Timer?
     private var generation = 0
     private var observers: [NSObjectProtocol] = []
@@ -36,6 +37,10 @@ final class LobbyBrowserViewController: UITableViewController {
         header.layoutMargins = UIEdgeInsets(top: 16, left: 20, bottom: 15, right: 20); header.isLayoutMarginsRelativeArrangement = true
         status.font = Theme.body(12); status.textColor = Theme.secondaryText; status.numberOfLines = 0
         header.frame = CGRect(x: 0, y: 0, width: tableView.bounds.width, height: 150); tableView.tableHeaderView = header
+        discovery.onStatus = { [weak self] message in
+            guard let self, self.mode == .lan else { return }
+            self.discoveryMessage = message; self.reloadRows()
+        }
         discovery.found = { [weak self] address in
             guard let self, self.mode == .lan, self.nearby.count < 8,
                   self.nearby.insert(address).inserted, let record = LobbyRecord.parse(address),
@@ -71,7 +76,7 @@ final class LobbyBrowserViewController: UITableViewController {
     @objc private func changeMode() { mode = picker.selectedSegmentIndex == 0 ? .lan : .remote; refresh() }
     @objc private func changeCategory() { reloadRows() }
     @objc private func refresh() {
-        stop(); nearby.removeAll()
+        stop(); nearby.removeAll(); discoveryMessage = nil
         // History and the saved connection are probe seeds, never online results.
         // Do not invent a host at this phone's current IP address.
         var records = LobbyFavorites.load() + LobbyHistory.load()
@@ -88,6 +93,7 @@ final class LobbyBrowserViewController: UITableViewController {
         let count = model.visible(favorites: favorites, onlyFavorites: false, mode: mode).count
         let checking = !probes.isEmpty || !pending.isEmpty
         status.text = "\(count) online lobb\(count == 1 ? "y" : "ies")" + (checking ? " · Checking hosts… " : " · Live host responses only. ") + (mode == .lan ? "Nearby hosts appear on the same Wi-Fi." : "Remote checks your invites over Tailscale.")
+        if mode == .lan, let discoveryMessage { status.text = (status.text ?? "") + "\n" + discoveryMessage }
         tableView.reloadData()
     }
     private func pump() {

@@ -73,8 +73,8 @@
     for(const v of entries){
      const row=el('button'),label=el('span',v.name),detail=el('small'),badge=el('span');row.type='button';
      const pending=v.kind==='mod'&&loadedPacks!==null&&!loaded.has(v.model);
-     detail.textContent=v.model+' · '+(v.kind==='train'?'Dedicated train spawner required':v.kind==='mod'?(mode()==='lan'?'Offline mod · unavailable in LAN':pending?'Available next launch':'Detected mod · matching pack must be loaded'):v.base?'Base game':'DLC · matching game files required')+(v.kind==='trailer'?' · No driving seat':'');
-     row.disabled=v.kind==='train'||(v.kind==='mod'&&(mode()==='lan'||pending));
+     detail.textContent=v.model+' · '+(v.kind==='train'?'Dedicated train spawner required':v.kind==='mod'?(pending?'Available next launch':'Detected mod · matching pack must be loaded'):v.base?'Base game':'DLC · matching game files required')+(v.kind==='trailer'?' · No driving seat':'');
+     row.disabled=v.kind==='train'||(v.kind==='mod'&&pending);
      row.style.cssText='display:block;text-align:left;width:100%;padding:12px;margin-top:6px;border:0;border-radius:8px;background:#243e33;color:#e6f9ed;font:inherit;cursor:pointer';
      detail.style.cssText='display:block;color:#b3c9be;margin-top:3px';if(row.disabled)row.style.opacity='.55';
      row.setAttribute('aria-label','Select '+v.name+' · '+v.model);row.append(label,badge,detail);row.onpointerenter=e=>{if(e?.pointerType!=='touch')preview.show(v,row);};row.onpointerleave=()=>preview.leave(row);row.onfocus=()=>preview.show(v,row);row.onblur=()=>preview.leave(row);

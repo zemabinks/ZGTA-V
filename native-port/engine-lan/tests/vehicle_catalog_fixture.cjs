@@ -53,8 +53,10 @@ const bicycles=walk(container).find(e=>e.tag==='details'&&walk(e).includes(butto
 bicycles.open=false;bicycles.ontoggle();a.ok(preview.hidden,'Collapsing a category dismisses the preview');
 input.value='bmx';input.oninput();button('bmx').onclick();const searchGroup=walk(container).find(e=>e.tag==='details');searchGroup.open=false;searchGroup.ontoggle();a.ok(preview.hidden,'Search does not keep a collapsed category preview pinned');input.value='';input.oninput();
 ui.setMods({packs:[]});a.ok(button('customcar'),'Keep the running snapshot after next-launch removal');a.ok(!button('nextcar'));
-const lan=new Element('div');UI.mount(lan,{mode:()=> 'lan',select:()=>a.fail('LAN imported mod selected'),loadedPacks:[{vehicleModels:['customcar']}]}).setMods({packs:[{enabled:true,vehicleModels:['customcar']}]});
-const mod=walk(lan).find(e=>e['aria-label']==='Select customcar · customcar');a.ok(mod.disabled);mod.onclick();
+let lanSelected=[];const lan=new Element('div');UI.mount(lan,{mode:()=> 'lan',select:(...x)=>lanSelected.push(x),loadedPacks:[{vehicleModels:['customcar']}]}).setMods({packs:[{enabled:true,vehicleModels:['customcar','nextcar']}]});
+const mod=walk(lan).find(e=>e['aria-label']==='Select customcar · customcar');a.equal(mod.disabled,false);mod.onclick();a.deepEqual(lanSelected,[['customcar','customcar']]);
+const pendingLan=walk(lan).find(e=>e['aria-label']==='Select nextcar · nextcar');a.ok(pendingLan.disabled);pendingLan.onclick();a.equal(lanSelected.length,1);
+
 console.log('PASS full catalog, category/search selection, special trains, installed vehicle-only discovery, immutable loaded-pack and LAN boundaries');
 
 let state='checking';const marked=new Element('div');const markedUI=UI.mount(marked,{select:()=>a.fail('missing model selected'),availability:()=>state});

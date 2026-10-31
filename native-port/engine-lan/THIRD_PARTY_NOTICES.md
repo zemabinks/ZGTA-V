@@ -93,3 +93,64 @@ path remain authoritative; a timed-out wait never marks the scan complete.
 ## Glue 5 resource reclamation and control scheduling (24 October 2026)
 
 Adapted from mempage4k/glue5, GPL-3.0, revision ed3d31bf3c84eddbc6fab39227490db6f0b097de. Resource page lifecycle: commit 950a8ab5235c412fead3805b7b5f25e6072ff49c, crates/glue5-runtime/src/memory.rs. Exact control-thread classification: commit b5d1fafd5927489d6e445d9adf201f06282ca7c8, crates/glue5-runtime/src/threads.rs. Original copyright and GPL notices remain in the retained upstream reference and project LICENSE. This native C adaptation retains the port's existing dynamic memory-pressure policy; no upstream game files or binaries are included.
+
+## Portable LAN discovery
+
+Unmodified pure-Python sources from python-zeroconf 0.147.2 (LGPL-2.1-or-later)
+and ifaddr 0.2.0 (MIT) are bundled in discovery_vendor, with original licenses
+and per-file provenance/hashes. Sources: https://github.com/python-zeroconf/python-zeroconf
+and https://github.com/pydron/ifaddr. Version 0.147.2 retains Python 3.9 support.
+No runtime pip install, proprietary Bonjour runtime, or system service is required.
+
+## Glue5 rendering adaptations — Build 98
+
+The following source changes adapt mempage4k/glue5 under its pinned
+GPL-3.0-or-later license (the enclosing project retains that license):
+
+- Immutable constant tables: `3e89ed1f8b956c8e6dcf49953a5fc55f70b8d983`.
+- Shared CPU uniform mirrors: `2541e872de8bfa79654a11bfed65ccbcf9872ba4`.
+- Far-light map range hints: `5e2354af7c0972a693e274bf9a23f3683d38dde8`.
+- Missing ped fade-technique fallback: `e2bffe291a43c2c826a4d937b28842970355dd67`.
+- Ordered stipple rendering: `4423eeeac5e3a9086ee02db6d3d420832a85238d`.
+
+Primary source: https://github.com/mempage4k/glue5. Exact commit responses,
+patches and license-source evidence are retained in
+`docs/verification/render-performance98/`. The adaptations preserve this
+port's pinned engine indices, Metal reflection ABI and browser command ring;
+they do not import a replacement launcher or networking implementation.
+
+## Native stipple shader translation (Naga 30.0.1)
+
+The project-local ShaderTool/stipple-msl build tool uses Naga 30.0.1 and
+naga-types 30.0.1 from gfx-rs/wgpu. Generated native Metal source can contain
+Naga-emitted support functions; the Naga runtime and Rust dependencies are
+not linked into the iOS executable or portable browser runtime. Both crates
+declare MIT OR Apache-2.0; this distribution selects the MIT option.
+
+Primary source: https://github.com/gfx-rs/wgpu/tree/40f4a34ebaf56f9a046231f54125ad046239d3f3/naga
+Published crate: https://crates.io/crates/naga/30.0.1
+The complete MIT text below is copied byte-for-byte from both cached 30.0.1
+crate LICENSE.MIT files (SHA-256 dc0d97139e8205818c703741c7be7cb3b96888bd5917b8d6fc6133731e403c21).
+The enclosing downstream adapters retain their existing project license.
+
+MIT License
+
+Copyright (c) 2025 The gfx-rs developers
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

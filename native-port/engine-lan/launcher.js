@@ -23,7 +23,11 @@ for(const [value,title,symbol,caption] of [['story','Story mode','book','Continu
 toggle(game,'newgame','Start a new Story','Off: continue the newest save in this browser profile. On: skip auto-load; existing files are kept.');
 
 const graphics=section('graphics','Graphics & frame rate','Choose a frame-rate cap and render resolution. The cap is a limit, not a guarantee. Changes apply on the next launch.');
-choice(graphics,'preset','Detail preset','The same six preset definitions as the iOS app.',Object.entries(S.presets).map(([key,p])=>[key,p.title+' · '+p.height+'p']));
+const presetGroup=element('fieldset',undefined,'preset-group');presetGroup.append(element('legend','Graphics presets'),element('p','Choose a starting point for detail. Resolution and frame rate stay independent below.','note'));graphics.append(presetGroup);
+const presetSelect=choice(presetGroup,'preset','Selected preset','Auto resolution follows this preset.',Object.entries(S.presets).map(([key,p])=>[key,p.title+' · '+p.height+'p']));
+const presetCards=element('div',undefined,'preset-cards');presetCards.setAttribute('role','group');presetCards.setAttribute('aria-label','Graphics presets');
+for(const [key,p]of Object.entries(S.presets)){const card=element('button',undefined,'preset-card');card.type='button';card.dataset.preset=key;card.append(element('strong',p.title),element('small',p.height+'p default'));card.onclick=()=>{presetSelect.value=key;presetSelect.dispatchEvent(new Event('change'));};presetCards.append(card);}presetGroup.append(presetCards);
+graphics.append(element('h3','Display & frame rate','settings-group-title'));
 choice(graphics,'height','Resolution','Auto follows the preset, not Retina display resolution.',S.heights.map(h=>[h,h?h+'p':'Auto (preset)']));
 toggle(graphics,'fill','Fill the screen','Match the window shape. Off uses a 16:9 render surface.');
 choice(graphics,'fps','Frame rate','30 FPS is the lighter option; this is a cap, not a performance guarantee.',[[30,'30 FPS'],[60,'60 FPS'],[0,'Unlocked']]);
@@ -53,7 +57,7 @@ const saveActions=element('div'),saveStatus=element('output','No files have been
 saveActions.style.cssText='display:flex;flex-wrap:wrap;gap:8px;margin:16px 0';
 function downloadJson(value,name){const url=URL.createObjectURL(new Blob([JSON.stringify(value,null,2)],{type:'application/json'}));const a=element('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 function saveButton(title,fn){const b=element('button',title,'subtle');b.type='button';b.onclick=async()=>{b.disabled=true;try{await fn();}catch(e){saveStatus.textContent=e.message;}finally{b.disabled=false;}};saveActions.append(b);return b;}
-async function refreshSaves(){const mode=saveMode.value,files=await ZemaBrowserSaves.list(mode);if(mode!==saveMode.value)return;saveList.replaceChildren();saveStatus.textContent=files.length+' saved file(s).';for(const file of files){const b=element('button','Export','subtle');b.type='button';b.onclick=async()=>{try{downloadJson(await ZemaBrowserSaves.exportSaves(mode,file.path),'zema-'+mode+'-save.json');}catch(e){saveStatus.textContent=e.message;}};row(saveList,file.path,file.data.byteLength+' bytes',b);}}
+async function refreshSaves(){const mode=saveMode.value,files=await ZemaBrowserSaves.listInfo(mode);if(mode!==saveMode.value)return;saveList.replaceChildren();saveStatus.textContent=files.length+' saved file(s).';for(const file of files){const b=element('button','Export','subtle');b.type='button';b.onclick=async()=>{try{downloadJson(await ZemaBrowserSaves.exportSaves(mode,file.path),'zema-'+mode+'-save.json');}catch(e){saveStatus.textContent=e.message;}};row(saveList,file.path,file.size+' bytes',b);}}
 saveMode.onchange=()=>{storyImport.hidden=storyNote.hidden=saveMode.value!=='story';saveList.replaceChildren();saveStatus.textContent='Press Refresh list to view '+(saveMode.value==='story'?'Story':'Free Roam')+' saves.';};
 saveButton('Refresh list',refreshSaves);saveButton('Export all saves',async()=>{downloadJson(await ZemaBrowserSaves.exportSaves(saveMode.value),'zema-'+saveMode.value+'-backup.json');saveStatus.textContent='Backup exported.';});
 saveButton('Export latest safety backup',async()=>{downloadJson(await ZemaBrowserSaves.exportSafety(saveMode.value),'zema-'+saveMode.value+'-safety-backup.json');saveStatus.textContent='Safety backup exported; import it to restore these previous files.';});
@@ -70,7 +74,7 @@ storyFile.onchange=async()=>{const file=storyFile.files[0];if(!file)return;story
  saveStatus.textContent='Added “'+result.title+'” to manual slot '+result.slot+'. Select Story, then Pause → Game → Load Game.';
 }catch(e){saveStatus.textContent=e.message;}finally{storyFile.value='';storyImport.disabled=false;}};
 saves.append(element('p','Story and Free Roam backups can move between iPhone and browser. Import an iPhone backup or browser JSON; only the selected save profile is restored. Use Export for iPhone to transfer back to the app. Graphics settings are excluded. These are optional transfers; multiplayer characters still save automatically.','note'));
-saves.append(element('h3','Multiplayer character · automatic saves'),element('p','Saving and loading are automatic; you do not need to select a folder. Export/import below are optional backups. Your multiplayer character is separate from pc_settings.bin and Story saves. It is saved automatically on this browser and address: '+location.origin+'. Use the same Chrome profile and address when returning. Each device should keep its own character when playing together; importing a profile moves its identity and does not merge characters.','note'));
+saves.append(element('h3','Multiplayer character · automatic saves'),element('p','Export/import below are optional character backups; no folder setup is required. Your multiplayer character is separate from pc_settings.bin and Story saves. It is saved automatically on this browser and address: '+location.origin+'. Use the same Chrome profile and address when returning. Each device should keep its own character when playing together; importing a profile moves its identity and does not merge characters.','note'));
 const lanActions=element('div'),lanStatus=element('output','Automatic saves stay in Chrome. Close the running game, then refresh to inspect character files. Backups are optional.');lanStatus.id='lan-save-status';lanStatus.setAttribute('role','status');lanActions.style.cssText='display:flex;flex-wrap:wrap;gap:8px;margin:16px 0';saves.append(lanActions,lanStatus);
 function lanButton(title,fn){const b=element('button',title,'subtle');b.type='button';b.onclick=async()=>{b.disabled=true;try{await fn();}catch(e){lanStatus.textContent=e.message;}finally{b.disabled=false;}};lanActions.append(b);}
 async function refreshLan(){const p=await ZemaBrowserSaves.lanInfo();lanStatus.textContent=p?'Saved LAN profile: '+p.name+' · '+p.files.length+' game file(s), '+p.stats+' saved value(s), '+p.bytes+' bytes.'+(p.files.some(f=>/(?:^|[_/])char\d+\.save$/i.test(f))?'':' No character-save file has been written yet. Profile settings alone cannot restore a completed character.'):'No saved LAN profile at this browser address yet. Nothing was created or replaced.';}
@@ -87,34 +91,51 @@ tools.append(element('h3','Play tools'));
 vehicleTools=ZemaTrainerUI.mount(tools,{mode:()=>settings.mode});
 const device=section('device','Game files & support','This launcher serves your existing local mirror and makes no changes to the original Intel build folder.');
 row(device,'Game files / asset server','This local launcher reads your selected game mirror. Your original files are preserved.');
-row(device,'Playing with friends','Choose Join or create, or Find lobby on Home. Confirm your setup, then press the green Play Multiplayer or Host Multiplayer button. LAN needs the same Wi-Fi or local network. Remote needs Tailscale connected on every device.');
-row(device,'Can’t find a lobby?','Ask the host to keep ZGTA V open and share an invite. In Find lobbies, choose Add invite. Check Local Network permission on iPhone, or Tailscale for Remote.');
+row(device,'Playing with friends','Choose Join or create, or Find lobby. Review your setup, then press the green Play Multiplayer or Host Multiplayer button. LAN needs the same Wi-Fi or local network. Remote needs Tailscale connected on every device.');
+row(device,'Can’t find a lobby?','Ask the host to keep ZGTA V open and share an invite. Save their invite as a favorite in Find lobbies. Check Local Network permission on iPhone, or Tailscale for Remote.');
 row(device,'Automatic character saves','Keep using the same browser profile and launcher address. Export backups only when you want an extra copy or a character transfer. Do not share one character identity between devices playing together.');
 
 const diagnostics=element('pre');device.append(diagnostics);const download=element('button','Download launcher diagnostics','subtle');download.type='button';device.append(download);
-download.onclick=()=>{const data={format:'zema-browser-launch-diagnostic-v1',settings:S.normalize(settings),isolated:crossOriginIsolated,webgpu:!!navigator.gpu,reportedMemoryGB:navigator.deviceMemory||null,reportedCores:navigator.hardwareConcurrency||null,engineStarted:false};const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));const a=element('a');a.href=url;a.download='zema-browser-launcher.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
+download.onclick=async()=>{download.disabled=true;try{let hostIdentity=null;try{const info=await ZemaModsUI.api('launcher/status',{});hostIdentity=ZemaBrowserPerformance.hostIdentity(info.identity);}catch(_){}const data={format:'zema-browser-launch-diagnostic-v1',settings:S.normalize(settings),isolated:crossOriginIsolated,webgpu:!!navigator.gpu,reportedMemoryGB:navigator.deviceMemory||null,reportedCores:navigator.hardwareConcurrency||null,engineStarted:false,hostIdentity};const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));const a=element('a');a.href=url;a.download='zema-browser-launcher.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}finally{download.disabled=false;}};
 const preferences=document.getElementById('preferences');
+let desktopUI=null,routeReady=false,applyingRoute=false;
+function currentRoute(){return document.body.dataset.currentPage==='preferences'?document.body.dataset.settingsPanel:document.body.dataset.currentPage;}
+function rememberRoute(){if(routeReady&&!applyingRoute&&location.hash!=='#'+currentRoute())history.pushState(null,'','#'+currentRoute());}
+function restoreRoute(){
+ const route=location.hash.slice(1);
+ if(!['home','solo','friends','graphics','controls','saves','tools','device'].includes(route))return false;
+ applyingRoute=true;
+ try{if(['home','solo','friends'].includes(route))showPage(route);else showSettings(route);}finally{applyingRoute=false;}
+ return true;
+}
 function showPage(page){
+ if(page!=='preferences')delete document.body.dataset.settingsPanel;
+ if(page!==document.body.dataset.currentPage&&!launchBusy)document.getElementById('status').className='';
  for(const panel of document.querySelectorAll('[data-page]'))panel.hidden=panel.dataset.page!==page;
  document.body.dataset.currentPage=page;
- document.getElementById(page==='friends'?'friends-launch':'solo-launch').append(document.getElementById('launch-panel'));
+ if(page==='friends'||page==='solo')document.getElementById(page==='friends'?'friends-launch':'solo-launch').append(document.getElementById('launch-panel'));
  if(page==='friends'){if(settings.mode!=='lan'){lastSoloMode=settings.mode;try{localStorage.setItem('zema-solo-mode-v1',lastSoloMode);}catch(_){}}settings.mode='lan';refresh();}
  if(page==='solo'&&settings.mode==='lan'){settings.mode=lastSoloMode;refresh();}
+ refresh();desktopUI?.pageChanged(page);
+ rememberRoute();
+ document.querySelector('.skip').href=page==='preferences'?'#preferences-title':page==='friends'?'#friends-title':page==='solo'?'#solo-title':'#home-title';
  scrollTo({top:0,behavior:'instant'});
 }
 for(const button of document.querySelectorAll('[data-open-page]'))button.addEventListener('click',()=>showPage(button.dataset.openPage));
 function showSettings(tab){
+ if(!['graphics','controls','saves','tools','device'].includes(tab))return;
+ document.body.dataset.settingsPanel=tab;
  for(const section of host.children)section.hidden=section.dataset.section!==tab;
- for(const button of document.querySelectorAll('#tabs [data-tab]')){if(button.dataset.tab===tab)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current');}
- document.getElementById('preferences-title').textContent={graphics:'Settings & Graphics',controls:'Controls',saves:'Save games',tools:'Mod Manager',device:'Files & Support'}[tab]||'Settings';
- if(!preferences.open)preferences.showModal();
+ document.getElementById('preferences-title').textContent={graphics:'Graphics',controls:'Controls',saves:'Save games',tools:'Mod Manager',device:'Files & support'}[tab];
+ showPage('preferences');
+ document.getElementById('preferences-title').focus({preventScroll:true});
  if(tab==='tools')modsUI.refresh().catch(e=>{document.getElementById('status').textContent=e.message;});
 }
 for(const b of document.querySelectorAll('[data-tab]'))b.onclick=()=>showSettings(b.dataset.tab);
 for(const b of document.querySelectorAll('[data-close]'))b.onclick=()=>{const sheet=document.getElementById(b.dataset.close);if(!launchBusy)sheet.close();};
 let launchBusy=false;
 function refresh(){
- settings=S.normalize(settings);rememberSettings();const p=S.presets[settings.preset],dims=S.size(settings,{width:innerWidth,height:innerHeight});
+ settings=S.normalize(settings);rememberSettings();for(const card of presetCards.children)card.setAttribute('aria-pressed',String(card.dataset.preset===settings.preset));const p=S.presets[settings.preset],dims=S.size(settings,{width:innerWidth,height:innerHeight});
  document.getElementById('summary').textContent=p.title+' · '+dims.join(' × ')+' · '+(settings.fps?settings.fps+' FPS':'Unlocked');
  document.getElementById('mode-detail').textContent={story:'Story · '+(settings.newgame?'Start a new story':'Continue your saved story'),sandbox:'Free Roam · Los Santos',lan:settings.lobbyRole==='host'?'Host '+settings.room+' · '+settings.connection:settings.relay?settings.room+' · '+settings.connection:'Choose Join or create, or Find lobby above.'}[settings.mode];
  document.getElementById('newgame').closest('.row').hidden=settings.mode!=='story';
@@ -122,9 +143,13 @@ function refresh(){
  const play=document.getElementById('play');play.hidden=false;play.querySelector('span').textContent=settings.mode==='lan'?(settings.lobbyRole==='host'?'Host Multiplayer':'Play Multiplayer'):settings.mode==='story'?(settings.newgame?'Start a new story':'Play Story'):'Play Free Roam';
  for(const input of document.querySelectorAll('input[name="mode"]'))input.checked=input.value===settings.mode;
  diagnostics.textContent='Shared memory: '+(crossOriginIsolated?'ready':'unavailable')+'\nWebGPU API: '+(navigator.gpu?'available (adapter checked on Play)':'unavailable')+'\nReported CPU cores: '+(navigator.hardwareConcurrency||'unknown')+'\nReported memory: '+(navigator.deviceMemory?navigator.deviceMemory+' GB':'not exposed');
+ desktopUI?.refresh();
 }
 async function launch(){
  if(launchBusy)throw Error('Your game is already starting.');
+ if(desktopUI?.active&&settings.mode==='lan'){
+  try{lobbyUI.prepareLaunch();}catch(error){const feedback=document.getElementById('status');feedback.className='error';feedback.textContent=error.message;return false;}
+ }
  if(settings.mode==='lan'&&settings.lobbyRole==='join'&&!settings.relay.trim()){document.getElementById('status').textContent='Choose Join or create, or Find lobby above first.';document.getElementById('home-multiplayer').scrollIntoView({block:'nearest'});return false;}
  launchBusy=true;
  const status=document.getElementById('status'),play=document.getElementById('play'),selected=S.normalize(settings);play.disabled=true;status.className='';
@@ -148,13 +173,18 @@ async function launch(){
   location.assign(prepared.prefix+S.url(selected));return true;
  }catch(error){status.className='error';status.textContent=error.message;launchBusy=false;play.disabled=false;throw error;}
 }
-const lobbyUI=ZemaLobbyUI.mount({getSettings:()=>settings,nameEdited:()=>{playerNameEdited=true;},change:patch=>{if(Object.prototype.hasOwnProperty.call(patch,'player'))playerNameEdited=true;settings={...settings,...patch};refresh();},api:ZemaModsUI.api});
+const lobbyUI=ZemaLobbyUI.mount({getSettings:()=>settings,nameEdited:()=>{playerNameEdited=true;},change:patch=>{document.getElementById('status').className='';if(Object.prototype.hasOwnProperty.call(patch,'player'))playerNameEdited=true;settings={...settings,...patch};refresh();},api:ZemaModsUI.api});
 document.getElementById('settings').onsubmit=event=>{event.preventDefault();if(event.submitter===document.getElementById('play'))launch().catch(()=>{});};
-setInterval(()=>{if(document.hidden||!preferences.open||host.querySelector('[data-section="controls"]').hidden)return;let pads=[];try{pads=Array.from(navigator.getGamepads?.()||[]).filter(p=>p?.connected);}catch(_){}document.getElementById('controller-status').textContent=pads.length?pads.map(p=>p.mapping==='standard'?'Standard controller connected':'Controller mapping not supported').join(', '):'Press a controller button';},1500);
+setInterval(()=>{if(document.hidden||preferences.hidden||host.querySelector('[data-section="controls"]').hidden)return;let pads=[];try{pads=Array.from(navigator.getGamepads?.()||[]).filter(p=>p?.connected);}catch(_){}document.getElementById('controller-status').textContent=pads.length?pads.map(p=>p.mapping==='standard'?'Standard controller connected':'Controller mapping not supported').join(', '):'Press a controller button';},1500);
 function showSavedLanProfile(profile){if(!profile)return;if(!playerNameEdited&&settings.player===initialPlayerName&&/^[\x20-\x7e]{1,16}$/.test(profile.name)){settings.player=profile.name;lobbyUI.restorePlayerName(profile.name);}document.getElementById('profile-title').textContent=profile.name;document.getElementById('profile-detail').textContent=profile.files.some(f=>/(?:^|[_/])char\d+\.save$/i.test(f))?'Your multiplayer character is saved on this browser.':'Profile found. Character creation still needs to finish.';}
 ZemaBrowserSaves.lanInfo().then(showSavedLanProfile).catch(()=>{});
 refresh();addEventListener('resize',refresh);
 showPage(new URLSearchParams(location.search).get('lan')==='failed'?'friends':'home');
+desktopUI=ZemaDesktopLauncher.mount({getSettings:()=>settings,selectSolo:mode=>{lastSoloMode=mode;settings.mode=mode;try{localStorage.setItem('zema-solo-mode-v1',mode);}catch(_){}refresh();},showPage,showSettings,lobbyUI});
+desktopUI.refresh();
+routeReady=true;
+if(!restoreRoute())history.replaceState(null,'','#'+currentRoute());
+addEventListener('popstate',restoreRoute);
 if(new URLSearchParams(location.search).get('lan')==='failed'){
  let failure;try{failure=JSON.parse(sessionStorage.getItem('zema-browser-lan-error-v1'));sessionStorage.removeItem('zema-browser-lan-error-v1');}catch(_){}
  const fresh=failure&&typeof failure.message==='string'&&Number.isFinite(failure.at)&&Date.now()-failure.at>=0&&Date.now()-failure.at<300000;

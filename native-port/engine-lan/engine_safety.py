@@ -365,6 +365,13 @@ def stage_native(generated):
 
 def verify_native(generated):
     generated = Path(generated); record = json.loads((generated / 'engine-safety-plan.json').read_text())
+    # Later rendering adapters wrap original functions without changing the
+    # older safety transform. Validate and reverse just their exact additions
+    # before applying the unchanged whole-part before/after digest checks.
+    render = None
+    if (generated / 'game-render-hooks98.h').exists():
+        import render_hooks as render
+        render.verify_native(generated)
     verify_native_support(generated)
     groups = {}
     for index in SELECTED: groups.setdefault(ROWS[index]['c_part'], []).append(index)
@@ -375,6 +382,7 @@ def verify_native(generated):
     for row in record['parts']:
         if groups.get(row['part']) != row['indices']: raise ValueError('Native safety scope changed')
         data = (generated / row['part']).read_bytes()
+        if render is not None: data = render.undo_native_part(data, row['part'])
         if sha(data) != row['after_sha256'] or sha(native_part(data, row['indices'], undo=True)) != row['before_sha256']:
             raise ValueError('Native safety part changed')
     if (generated / 'game-engine-safety-impl.h').read_bytes() != NATIVE_HEADER:
