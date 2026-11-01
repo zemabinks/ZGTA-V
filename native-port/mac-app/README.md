@@ -1,6 +1,6 @@
-# Mac disk image
+# Mac disk image candidate
 
-`build_mac_dmg.py` wraps the frozen Build107 portable payload in a native universal
+`build_mac_dmg.py` wraps the frozen Build109 portable payload in a native universal
 AppKit application. The DMG contains ZGTA V.app and an Applications shortcut.
 The user drags the app to Applications and opens it there. No Python installer,
 Terminal window, login item or new service is required. Chrome and the owner's
@@ -20,14 +20,13 @@ message; it is never silently replaced or presented as the new build. Quitting
 the app interrupts only a helper it created, not an existing reused host.
 
 The payload is verified before use and stays byte-identical to the published
-Build107 package. Wrapper source and runtime pins have their own receipt; this
+Build109 package. Wrapper source and runtime pins have their own receipt; this
 does not rebuild or modify the iOS candidate or the browser renderer.
 
-The beta 3 disk image is owner-approved for publication and retains its tested
-ad-hoc signature. It is not Developer ID signed or Apple-notarized. Gatekeeper
-settings are never changed; no new paid account or credentials are configured
-by this builder. Intel install/launch and paired Mac/iPhone connection were
-owner-confirmed; Apple Silicon execution remains untested.
+This private candidate is ad-hoc signed, not Developer ID signed or Apple
+notarized. Gatekeeper settings are never changed. Normal public distribution
+needs the appropriate signing/notarization and owner testing; no new paid account
+or credentials are configured by this builder.
 
 Build from clean committed source, passing the checked portable payload folder,
 a new output directory and a runtime download cache:

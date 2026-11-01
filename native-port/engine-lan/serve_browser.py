@@ -56,7 +56,7 @@ def index(data,mode='lan',prefix=None,engine_sha=None,lease=None,vehicle_packs=N
     if engine_sha is not None and not re.fullmatch('[a-f0-9]{64}',engine_sha):raise ValueError('Unsafe engine hash')
     if lease is not None and not re.fullmatch('[a-f0-9]{32}',lease):raise ValueError('Unsafe launch lease')
     scripts=['session-restart.js','launch-settings.js','browser-performance.js','browser-features.js','vehicle-catalog.js','browser-trainer.js','vehicle-ui.js','controller.js','runtime.js','browser-mods-ui.js','trainer-ui.js','performance-run.js']
-    if mode=='lan':scripts+=['connection-ui.js','entry.js','lan-loading.js']
+    if mode=='lan':scripts+=['voice-core.js','voice-ui.js','connection-ui.js','entry.js','lan-loading.js']
     inject='\n<link rel="icon" type="image/svg+xml" href="/zema-lab/zplay-gta-green.svg"><link rel="icon" type="image/png" sizes="32x32" href="/zema-lab/zplay-gta-green-32.png"><link rel="apple-touch-icon" href="/zema-lab/zplay-gta-green-180.png"><meta name="theme-color" content="#050605">'
     inject+='\n<style>html,body{background:#050605!important;color:#f4f6f2}button,a{accent-color:#78b843}button:focus-visible,a:focus-visible{outline:3px solid #78b843;outline-offset:3px}</style>'
     inject+='\n<script src="/b/8b0b5899ed/engine-lan-browser.js"></script>'+''.join('\n<script src="/zema-lab/'+name+'"></script>' for name in scripts)
@@ -167,7 +167,7 @@ class Content:
             self.map_icons={'active':True,'icons':len(patch['icons']),'archive_sha256':patch['result_sha256']}
         except (OSError,ValueError,KeyError,TypeError) as error:
             self.map_icons['reason']=type(error).__name__  # Keep the original on unsupported inputs.
-        self.assets={name:(ROOT/name).read_bytes() for name in ['session-restart.js','launcher.html','launcher.css','desktop-launcher.css','desktop-launcher.js','desktop-city.png','launcher.js','lobby-model.js','lobby-ui.js','launch-settings.js','browser-performance.js','controller.js','runtime.js','browser-saves.js','browser-features.js','vehicle-catalog.js','browser-trainer.js','vehicle-ui.js','trainer-ui.js','performance-run.js','browser-mods-ui.js','connection-ui.js','lan-loading.js','solo-card.png','friends-card.png','los-santos-map.jpg','zplay-gta-green.svg','zplay-gta-green-32.png','zplay-gta-green-180.png','favicon.ico']}
+        self.assets={name:(ROOT/name).read_bytes() for name in ['session-restart.js','launcher.html','launcher.css','desktop-launcher.css','desktop-launcher.js','desktop-city.png','launcher.js','lobby-model.js','lobby-ui.js','launch-settings.js','browser-performance.js','controller.js','runtime.js','browser-saves.js','browser-features.js','vehicle-catalog.js','browser-trainer.js','vehicle-ui.js','trainer-ui.js','performance-run.js','browser-mods-ui.js','voice-core.js','voice-ui.js','voice-worklet.js','connection-ui.js','lan-loading.js','solo-card.png','friends-card.png','los-santos-map.jpg','zplay-gta-green.svg','zplay-gta-green-32.png','zplay-gta-green-180.png','favicon.ico']}
         self.assets['launcher-icon.png']=(ROOT.parent/'app/App/Assets.xcassets/HomeIcon.imageset/HomeIcon.png').read_bytes()
         import mod_previews
         for row in mod_previews.load().values():

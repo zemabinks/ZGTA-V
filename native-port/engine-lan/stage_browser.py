@@ -75,6 +75,8 @@ def stage(mirror, output):
     files = {name: patch(name, (mirror / name).read_bytes()) for name in PINS}
     files.update({'engine-lan-browser.js': (ROOT / 'browser.js').read_bytes(),
                   'network-worker.js': (ROOT / 'network-worker.js').read_bytes(),
+                  'voice-core.js': (ROOT / 'voice-core.js').read_bytes(),
+                  'voice-worklet.js': (ROOT / 'voice-worklet.js').read_bytes(),
                   'online.js':(ROOT/'online.js').read_bytes(),'profile-rpc.js':(ROOT/'profile-rpc.js').read_bytes(),
                   'profile-worker.js':(ROOT/'profile-worker.js').read_bytes()})
     if any((output / name).exists() or (output / name).is_symlink() for name in files):

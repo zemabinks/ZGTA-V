@@ -87,3 +87,11 @@ Keep the same browser profile and localhost address when playing in a browser. C
 ## Controllers
 
 Pair your controller in the device's OS first, then open **Settings → Controls**. Browser play also supports keyboard and mouse. Device-specific controller, audio and gameplay feedback is welcome through the [report template](TEST-REPORT.md).
+
+## Proximity voice
+
+In Engine LAN multiplayer, the existing **microphone** button switches your transmission on/off. The **speaker** button switches nearby voice playback on/off independently of game audio. The microphone starts off; allow access when you choose to enable it. Other players need a voice-capable build too.
+
+Voice stays full-volume within 2 metres, becomes clearly quieter at 10 and 20 metres, and is silent at 35 metres. Movement changes are smoothed. Each listener’s build controls the distance curve they hear, so update both clients for the same behavior.
+
+On the browser, open the local launcher address or use HTTPS for microphone access. Keep the game tab visible. Hiding it pauses voice, and you must enable voice again on return. iPhone/Mac speech and distance behavior passed owner tests; Bluetooth and interruption routes remain unverified.

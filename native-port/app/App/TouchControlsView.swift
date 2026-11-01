@@ -391,8 +391,8 @@ final class TouchControlsView: UIView {
     private let pause = ControlButton("pause", icon: "pause", label: "Pause menu")
     private let settings = ControlButton("settings", icon: "settings", label: L10n.text("Settings"))
     private let cheat = ControlButton("cheat", icon: "cheat", label: L10n.text("Mod Manager"))
-    private let speaker = ControlButton("speaker", icon: "speaker", label: "Loa Voice Chat")
-    private let mic = ControlButton("mic", icon: "mic", label: "Micro Voice Chat")
+    private let speaker = ControlButton("speaker", icon: "speaker", label: "Hear nearby players")
+    private let mic = ControlButton("mic", icon: "mic", label: "Microphone")
     private let buyWeapon = ControlButton("buyWeapon", icon: "buy_weapon", label: "Interact: buy weapon · police arrest · medic heal")
     private let lights = ControlButton("lights", icon: "lights", label: "Headlights")
     private let radio = ControlButton("radio", icon: "radio", label: "Radio")
@@ -576,9 +576,13 @@ final class TouchControlsView: UIView {
             let spkOn = MugoatVoiceIsSpeakerEnabled()
             speaker.setIcon(spkOn ? "speaker" : "speaker_muted")
             speaker.active = spkOn
+            speaker.accessibilityLabel = spkOn ? "Mute nearby players" : "Hear nearby players"
+            speaker.accessibilityValue = spkOn ? "On" : "Off"
             let micOn = MugoatVoiceIsMicEnabled()
             mic.setIcon(micOn ? "mic" : "mic_muted")
             mic.active = micOn
+            mic.accessibilityLabel = micOn ? "Mute microphone" : "Enable microphone"
+            mic.accessibilityValue = micOn ? "On" : "Off"
         }
         setNeedsLayout()
     }
@@ -871,12 +875,13 @@ final class TouchControlsView: UIView {
             MugoatVoiceSetSpeakerEnabled(enabled)
             speaker.setIcon(enabled ? "speaker" : "speaker_muted")
             speaker.active = enabled
+            updateVisibility()
         case mic:
             let enabled = !MugoatVoiceIsMicEnabled()
             MugoatVoiceSetMicEnabled(enabled)
             mic.setIcon(enabled ? "mic" : "mic_muted")
             mic.active = enabled
-            DispatchQueue.main.async { self.onVoiceMicChanged?(enabled) }
+            DispatchQueue.main.async { self.onVoiceMicChanged?(enabled); self.updateVisibility() }
         case buyWeapon:
             MugoatTriggerAmmuBuy()
         case up, down, left, right, accept, back:

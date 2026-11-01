@@ -1,0 +1,94 @@
+{
+  "format": "zgta-public-release-manifest-v2",
+  "release": "v2.0.0-beta.4",
+  "version": "2.0 beta 4",
+  "approved_on": "2026-11-01",
+  "owner_publication_choice": "YES_PUBLISH",
+  "versions": {
+    "ios": 109,
+    "browser": 109,
+    "mac_dmg": "109.1",
+    "sileo_installer": "0.109-2",
+    "optional_mac_relay_controls": "1.1_UNCHANGED"
+  },
+  "sources": {
+    "ios_browser": "3648065f50928fb8cd147d04bb17363f4b1e4b05",
+    "mac_wrapper": "4bbf3dfb9dbbb51b1a42b68111fd2e9664054cf2"
+  },
+  "assets": [
+    {
+      "name": "ZGTA-V-Build109-VoiceDistance-TrollStore.ipa",
+      "bytes": 117784570,
+      "sha256": "5ae11dfbae9677ffbfb86fbe24df3326667ac29f08c9d943dc51704daffec832",
+      "url": "https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.4/ZGTA-V-Build109-VoiceDistance-TrollStore.ipa"
+    },
+    {
+      "name": "ZGTA-V-Build109.1-Mac.dmg",
+      "bytes": 131412806,
+      "sha256": "a1cc37622704245fb1a1e3afcdf794f4351468506a4735691a3bf6bb18e89a90",
+      "url": "https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.4/ZGTA-V-Build109.1-Mac.dmg"
+    },
+    {
+      "name": "ZGTA-V-Build109-Browser-Mac-Linux.zip",
+      "bytes": 47618623,
+      "sha256": "bd66b1bb768686b8402ed1fb6b06c0217e909e758c866139bb54927fb359786a",
+      "url": "https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.4/ZGTA-V-Build109-Browser-Mac-Linux.zip"
+    },
+    {
+      "name": "ZGTA-V-Build109-Windows-x64.zip",
+      "bytes": 59060533,
+      "sha256": "7a16b54631378c6b2115761505da92603085d6040939a5dd31d5c8eed4ac06e3",
+      "url": "https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.4/ZGTA-V-Build109-Windows-x64.zip"
+    },
+    {
+      "name": "ZGTA-V-Build109-Android-Termux.zip",
+      "bytes": 47618726,
+      "sha256": "b43f599bd57cd4313d40f9251ea7043444762ad7a8f2396ae61838dfa139a88d",
+      "url": "https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.4/ZGTA-V-Build109-Android-Termux.zip"
+    }
+  ],
+  "application_packages_changed_since_owner_qa": false,
+  "raw_phone_logs_or_audio_included": false,
+  "owner_checks": "installation/data, iPhone/Mac two-way speech, smooth distance/range/return, microphone mute",
+  "remaining_limits": [
+    "Bluetooth/interruption and simultaneous speakerphone echo unverified",
+    "Windows/Android/Linux and Apple Silicon execution untested",
+    "AppSync and public0.109-2 wrapper installation untested",
+    "Mac109.1 drag-install not repeated; ad-hoc signature, not notarized",
+    "No new physical3GB performance benchmark"
+  ],
+  "sileo_packages": [
+    {
+      "flavor": "trollstore",
+      "file": "com.zema.zgta-v.trollstore_0.109-2_all.deb",
+      "bytes": 3072,
+      "sha256": "e805b65f930abddb49a37295932c6ea9ba6dc4e71d0ec134348e7033f98a392d",
+      "builder": "Debian 'dpkg-deb' package archive backend version 1.22.22 (arm64).",
+      "source_inputs_sha256": {
+        "control": "060bc4016ba5beb481406bcdec6a8841c42c34154e5d47ceaa2eee93e2bd6ce4",
+        "postinst": "269ab704c6cc870af5695a074f53414d9fc8f6f27ab81eccf5c1a0a2bacb7c29"
+      },
+      "device_install_verified": false,
+      "wrapper_phone_test": "NOT_REPEATED; same tested109 IPA and existing public script template"
+    },
+    {
+      "flavor": "appsync",
+      "file": "com.zema.zgta-v.appsync_0.109-2_iphoneos-arm.deb",
+      "bytes": 2788,
+      "sha256": "a6f5b6c6ca289f2648776f38369592dc28964913ad2f50774a92d1418dacd9c3",
+      "builder": "Debian 'dpkg-deb' package archive backend version 1.22.22 (arm64).",
+      "source_inputs_sha256": {
+        "control": "51e8a541c2673084a7c1d89fe76e617d8e42c09b216ac5a96dc90e5c092374b9",
+        "postinst": "d894c4feb009dcde4cec4dcd536f4511507e016251437c3873710497a52cb93d"
+      },
+      "device_install_verified": false,
+      "wrapper_phone_test": "NOT_REPEATED; same tested109 IPA and existing public script template"
+    }
+  ],
+  "checks": {
+    "public_voice_methods": 14,
+    "mocked_public_installer_catalog_index_methods": 26,
+    "source_bounded_privacy_scan": "PASS",
+    "all_previous_sileo_stanzas_retained": 32
+  }
+}

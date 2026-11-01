@@ -53,11 +53,12 @@
     }
     ports(){const result=[];for(let i=0;i<128;i++){const at=16+i*2;if(this.words[at])result.push([this.words[at],this.words[at+1]]);}return result;}
     bind(port) {
+      if(port===65534)return null;
       if (!Number.isInteger(port)||port<0||port>65535)return null;
       return this.lock(()=>{
         const ports=this.ports();if(!this.connected||ports.length>=128)return null;
         if(!port){for(let i=0;i<15536;i++){this.words[7]=this.words[7]<50000||this.words[7]===65535?50000:this.words[7]+1;
-          if(!ports.some(p=>p[1]===this.words[7])){port=this.words[7];break;}}if(!port)return null;}
+          if(this.words[7]!==65534&&!ports.some(p=>p[1]===this.words[7])){port=this.words[7];break;}}if(!port)return null;}
         if(!ports.some(p=>p[1]===port)&&new Set(ports.map(p=>p[1])).size>=32)return null;
         const known=new Set(ports.map(p=>p[0]));let handle;
         for(let i=0;i<1023;i++){this.words[6]=this.words[6]%1023+1;if(!known.has(this.words[6])){handle=this.words[6];break;}}
@@ -227,15 +228,16 @@
               }
             }
             if(admitted||message.type!=='joined'||message.protocol!==PROTOCOL||message.build!==BUILD||typeof message.resume!=='string'||!/^[A-Za-z0-9_-]{32}$/.test(message.resume)||(this.epoch&&(recoveryAttempted?message.epoch!==recoveryEpoch:message.epoch!==this.epoch))||!this.lan.configure(message.vip,message.epoch))throw networkError('LAN session changed; the running game address cannot be changed. Retry the same host or use Rejoin with saved character.','identity-changed');
-            clearTimeout(this.deadline);this.deadline=null;this.rejectJoin=null;this.resume=message.resume;this.epoch=message.epoch;admitted=true;lastPing=lastInbound=clock();this.lan.connection(true);this.notify("connected","LAN connected");resolve({vip:message.vip,epoch:message.epoch});
+            clearTimeout(this.deadline);this.deadline=null;this.rejectJoin=null;this.resume=message.resume;this.epoch=message.epoch;admitted=true;lastPing=lastInbound=clock();this.lan.connection(true);this.voice?.connection(true,message.vip);this.notify("connected","LAN connected");resolve({vip:message.vip,epoch:message.epoch});
             this.timer=setInterval(()=>{if(!current()||socket.readyState!==1)return;try{
               const now=clock();
               if(now-lastInbound>=30000){fail('LAN relay stopped responding. Reconnect to the same session.');return;}
               if(socket.bufferedAmount>262144){blocked ??= now;if(now-blocked>2000)fail('LAN backpressure');return;}blocked=null;
               for(let i=0;i<64&&socket.bufferedAmount<262144;i++){const frame=this.lan.takeOutgoing();if(!frame)break;socket.send(frame);}
+              if(this.voice&&socket.bufferedAmount<65536){for(let i=0;i<2&&this.voice.pull(true,this.voiceFrame);i++)socket.send(this.voiceFrame);}
               if(now-lastPing>10000){lastPing=now;socket.send('{"type":"ping"}');}
             }catch{fail('LAN send failed');}},10);
-          }else{if(!admitted)throw Error('Datagram before admission');const frame=new Uint8Array(event.data);decode(frame);this.lan.deliver(frame);lastInbound=clock();}
+          }else{if(!admitted)throw Error('Datagram before admission');const frame=new Uint8Array(event.data);decode(frame);if(this.voice&&ZemaVoiceCore.envelope(frame))this.voice.push(false,frame);else this.lan.deliver(frame);lastInbound=clock();}
         }catch(error){fail(error);}};
         socket.onerror=()=>fail(connectionFailure('connection interrupted'));
         socket.onclose=()=>{if(current()){const reason=admitted?undefined:this.resume?'LAN resume failed. Check the host and retry Reconnect; your running game is kept.':'Local engine-LAN admission failed';this.disconnect(reason);}};
@@ -245,7 +247,7 @@
     disconnect(reason="LAN disconnected. Reconnect within 20 seconds to keep this session.",code='transport'){
       const socket=this.socket,rejectJoin=this.rejectJoin;this.socket=null;this.rejectJoin=null;++this.generation;
       if(this.timer)clearInterval(this.timer);if(this.deadline)clearTimeout(this.deadline);this.timer=this.deadline=null;
-      this.lan.connection(false);if(socket)socket.close();if(rejectJoin)rejectJoin(networkError(reason,code));this.notify("disconnected",reason);
+      this.lan.connection(false);this.voice?.connection(false);if(socket)socket.close();if(rejectJoin)rejectJoin(networkError(reason,code));this.notify("disconnected",reason);
     }
   }
   function instance(module,imports,context,metadata=root.ZemaEngineLanModule) {

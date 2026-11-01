@@ -64,8 +64,8 @@ def build(payload, output, cache):
     if output.exists() or output.is_symlink():
         raise ValueError('Use a new output folder')
     manifest = verify_package(payload)
-    if manifest['build'] != 107 or manifest['source_revision'] != 'ad973f1beb1584c2cc9ea952c53bd979d8fee60a':
-        raise ValueError('This first Mac wrapper expects the checked Build107 payload')
+    if manifest['build'] != 109 or manifest['source_revision'] != '3648065f50928fb8cd147d04bb17363f4b1e4b05':
+        raise ValueError('This Mac wrapper expects the checked Build109 payload')
     if subprocess.check_output(['git','status','--porcelain=v1'],cwd=REPO):
         raise ValueError('Commit wrapper source before candidate packaging')
     revision = subprocess.check_output(['git','rev-parse','HEAD'],cwd=REPO,text=True).strip()
@@ -82,7 +82,7 @@ def build(payload, output, cache):
     provenance = [runtime(arch,pin,pins['release'],cache,runtimes/arch) for arch,pin in pins['architectures'].items()]
     info = {'CFBundleIdentifier':'com.zemabinks.zgtav.mac','CFBundleName':'ZGTA V','CFBundleDisplayName':'ZGTA V',
             'CFBundleExecutable':'ZGTA-V','CFBundlePackageType':'APPL','CFBundleIconFile':'ZGTA-V.icns',
-            'CFBundleShortVersionString':'2.0','CFBundleVersion':'107.1','LSMinimumSystemVersion':'13.0',
+            'CFBundleShortVersionString':'2.0','CFBundleVersion':'109.1','LSMinimumSystemVersion':'13.0',
             'NSHighResolutionCapable':True,'NSLocalNetworkUsageDescription':'Find and join your private ZGTA V lobbies.',
             'NSPrincipalClass':'NSApplication'}
     (contents/'Info.plist').write_bytes(plistlib.dumps(info))
@@ -102,10 +102,10 @@ def build(payload, output, cache):
     run(contents/'MacOS/ZGTA-V','--verify-payload')
     (volume/'Applications').symlink_to('/Applications',target_is_directory=True)
     (volume/'Install ZGTA V.txt').write_text('Drag ZGTA V.app to Applications, then open it from Applications.\n\nThis private candidate includes its own Python runtime for Intel and Apple Silicon Macs. Chrome and your own prepared game files are still required. Choose the existing game folder on first launch; it is not copied into the app. Keep the app open while playing or hosting. Quit ZGTA V to stop only the helper it started. Existing saves, mods and settings remain outside the app.\n\nAn older launcher is never silently replaced while running. If another version is active, quit it and open this app again.\n\nPrivate test candidate: ad-hoc signed, not Apple Developer ID signed or notarized. No Gatekeeper setting is changed. Public distribution remains gated on owner testing and approval.\n')
-    dmg=output/'ZGTA-V-Build107.1-Mac.dmg'
+    dmg=output/'ZGTA-V-Build109.1-Mac.dmg'
     run('hdiutil','create','-volname','ZGTA V','-srcfolder',volume,'-format','UDZO','-ov',dmg)
     run('hdiutil','verify',dmg)
-    receipt={'format':'zgta-mac-dmg-v1','app_build':'107.1','game_payload_build':107,'wrapper_source_revision':revision,
+    receipt={'format':'zgta-mac-dmg-v1','app_build':'109.1','game_payload_build':109,'wrapper_source_revision':revision,
              'game_payload_source_revision':manifest['source_revision'],'payload_manifest_sha256':sha256(payload/'portable-manifest.json'),
              'architectures':['x86_64','arm64'],'runtimes':provenance,'file':dmg.name,'bytes':dmg.stat().st_size,'sha256':sha256(dmg),
              'signature':'AD_HOC_STRICT_DEEP_PASS','notarized':False,'public_promotion_approved':False,

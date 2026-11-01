@@ -1,5 +1,7 @@
-# Sileo installer source
+# Sileo installer source — beta4 / Build109
 
-This is the matching0.107-3 TrollStore source for the approved ZGTA V2.0 beta3 release. It renders the unchanged Build107 IPA URL, size and SHA-256 into the existing TrollStore/AppSync scripts. The0.107-3 change summarizes successful helper output and preserves failure diagnostics. AppSync remains0.107-2. Render with `python3 -B tools/build_trollstore_package.py /new/staging/path`, then build that folder with Linux dpkg-deb. AppSync uses `--flavor appsync` and remains an untested rootful experimental route.
+These are the matching0.109-2 public TrollStore/AppSync inputs. The existing installer methods and templates are preserved; version, descriptions, public URL and exact IPA pins are updated. Render with `python3 -B tools/build_trollstore_package.py /new/staging/path` (or add `--flavor appsync`) and build with Linux `dpkg-deb --root-owner-group`.
 
-No signing key is included. The signed live repository is https://zemabinks.github.io/repo/. Tests use mocked helper/system calls. The owner tested the Build107 app; the owner confirmed the0.107-3 wrapper installed cleanly and GTA relaunched with existing data. Older download confirmations retain their original scope.
+The owner tested private0.109-1 installation/data and the exact Build109 application with Mac voice, distance and mute. The public0.109-2 metadata wrapper was not separately installed.26 mocked public installer/catalog/index checks and actual archive/input checks pass. AppSync installation remains untested.
+
+No signing key is included. Use the canonical [Sileo repository](https://github.com/zemabinks/repo) for its signed package indexes and retained package pool. This folder mirrors installer source and download metadata; it is not a standalone APT repository. Keep the existing app and its data when updating.

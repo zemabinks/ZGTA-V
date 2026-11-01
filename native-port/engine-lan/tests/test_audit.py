@@ -44,7 +44,8 @@ class SessionRecovery(unittest.IsolatedAsyncioTestCase):
     @classmethod
     def setUpClass(cls):
         cls.temp=tempfile.TemporaryDirectory(prefix='zema-session-recovery-');cls.path=Path(cls.temp.name).resolve();cls.binary=cls.path/'test'
-        run(['/usr/bin/swiftc','-warnings-as-errors','-I',ROOT,'-I',ROOT/'tests','-module-cache-path',cls.path/'cache',ROOT/'EngineLanSession.swift',ROOT/'EngineLanBindings.swift',ROOT/'tests/session_recovery.swift',LIB,'-o',cls.binary])
+        run(['/usr/bin/clang','-std=c11','-O2','-c',ROOT/'ZemaVoice.c','-o',cls.path/'voice.o'])
+        run(['/usr/bin/swiftc','-warnings-as-errors','-I',ROOT,'-I',ROOT/'tests','-module-cache-path',cls.path/'cache',ROOT/'EngineLanSession.swift',ROOT/'EngineLanBindings.swift',ROOT/'tests/session_recovery.swift',cls.path/'voice.o',LIB,'-o',cls.binary])
     @classmethod
     def tearDownClass(cls):cls.temp.cleanup()
     async def check_session(self,mode):

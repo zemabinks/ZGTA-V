@@ -4,7 +4,7 @@
 
 ## Which file do I use?
 
-Use the same [ZGTA V IPA](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.3/ZGTA-V-Build107-Memory-UI-Audit-TrollStore.ipa) for TrollStore or an experimental sideloading attempt. The filename mentions TrollStore because that is the tested installation route. Other tools must re-sign it. Use `.ipa`, not the TrollStore `.tipa` alias or the Sileo `.deb`.
+Use the same [ZGTA V IPA](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.4/ZGTA-V-Build109-VoiceDistance-TrollStore.ipa) for TrollStore or an experimental sideloading attempt. The filename mentions TrollStore because that is the tested installation route. Other tools must re-sign it. Use `.ipa`, not the TrollStore `.tipa` alias or the Sileo `.deb`.
 
 | Method | ZGTA V status |
 |---|---|

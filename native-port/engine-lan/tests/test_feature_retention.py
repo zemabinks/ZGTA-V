@@ -58,15 +58,16 @@ class FeatureRetention(unittest.TestCase):
         marker='    override func touchesBegan('
         guard='        if let message = EngineLanFeaturePolicy.unavailableMessage(button: button.name, engineLAN: ZemaLabEnabled() != 0) {\n            DispatchQueue.main.async { self.unavailableAction?(message) }\n            return\n        }\n'
         self.assertEqual(staged.count(guard),1)
-        self.assertIn('let spkOn = ZemaLabEnabled() == 0 && MugoatVoiceIsSpeakerEnabled()',staged)
-        self.assertIn('let micOn = ZemaLabEnabled() == 0 && MugoatVoiceIsMicEnabled()',staged)
+        self.assertIn('let spkOn = EngineVoice.isSpeakerEnabled()',staged)
+        self.assertIn('let micOn = EngineVoice.isMicEnabled()',staged)
         normal=staged.replace(guard,'').replace('(ZemaGameIsOnline() != 0)','MugoatOnlineEnabled()')
-        self.assertEqual(normal[normal.index(marker):],original('TouchControlsView.swift')[original('TouchControlsView.swift').index(marker):])
+        for a,b in [('EngineVoice.isMicEnabled()', 'MugoatVoiceIsMicEnabled()'),('EngineVoice.isSpeakerEnabled()', 'MugoatVoiceIsSpeakerEnabled()'),('EngineVoice.setMicEnabled(', 'MugoatVoiceSetMicEnabled('),('EngineVoice.setSpeakerEnabled(', 'MugoatVoiceSetSpeakerEnabled(')]:normal=normal.replace(a,b)
+        self.assertEqual(normal[normal.index(marker):],source[source.index(marker):])
     def test_feature_policy_does_not_block_gameplay_or_legacy_actions(self):
         with tempfile.TemporaryDirectory(prefix='zema-feature-policy-') as d:
             path=Path(d).resolve();binary=path/'test'
             result=subprocess.run(['/usr/bin/swiftc','-warnings-as-errors','-module-cache-path',str(path/'cache'),str(ROOT/'EngineLanFeaturePolicy.swift'),str(ROOT/'tests/feature_policy.swift'),'-o',str(binary)],capture_output=True,text=True,timeout=90)
             self.assertEqual(result.returncode,0,result.stderr)
-            self.assertIn('ONLY_LEGACY_VOICE_AND_ROLE_ACTIONS_REPORT_UNAVAILABLE_ON_LAN_PASS',subprocess.check_output([str(binary)],text=True))
+            self.assertIn('ONLY_LEGACY_ROLE_ACTIONS_REPORT_UNAVAILABLE_ON_LAN_PASS',subprocess.check_output([str(binary)],text=True))
 
 if __name__=='__main__':unittest.main()

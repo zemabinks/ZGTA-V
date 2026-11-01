@@ -111,7 +111,7 @@ enum GraphicsConfiguration {
 
  def test_independent_memory_profile_and_modern_parity(self):
   source=(APP/'App/GraphicsOptions.swift').read_text().split('enum GraphicsConfiguration {',1)[1]
-  old=(Path(__file__).parent/'fixtures/GraphicsOptions-build99.swift').read_text().split('enum GraphicsConfiguration {',1)[1]
+  old=subprocess.check_output(['git','show','b3a69e59bd57fa458159f3063a45e7e417045e4f:native-port/app/App/GraphicsOptions.swift'],cwd=APP,text=True).split('enum GraphicsConfiguration {',1)[1]
   sweep=r'''
 for preset in GraphicsPreset.allCases {for height in [0,360,432,540,720,1080,2160] {for cap in [0,30,60] {for heat in 0...3 {
  var s=GameSettings();s.graphicsPreset=preset;s.renderHeight=height;s.frameRateCap=cap
