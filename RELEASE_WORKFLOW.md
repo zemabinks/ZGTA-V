@@ -28,7 +28,8 @@ Use existing keys and credentials. Never export private keys or infer physical i
 
 ## Product/version naming — owner instruction, 1 November 2026
 
-Use **ZGTA 5 — 1.1 beta 1**, package `1.1~beta1`. Follow
+Use the current product version in `VERSION.json`: browser/Mac **1.2**,
+unchanged iOS **1.1 beta 1**, Sileo package `1.1~beta1`. Follow
 `docs/VERSIONING.md` and `VERSION.json`; no Debian `-N` revision suffixes.
 Future beta numbers increase within1.x;2.0 requires a real major release.
 Preserve historical artifact URLs/receipts. Browser styling source and packages remain

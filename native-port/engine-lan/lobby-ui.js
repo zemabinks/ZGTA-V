@@ -68,7 +68,7 @@
   }
   let directoryModeBar,directoryFeedback,list,refreshButton,discoverButton;
   async function discoverLAN(){
-   if(closed||!directoryActive()||mode!=='LAN'||discoverButton.disabled)return;discoverButton.disabled=true;const generation=discoveryGeneration;discoveryNote='';directoryFeedback.textContent='Looking for nearby ZGTA V hosts…';
+   if(closed||!directoryActive()||mode!=='LAN'||discoverButton.disabled)return;discoverButton.disabled=true;const generation=discoveryGeneration;discoveryNote='';directoryFeedback.textContent='Looking for nearby ZGTA 5 hosts…';
    try{const found=await api('lobbies/discover',{});if(!servers.open||mode!=='LAN'||generation!==discoveryGeneration)return;discovered=found.addresses||[];if(!found.available)discoveryNote=found.message||'Automatic discovery is unavailable. Add your friend’s invite instead.';catalogBusy=false;await refreshServers();}catch(e){directoryFeedback.textContent=e.message;}finally{discoverButton.disabled=false;}
   }
   let onlyFavorites=false,latest={hosts:[],checkedAt:0},favoriteTabs=[];
@@ -101,7 +101,7 @@
   }
   function renderServer(card){
    const row=node('article',undefined,'server-card'),top=node('div',undefined,'server-top'),title=node('div'),pill=node('span',card.state==='online'?'Online':card.state==='unadvertised'?'Host online · room not advertised':card.state==='unchecked'?'Not checked':card.state==='incompatible'?'Different version':card.state==='room-missing'?'Room unavailable':'Offline','state-pill '+(card.state==='online'?'':card.state==='incompatible'?'incompatible':'offline'));
-   title.append(node('h3',card.room),node('p',card.label||'ZGTA V lobby','server-caption'));top.append(title,pill);row.append(top,node('p',card.relay,'server-caption'));
+   title.append(node('h3',card.room),node('p',(card.label||'ZGTA 5 lobby').replace(/^ZGTA V lobby$/,'ZGTA 5 lobby'),'server-caption'));top.append(title,pill);row.append(top,node('p',card.relay,'server-caption'));
    const meta=node('div',undefined,'server-meta');
    if(card.state==='online'||card.state==='unadvertised'){meta.append(node('span',card.verifiedRoom?card.players+' / '+card.capacity+' players':card.total+' connected on host'),node('span',card.latency+' ms response'),node('span',card.connection));if(!card.verifiedRoom)meta.append(node('span','Room is checked when joining'));if(card.slots>=card.capacity)meta.append(node('span','Full or players reconnecting'));}
    else meta.append(node('span',card.state==='room-missing'?'Your saved room is no longer advertised by this host.':card.message||'Open the host game/relay and check your connection.'));

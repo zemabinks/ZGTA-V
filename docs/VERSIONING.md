@@ -1,7 +1,8 @@
 # ZGTA 5 versioning
 
-The product is **ZGTA 5**. The current release is **1.1 beta 1**. Sileo uses
-`1.1~beta1`, as explicitly chosen by the owner on 1 November 2026.
+The product is **ZGTA 5**. The browser/Mac release is **1.2**; the unchanged
+iOS app remains **1.1 beta 1**. Sileo uses `1.1~beta1`, as explicitly chosen
+by the owner on 1 November 2026.
 
 - Use 1.x for ongoing releases. Reserve 2.0 for a substantial major release.
 - During a release's beta cycle, increment beta 1, beta 2 and so on. Once ready,
@@ -22,4 +23,5 @@ The product is **ZGTA 5**. The current release is **1.1 beta 1**. Sileo uses
   receipts for existing installs and recovery. Current pages use the new label;
   historical evidence retains what was actually built or observed.
 
-Current public release: [ZGTA 5 — 1.1 beta 1](https://github.com/zemabinks/ZGTA-V/releases/tag/v1.1-beta.1).
+Current browser/Mac release: [ZGTA 5 — 1.2](https://github.com/zemabinks/ZGTA-V/releases/tag/v1.2).
+Unchanged iOS: [1.1 beta 1](https://github.com/zemabinks/ZGTA-V/releases/tag/v1.1-beta.1).

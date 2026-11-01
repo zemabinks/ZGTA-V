@@ -1,0 +1,60 @@
+{
+  "format": "zgta-1.2-public-manifest-v1",
+  "product_name": "ZGTA 5",
+  "product_version": "1.2",
+  "release": "https://github.com/zemabinks/ZGTA-V/releases/tag/v1.2",
+  "frozen_browser_mac_source": "6084cd63056d0864be0f9245057a9fc6f8c181e7",
+  "public_source_policy": "Clean curated public mirror; no private Git history or raw private verification archive.",
+  "owner_test": {
+    "report_exact": "Yes \u2014 1.2 design and game startup work",
+    "scope": "Exact Mac DMG installed into Applications, opened there, design/navigation checked, game started with existing data.",
+    "artifact_sha256": "b628c2f8708d6f615311c52d43e8ee2bda80e652b0962fbaa7ccb51a0b928aed"
+  },
+  "publication_approval": {
+    "answer_exact": "Yes \u2014 publish 1.2",
+    "date": "2026-11-01"
+  },
+  "ios": {
+    "display_version": "1.1 beta 1",
+    "package_version": "1.1~beta1",
+    "build": 109,
+    "changed": false,
+    "release": "https://github.com/zemabinks/ZGTA-V/releases/tag/v1.1-beta.1"
+  },
+  "artifacts": [
+    {
+      "name": "ZGTA-5-1.2-Android-Termux.zip",
+      "bytes": 47620227,
+      "sha256": "5f08c04a9d2bc163682a8ba1a6cf70b1c051ba0fe95305fc5a455a568acf3b31"
+    },
+    {
+      "name": "ZGTA-5-1.2-Browser-Mac-Linux.zip",
+      "bytes": 47620125,
+      "sha256": "2eb5004ac293c22b3fbd26c0a7b3c3aa1876535ea242babd3fa117534027e62c"
+    },
+    {
+      "name": "ZGTA-5-1.2-Mac.dmg",
+      "bytes": 133793874,
+      "sha256": "b628c2f8708d6f615311c52d43e8ee2bda80e652b0962fbaa7ccb51a0b928aed"
+    },
+    {
+      "name": "ZGTA-5-1.2-Windows-x64.zip",
+      "bytes": 59062034,
+      "sha256": "2beaf24d9b4ed0075138e20b4e446db9baed628702216a61b2549312b9837193"
+    }
+  ],
+  "verification": {
+    "focused_methods_passed": 27,
+    "browser_views_visually_checked": 8,
+    "archive_runtime_manifest_checks": "PASS on Mac; not execution on all platforms",
+    "mac_disk_signature_mounted_hashes_relocated_intel_runtime": "PASS",
+    "untested_execution": [
+      "Apple Silicon",
+      "Windows",
+      "Linux",
+      "Android"
+    ],
+    "notarized": false,
+    "new_performance_claim": false
+  }
+}

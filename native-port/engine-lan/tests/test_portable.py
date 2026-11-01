@@ -64,7 +64,7 @@ class Portable(unittest.TestCase):
         index=json.loads((root/'scripts/release-index.json').read_text())
         self.assertGreaterEqual(index['latest_ios_build'],101)
         block=(root/'README.md').read_text().split('<!-- current-build:start -->',1)[1].split('<!-- current-build:end -->',1)[0]
-        self.assertIn('[Build '+str(index['latest_ios_build'])+']',block)
+        self.assertRegex(block,r'\bBuild\s*'+str(index['latest_ios_build'])+r'\b')  # Product labels are separate from the internal build counter.
         self.assertIn('/releases/tag/'+index['installer_proof']['tag'],block)
         self.assertNotIn('Newest iPhone installer: [Build 91]',block)
         # SOURCE_VERSION is intentionally historical, not a mutable download index.
