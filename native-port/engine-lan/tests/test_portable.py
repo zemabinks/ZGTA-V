@@ -144,9 +144,19 @@ class Portable(unittest.TestCase):
         private={'user':'S-1-5-21-123','owner':'S-1-5-21-123','allow':['S-1-5-21-123','S-1-5-18','S-1-5-32-544']}
         self.assertTrue(security.valid_acl(private))
         for change in [{'owner':'S-1-5-18'},{'allow':[]},{'allow':['S-1-1-0']},{'allow':['S-1-5-21-123','S-1-5-32-545']}]:self.assertFalse(security.valid_acl(dict(private,**change)))
+        # Windows keeps an inheritance-free folder private with OWNER RIGHTS (S-1-3-4)
+        # instead of the owner's SID; that must not block launcher startup.
+        owner_rights=dict(private,allow=['S-1-3-4','S-1-5-18','S-1-5-32-544'])
+        self.assertTrue(security.valid_acl(owner_rights))
+        self.assertTrue(security.valid_acl(dict(owner_rights,allow=['S-1-3-0','S-1-3-4','S-1-5-18'])))
+        self.assertTrue(security.valid_acl(dict(owner_rights,allow='S-1-5-21-123')))
+        for change in [{'allow':['S-1-3-4','S-1-1-0']},{'allow':['S-1-3-4','S-1-5-21-999']},{'owner':'S-1-5-18'}]:self.assertFalse(security.valid_acl(dict(owner_rights,**change)))
         run=Mock(return_value=Mock(stdout=json.dumps(private).encode()))
         with patch.object(security.subprocess,'run',run):security.windows_private(Path('a folder'),new=False)
         args=run.call_args[0][0];self.assertNotIn('-ExecutionPolicy',args);self.assertNotIn('Set-Acl',args[-1]);self.assertEqual(run.call_args.kwargs['env']['ZGTA_PRIVATE_PATH'],'a folder')
+        shared=Mock(return_value=Mock(stdout=json.dumps(dict(owner_rights,allow=['S-1-1-0'])).encode()))
+        with patch.object(security.subprocess,'run',shared):
+            with self.assertRaisesRegex(ValueError,'Existing permissions were preserved. Owner .*allowed S-1-1-0'):security.windows_private(Path('a folder'),new=False)
 
     def test_integrity_refuses_changed_and_escaping_package_paths(self):
         with tempfile.TemporaryDirectory() as folder:
