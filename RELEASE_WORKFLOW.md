@@ -31,5 +31,20 @@ Use existing keys and credentials. Never export private keys or infer physical i
 Use **ZGTA 5 — 1.1 beta 1**, package `1.1~beta1`. Follow
 `docs/VERSIONING.md` and `VERSION.json`; no Debian `-N` revision suffixes.
 Future beta numbers increase within1.x;2.0 requires a real major release.
-Preserve historical artifact URLs/receipts. Browser styling changes remain
+Preserve historical artifact URLs/receipts. Browser styling source and packages remain
 private until applicable owner testing and the separate final public choice.
+
+## Interface preview consistency
+
+When a UI change is ready for review, check both repository front pages and the
+full interface galleries together. Capture actual affected browser screens and,
+for iOS changes, the affected production screens in Simulator on iPhone 15 Pro
+and a compact profile. Inspect the pictures; do not reuse browser screenshots
+under iOS labels or infer visuals from compilation alone.
+
+Use new dated image filenames, update every current image reference and caption,
+and clearly distinguish an upcoming design preview from the downloadable
+release. Keep earlier screenshots in a labeled archive. Check relative image,
+guide and section links, then read both default-branch READMEs and galleries back
+from GitHub and visually inspect the rendered front page before reporting done.
+Screenshot publication does not approve application source or binary promotion.

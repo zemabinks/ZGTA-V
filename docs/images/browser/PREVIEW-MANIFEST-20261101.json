@@ -1,0 +1,49 @@
+{
+  "captured_on": "2026-11-01",
+  "browser": "Chrome on macOS",
+  "status": "Upcoming design preview; not included in 1.1 beta 1 downloads",
+  "images": [
+    {
+      "path": "images/browser/Story-mode-20261101.jpg",
+      "width": 1680,
+      "height": 783,
+      "bytes": 66526,
+      "sha256": "1458283e3fc61ded3a8e5ca27fd14dcad2e0b35433b674aa36e58928ed98c156"
+    },
+    {
+      "path": "images/browser/Graphics-20261101.jpg",
+      "width": 1680,
+      "height": 783,
+      "bytes": 87764,
+      "sha256": "897eade44fed2cfc47aaf06928949b28e8945def88ce54cfe4f264e6e8460641"
+    },
+    {
+      "path": "images/browser/Controls-20261101.jpg",
+      "width": 1680,
+      "height": 783,
+      "bytes": 88260,
+      "sha256": "74e171cef40473add31a45b11b870c93c8c0956f6c319b9abdffb12ac66cdd0f"
+    },
+    {
+      "path": "images/browser/Mods-20261101.jpg",
+      "width": 1680,
+      "height": 783,
+      "bytes": 92662,
+      "sha256": "ddf58791f14b4b316e051e68325c7d18208446cb52b4b65b1837a0faae7912f7"
+    },
+    {
+      "path": "images/browser/Saves-20261101.jpg",
+      "width": 1680,
+      "height": 783,
+      "bytes": 122378,
+      "sha256": "fd752dcffc831723f8dc89db71064fb61c668a50e3fe50922d1298d9e26b80c2"
+    },
+    {
+      "path": "images/browser/Support-20261101.jpg",
+      "width": 1680,
+      "height": 783,
+      "bytes": 91517,
+      "sha256": "f0dec0754506bb851f8ce48be2cc430262d7747fc751af906f5b0208996d6eed"
+    }
+  ]
+}
