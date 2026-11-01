@@ -1,0 +1,63 @@
+{
+  "format": "zgta-version11-naming-release-v1",
+  "owner_choice": {
+    "format": "zgta-owner-version-choice-v1",
+    "observed_on": "2026-11-01",
+    "product": "ZGTA 5",
+    "display_version": "1.1 beta 1",
+    "package_version": "1.1~beta1",
+    "owner_latest_reply": "1.1~beta1",
+    "scope": "Current public/private branding, documentation and metadata-only Sileo packages; new browser styling remains private pending owner review.",
+    "old_public_label": "ZGTA V 2.0 beta 4",
+    "application_build": 109,
+    "mac_build": "109.1",
+    "signed_application_artifacts_changed": false,
+    "historical_tags_and_receipts_preserved": true
+  },
+  "packages": [
+    {
+      "channel": "stable",
+      "flavor": "trollstore",
+      "file": "com.zema.zgta-v.trollstore_1.1~beta1_all.deb",
+      "bytes": 3080,
+      "sha256": "2fede428edf60cea2bcf4a1fe40a91d283e063dfcd8e01d2bd03f2b35c443022"
+    },
+    {
+      "channel": "stable",
+      "flavor": "appsync",
+      "file": "com.zema.zgta-v.appsync_1.1~beta1_iphoneos-arm.deb",
+      "bytes": 2800,
+      "sha256": "dbec15bf1c77207b67bc0657c028f642e0a8e205f0bde035d4c2130cd4bdb27a"
+    }
+  ],
+  "verification": {
+    "channel": "stable",
+    "package_stanzas": 36,
+    "all_pool_hashes": "PASS",
+    "compressed_indexes": "PASS",
+    "signatures": {
+      "format": "version11-stable-sileo-signatures-v1",
+      "valid_fingerprint": "369B9D41D3BCEA2520B22C2BD9AD1897295C6D05",
+      "compressed_indexes_match": true,
+      "signing_key_exported": false,
+      "global_trust_or_service_configuration_changed": false,
+      "files": {
+        "Release": {
+          "bytes": 1817,
+          "sha256": "5254fbc9a96f2c4adf7f84d70f1897ed7c31a76eec56614777ebcd84ad2d446d"
+        },
+        "Release.gpg": {
+          "bytes": 228,
+          "sha256": "005eb7a525e060cff4418f24b04c532b8e75d1a417802df00269ffa3d3257b17"
+        },
+        "InRelease": {
+          "bytes": 2094,
+          "sha256": "4117c7a8b9f591d0eba1910fa117526fc4a67fa9412e1873373bf3c865616d73"
+        }
+      }
+    }
+  },
+  "new_wrapper_device_test": "NOT_RUN",
+  "tested_IPA_changed": false,
+  "new_browser_UI_included": false
+}

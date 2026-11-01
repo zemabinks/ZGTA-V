@@ -1,0 +1,15 @@
+{
+  "format": "zgta-product-version-v1",
+  "product_name": "ZGTA 5",
+  "version": "1.1",
+  "channel": "beta",
+  "beta": 1,
+  "display_version": "1.1 beta 1",
+  "package_version": "1.1~beta1",
+  "application_build": 109,
+  "mac_package_build": "109.1",
+  "public_release": "https://github.com/zemabinks/ZGTA-V/releases/tag/v1.1-beta.1",
+  "artifact_policy": "Exact tested binaries retained; build identifiers and historical tags are provenance, not product versions.",
+  "legacy_binary_short_version": "2.0",
+  "next_beta": "1.1 beta 2"
+}

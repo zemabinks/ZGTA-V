@@ -1,4 +1,6 @@
-# ZGTA V 2.0 beta 4
+# ZGTA 5
+
+**1.1 beta 1**
 
 ### By zema · zemabinks
 
@@ -6,7 +8,7 @@
 
 Your own matching prepared game files are required. No commercial game content is included.
 
-**[Download beta 4](https://github.com/zemabinks/ZGTA-V/releases/tag/v2.0.0-beta.4)** · **[Install and update](docs/START-HERE.md)** · **[What's new](docs/RELEASE-NOTES-beta4.md)** · **[Play guide](docs/PLAY-GUIDE.md)**
+**[Download 1.1 beta 1](https://github.com/zemabinks/ZGTA-V/releases/tag/v1.1-beta.1)** · **[Install and update](docs/START-HERE.md)** · **[What's new](docs/RELEASE-NOTES-1.1-beta1.md)** · **[Play guide](docs/PLAY-GUIDE.md)**
 
 ## Start screens
 
@@ -20,15 +22,15 @@ Your own matching prepared game files are required. No commercial game content i
 
 | Platform | Package | Status |
 |---|---|---|
-| iPhone / iPad — iOS / iPadOS 15.0+ | [Build 109 IPA](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.4/ZGTA-V-Build109-VoiceDistance-TrollStore.ipa) | Owner-tested on iPhone 15 Pro with TrollStore. Other installation routes remain experimental. |
-| Mac | [Build 109.1 DMG](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.4/ZGTA-V-Build109.1-Mac.dmg) | Mac browser voice/gameplay tested; package checks pass. New109.1 drag-install not repeated; Apple Silicon untested. Ad-hoc signed, not notarized. |
-| Mac / Linux browser | [Build 109 ZIP](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.4/ZGTA-V-Build109-Browser-Mac-Linux.zip) | Requires installed Python 3.9+ and a compatible browser. Linux gameplay untested. |
-| Windows x64 | [Build 109 ZIP](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.4/ZGTA-V-Build109-Windows-x64.zip) | Bundled Python; Windows execution untested. |
-| Android | [Build 109 Termux ZIP](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.4/ZGTA-V-Build109-Android-Termux.zip) | Experimental browser version; no APK. Android execution untested. |
+| iPhone / iPad — iOS / iPadOS 15.0+ | [1.1 beta 1 IPA](https://github.com/zemabinks/ZGTA-V/releases/download/v1.1-beta.1/ZGTA-V-Build109-VoiceDistance-TrollStore.ipa) | Owner-tested on iPhone 15 Pro with TrollStore. Other installation routes remain experimental. |
+| Mac | [1.1 beta 1 DMG](https://github.com/zemabinks/ZGTA-V/releases/download/v1.1-beta.1/ZGTA-V-Build109.1-Mac.dmg) | Mac browser voice/gameplay tested; package checks pass. New109.1 drag-install not repeated; Apple Silicon untested. Ad-hoc signed, not notarized. |
+| Mac / Linux browser | [1.1 beta 1 ZIP](https://github.com/zemabinks/ZGTA-V/releases/download/v1.1-beta.1/ZGTA-V-Build109-Browser-Mac-Linux.zip) | Requires installed Python 3.9+ and a compatible browser. Linux gameplay untested. |
+| Windows x64 | [1.1 beta 1 ZIP](https://github.com/zemabinks/ZGTA-V/releases/download/v1.1-beta.1/ZGTA-V-Build109-Windows-x64.zip) | Bundled Python; Windows execution untested. |
+| Android | [1.1 beta 1 Termux ZIP](https://github.com/zemabinks/ZGTA-V/releases/download/v1.1-beta.1/ZGTA-V-Build109-Android-Termux.zip) | Experimental browser version; no APK. Android execution untested. |
 
-Read the **[installation guide](docs/START-HERE.md)** before downloading. The Mac launcher includes Python and requires Chrome plus your compatible game files. Sileo users can add **[Zema’s Repo](https://zemabinks.github.io/repo/)**. Installer **0.109-2** delivers the unchanged owner-tested Build 109 IPA through the public download URL. AppSync is experimental. Keep your existing app, game files and saves when updating; previous releases remain available.
+Read the **[installation guide](docs/START-HERE.md)** before downloading. The Mac launcher includes Python and requires Chrome plus your compatible game files. Sileo users can add **[Zema’s Repo](https://zemabinks.github.io/repo/)**. Installer **1.1~beta1** delivers the unchanged owner-tested Build 109 IPA through the public download URL. AppSync is experimental. Keep your existing app, game files and saves when updating; previous releases remain available.
 
-## What's new in beta 4
+## What's new in 1.1 beta 1
 
 - Proximity voice between iPhone and browser multiplayer players, using the existing microphone and speaker controls.
 - Voices become progressively quieter with distance and silent beyond 35 metres; movement changes are smoothed.
@@ -50,10 +52,14 @@ This remains a beta. Reduced-memory behavior has not been benchmarked on a physi
 
 ## Optional hosting tools
 
-Normal hosting uses **Multiplayer → Create a lobby** in ZGTA V and needs no extra download.
+Normal hosting uses **Multiplayer → Create a lobby** in ZGTA 5 and needs no extra download.
 
 [Mac relay controls 1.1](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.3/ZGTA-V-Relay-Controls-1.1.zip) are for a Mac that should keep a standalone multiplayer relay available while GTA is closed, including managed ZRemote setups. The relay forwards multiplayer traffic; the game runs on the players' devices. The Mac must stay awake and logged in. See [optional relay setup](docs/PLAY-GUIDE.md#optional-standalone-mac-relay).
 
 ## Source and credits
 
 [Build information](docs/DEVELOPMENT.md) · [Source audit](docs/SOURCE-AUDIT.json) · [License](LICENSE) · [Native source license](native-port/LICENSE) · [Third-party notices](native-port/engine-lan/THIRD_PARTY_NOTICES.md)
+
+The [versioning guide](docs/VERSIONING.md) explains the naming transition. Existing tested artifacts and their download filenames are retained.
+
+Current product naming is **ZGTA 5 — 1.1 beta 1**; Sileo uses `1.1~beta1`. The signed application downloads are unchanged legacy Build 109/109.1 artifacts. Their older embedded short version is retained; this naming update is not a new gameplay build. New browser styling is being reviewed privately.
