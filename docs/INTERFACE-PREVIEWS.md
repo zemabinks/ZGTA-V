@@ -1,4 +1,4 @@
-# ZGTA V interface previews
+# ZGTA 5 interface previews
 
 [Downloads and guides](../README.md) · [Browser](#browser--mac-launcher) · [iOS](#ios-app)
 

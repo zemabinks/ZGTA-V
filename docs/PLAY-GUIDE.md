@@ -13,7 +13,7 @@ Import new packs before starting a game. Use compatible, unencrypted GTA V Legac
 3. Read **Mod Import Results**, then check **Installed Mods**. A copied file is not necessarily a loadable pack; the manager identifies incompatible files.
 4. Tap an installed mod to enable or disable it. Restart the app when changes are marked pending, then launch Solo Story or Free Roam.
 
-You can also manage files in **Files → On My iPhone → ZGTA V → mods**. Keep a copy of the original pack.
+You can also manage files in **Files → On My iPhone → ZGTA 5 → mods**. Keep a copy of the original pack.
 
 ### Browser
 
@@ -35,7 +35,7 @@ On iOS, resolution can change during play; preset and frame-rate changes require
 
 ## Private Multiplayer
 
-Every player needs matching prepared game files. A lobby created inside ZGTA V needs the hosting app to remain open; iOS hosting stops when the app leaves the foreground. The optional standalone Mac relay below can keep the relay available while GTA is closed.
+Every player needs matching prepared game files. A lobby created inside ZGTA 5 needs the hosting app to remain open; iOS hosting stops when the app leaves the foreground. The optional standalone Mac relay below can keep the relay available while GTA is closed.
 
 For remote setup, start with the **[Tailscale download, host and join guide](REMOTE-PLAY.md)**.
 
@@ -76,7 +76,7 @@ The updated managed host advertises an empty **LOS-SANTOS** room before anyone j
 3. Confirm your player details and connection, then press **Play Multiplayer**.
 4. Tap the heart to save a lobby under **Favorites**. Offline favorites stay saved, but cannot be joined until the host is online.
 
-Nearby LAN hosts must advertise their ZGTA service to appear automatically. Updated managed Mac relays are discoverable with zero players. If a lobby is missing, confirm the host is using relay controls 1.1 or send an invite. Check the network/VPN connection on both devices. On Windows, check that the host was allowed through the firewall on the intended private network. If changing host or room after connecting requires it, reopen ZGTA V first.
+Nearby LAN hosts must advertise their ZGTA service to appear automatically. Updated managed Mac relays are discoverable with zero players. If a lobby is missing, confirm the host is using relay controls 1.1 or send an invite. Check the network/VPN connection on both devices. On Windows, check that the host was allowed through the firewall on the intended private network. If changing host or room after connecting requires it, reopen ZGTA 5 first.
 
 ## Back up saves
 

@@ -1,0 +1,38 @@
+{
+  "minVersion": "0.1",
+  "headerImage": "https://github.com/shalamand3r/shalamand3r.github.io/blob/main/banners/relayrace.png?raw=true",
+  "tintColor": "#564eba",
+  "tabs": [
+    {
+      "class": "DepictionStackView",
+      "tabname": "Details",
+      "views": [
+        {
+          "class": "DepictionMarkdownView",
+          "markdown": "Fix iCloud Private Relay! (iOS 17.0+)",
+          "useSpacing": true
+        },
+        {
+          "class": "DepictionSeparatorView"
+        },
+        {
+          "class": "DepictionMarkdownView",
+          "markdown": "RelayRace fixes iCloud Private Relay (Safari, Mail) on iOS by patching `networkserviceproxy` so configuration validation can complete normally.\n\n**RootHide support and port by ZEMA.** Original tweak by shalamand3r.",
+          "useSpacing": true
+        }
+      ]
+    },
+    {
+      "class": "DepictionStackView",
+      "tabname": "Changelog",
+      "views": [
+        {
+          "class": "DepictionMarkdownView",
+          "markdown": "### Version 1.2\n- Added support for RootHide (port by ZEMA).\n\n### Version 1.1\n- Added support for Dopamine 3\n\n### Version 1.0\n- Initial release",
+          "useSpacing": true
+        }
+      ]
+    }
+  ],
+  "class": "DepictionTabView"
+}

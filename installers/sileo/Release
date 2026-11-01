@@ -1,0 +1,29 @@
+Origin: Zema's Repo
+Label: Zema's Repo
+Suite: stable
+Codename: ios
+Version: 1.0
+Architectures: iphoneos-arm iphoneos-arm64 iphoneos-arm64e all
+Components: main
+Date: Sun, 01 Nov 2026 15:27:57 GMT
+Description: Zema's iOS tweaks, apps and ports
+MD5Sum:
+ 8386ad04e5d9643e67996bc8c1fc7344            37510 Packages
+ c08df26f86645367e7e6265451d0405b             8111 Packages.gz
+ e557a22b58aedc7ad2229116e505e5bd             7732 Packages.bz2
+ fdb10a826de7322a890f89a03609c7e6             7140 Packages.xz
+SHA1:
+ 1a82c6b7040087690be5ed8a9ade5b8136061930            37510 Packages
+ 0e3d93860f6628a750a3bcd6d07a5787de981646             8111 Packages.gz
+ 6096dc9c17f7ad61d9d8edd9228d84ce1425a46d             7732 Packages.bz2
+ 7cc7a2797db64fdc74ea442dffd775ca22b0f9a7             7140 Packages.xz
+SHA256:
+ 8ec21716af99411c4f108472e659696b2f8c8772d2c2b2bc8d4e58c5ddde1359            37510 Packages
+ 77a0824253821e4487a4c4d2249ea381fb6f31c5cf1c5c996a73f2f33a13c735             8111 Packages.gz
+ c50afcd57689b559d7253956b24a401d4cf6a11b1ad6225a900da61d47e219f5             7732 Packages.bz2
+ a1071a798491622d70d6b6f84d048716315cde7a8ec4d7b6b598a90aadadb92b             7140 Packages.xz
+SHA512:
+ 788c14dfea1ead17acad6e9311dafc4b41e043b60a3d2d2ea1b05700b820842929b52f7cb96b11711254e890c8d6bd8356c5a304ae0b3e241d067e169f06740a            37510 Packages
+ e550902dfa4cc4495355599e2da0c22be17dd9c4775b52e75cb62864b9354d0f4314eb254a6be2960f1a9d4e97078c061757c4e4c1f229517a9700439127b3bb             8111 Packages.gz
+ 1b2c569f0348f81f3b141425351f24e1e8a3f910277713dab023e441255243ed77dad81a70f7c1dcaf39a5ad1f70b8f47a3f4bf41ce4558ffd16234255a0bc4c             7732 Packages.bz2
+ 1a69b6dc8a090ca6268392c86343a9bfcc45065458b0c9698bd4ab6eca8ff5479801f4a798064c35b431ec946b03ceff05bc063ad5c010267160d7276091d5f5             7140 Packages.xz

@@ -1,0 +1,14 @@
+{
+  "format": "zgta-owner-version-choice-v1",
+  "observed_on": "2026-11-01",
+  "product": "ZGTA 5",
+  "display_version": "1.1 beta 1",
+  "package_version": "1.1~beta1",
+  "owner_latest_reply": "1.1~beta1",
+  "scope": "Current public/private branding, documentation and metadata-only Sileo packages; new browser styling remains private pending owner review.",
+  "old_public_label": "ZGTA V 2.0 beta 4",
+  "application_build": 109,
+  "mac_build": "109.1",
+  "signed_application_artifacts_changed": false,
+  "historical_tags_and_receipts_preserved": true
+}
