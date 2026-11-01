@@ -12,11 +12,12 @@ Your own matching prepared game files are required. No commercial game content i
 
 ## Start screens
 
-| iOS app | Browser / Mac launcher |
+| Native iOS app | Upcoming browser / Mac design |
 |---|---|
-| ![Native iOS Home captured in the iPhone 15 Pro Simulator](docs/images/ios/Home-107.png) | ![Browser Story mode and main navigation](docs/images/browser/Story-mode-107.jpg) |
+| ![Native iOS Home captured in the iPhone 15 Pro Simulator](docs/images/ios/Home-107.png) | ![Upcoming browser design with monochrome map and main navigation](docs/images/browser/Story-mode-20261101.jpg) |
 
-[See the full iOS and browser gallery](docs/INTERFACE-PREVIEWS.md).
+Browser images preview the upcoming design; current 1.1 beta 1 downloads retain
+the existing launcher. [See the full iOS and browser gallery](docs/INTERFACE-PREVIEWS.md).
 
 ## Downloads
 
