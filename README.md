@@ -14,7 +14,7 @@ Your own matching prepared game files are required. No commercial game content i
 
 | Native iOS app | Upcoming browser / Mac design |
 |---|---|
-| ![Native iOS Home captured in the iPhone 15 Pro Simulator](docs/images/ios/Home-107.png) | ![Upcoming browser design with monochrome map and main navigation](docs/images/browser/Story-mode-20261101.jpg) |
+| <img src="docs/images/ios/Home-107.png" alt="Native iOS Home captured in the iPhone 15 Pro Simulator" width="400"> | <img src="docs/images/browser/Story-mode-20261101.jpg" alt="Upcoming browser design with monochrome map and main navigation" width="400"> |
 
 Browser images preview the upcoming design; current 1.1 beta 1 downloads retain
 the existing launcher. [See the full iOS and browser gallery](docs/INTERFACE-PREVIEWS.md).
