@@ -1,7 +1,7 @@
 {
   "captured_on": "2026-11-01",
   "browser": "Chrome on macOS",
-  "status": "Upcoming design preview; not included in 1.1 beta 1 downloads",
+  "status": "Released in ZGTA 5 1.2; iOS remains 1.1 beta 1",
   "images": [
     {
       "path": "images/browser/Story-mode-20261101.jpg",
@@ -45,5 +45,6 @@
       "bytes": 91517,
       "sha256": "f0dec0754506bb851f8ce48be2cc430262d7747fc751af906f5b0208996d6eed"
     }
-  ]
+  ],
+  "release": "https://github.com/zemabinks/ZGTA-V/releases/tag/v1.2"
 }

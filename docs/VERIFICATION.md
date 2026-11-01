@@ -1,3 +1,19 @@
+# ZGTA 5 1.2 verification
+
+## Current browser / Mac scope — 1 November 2026
+
+- **Owner Intel Mac:** exact 1.2 DMG installed into Applications; design/navigation and game startup with existing data confirmed. The public DMG retains those exact bytes.
+- **Browser UI:** all eight integrated views inspected in actual Chrome from the packaged launcher. Fourteen existing controls retained their placement within one pixel; the monochrome map and native-style surfaces were visually checked.
+- **Local checks:** 27 focused UI, desktop-identity and portable test methods passed, plus JavaScript syntax checks. All three portable source/runtime manifests, archive CRCs and extracted HTTP verification passed on Mac. Windows Python headers and full archive bytes matched their pinned input; Windows was not executed.
+- **Mac package:** disk-image validation, deep strict ad-hoc signatures, all 3,521 mounted member hashes, relocated Intel Python and actual production AppKit layout passed. The DMG includes an Applications shortcut.
+- **iOS / Sileo:** unchanged 1.1 beta 1 / Build 109; no replacement IPA or DEB. Existing iPhone/Mac voice and native Simulator layout results remain below.
+
+[RELEASE-1.2-MANIFEST.json](RELEASE-1.2-MANIFEST.json) identifies the exact four packages and the owner's publication choice. [SOURCE-AUDIT.json](SOURCE-AUDIT.json) maps the public source to its frozen inputs.
+
+Apple Silicon, Windows, Linux and Android execution remain untested. The Mac app is ad-hoc signed, not notarized. Android remains the experimental Termux/browser starter, not an APK. No new renderer, voice, memory-policy, FPS, thermal or physical 3 GB-device improvement is claimed.
+
+## Historical 1.1 beta 1 evidence
+
 # Beta4 verification
 
 ## Current scope — 1 November 2026

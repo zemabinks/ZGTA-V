@@ -1,3 +1,15 @@
+# Current 1.2 source and package identity
+
+The owner approved **ZGTA 5 — 1.2** on 1 November 2026 after testing the exact Mac DMG installation, design/navigation and game startup with existing data. Browser/Mac inputs are frozen at `6084cd63056d0864be0f9245057a9fc6f8c181e7`; the public mirror copies the changed production files byte-for-byte. Internal browser/Mac revision 110 is separate from product version 1.2.
+
+The iOS app and Sileo installer remain **1.1 beta 1** / `1.1~beta1`, using the same Build 109 IPA and source `3648065f50928fb8cd147d04bb17363f4b1e4b05`. No new iOS build is included.
+
+[SOURCE-AUDIT.json](SOURCE-AUDIT.json) maps every curated source unit to its original revision and hashes, including documented neutral test-fixture substitutions. The source ZIP in the [1.2 release](https://github.com/zemabinks/ZGTA-V/releases/tag/v1.2) is exported from this public tree, without private development history, raw phone logs, recorded voice, private LAN captures, signing keys or game data. Public documentation/version metadata is maintained separately from the frozen build inputs.
+
+All four 1.2 installer downloads retain the exact checked candidate bytes. Embedded manifests and START HERE files may identify private development provenance or candidate wording; this is build history, not a requirement to sign into a private repository. Current downloads and installation instructions are the links in this public repository. The clean public source mapping preserves traceability without exporting private history. [Verification](VERIFICATION.md) lists actual checks and platform limits.
+
+## Historical source notes
+
 # Current beta4 source and package identity
 
 The owner approved public publication on 1 November 2026 after exact Build 109 iPhone/Mac voice tests. iOS/browser source is `3648065f50928fb8cd147d04bb17363f4b1e4b05`; Mac 109.1 wrapper source is `4bbf3dfb9dbbb51b1a42b68111fd2e9664054cf2`. [SOURCE-AUDIT.json](SOURCE-AUDIT.json) maps the curated public snapshot to those frozen inputs.
