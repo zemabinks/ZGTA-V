@@ -66,6 +66,7 @@ final class NativePortViewController: UIViewController, MTKViewDelegate {
     /// Mic toggles and audio configuration changes touch the same session and engine: one at a time.
     private let audioQueue = DispatchQueue(label: "mugoat.audio", qos: .userInitiated)
     private var isMicTapInstalled = false
+    private var audioInterrupted = false // confined to audioQueue
     private var displayLink: CADisplayLink?
     private var lastControllerPoll: CFTimeInterval?
     private var lines: [String] = []
@@ -211,6 +212,9 @@ final class NativePortViewController: UIViewController, MTKViewDelegate {
         touchControls.openCheat = { [weak self] in self?.showModManager() }
         touchControls.hintsChanged = { [weak self] line in self?.appendLog(line) }
         touchControls.onVoiceMicChanged = { [weak self] enabled in self?.handleVoiceMicChanged(enabled) }
+        NotificationCenter.default.addObserver(self, selector: #selector(handleVoiceTransportChanged), name: Notification.Name("ZGTAEngineVoiceTransportChanged"), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(suspendVoiceCapture), name: UIApplication.didEnterBackgroundNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(handleVoiceAudioInterruption(_:)), name: AVAudioSession.interruptionNotification, object: nil)
         let tap3 = UITapGestureRecognizer(target: self, action: #selector(handleThreeFingerTap(_:)))
         tap3.numberOfTouchesRequired = 3
         tap3.cancelsTouchesInView = false
@@ -409,6 +413,7 @@ final class NativePortViewController: UIViewController, MTKViewDelegate {
             line == "The Metal shader library is missing from the app: rebuild with the game's shaders."
         ) {
             engineFailed = true
+            suspendVoiceCapture()
             home.layer.removeAllAnimations()
             touchControlsAvailable = false
             releaseTouchControls()
@@ -834,118 +839,130 @@ final class NativePortViewController: UIViewController, MTKViewDelegate {
         } catch { appendLog("Native audio setup failed: \(error.localizedDescription)") }
     }
 
+    private var voiceRequest: UInt64 = 0
+    @objc private func handleVoiceTransportChanged() {
+        if !MugoatVoiceIsMicEnabled() { handleVoiceMicChanged(false) }
+        touchControls.updateVisibility()
+    }
+    @objc private func suspendVoiceCapture() {
+        MugoatVoiceSetMicEnabled(false)
+        handleVoiceMicChanged(false)
+        touchControls.updateVisibility()
+    }
+    @objc private func handleVoiceAudioInterruption(_ notification: Notification) {
+        guard let raw = notification.userInfo?[AVAudioSessionInterruptionTypeKey] as? UInt,
+              let type = AVAudioSession.InterruptionType(rawValue: raw) else { return }
+        if type == .began {
+            MugoatVoiceSetMicEnabled(false); voiceRequest &+= 1; touchControls.updateVisibility()
+        }
+        audioQueue.async { [weak self] in
+            guard let self else { return }
+            self.audioInterrupted = type == .began
+            if self.audioInterrupted { self.configureMicRecording(enabled: false); self.audioEngine.stop() }
+            else { self.restoreGameAudio(micActive: false) }
+        }
+    }
     private func handleVoiceMicChanged(_ enabled: Bool) {
-        if enabled {
-            let session = AVAudioSession.sharedInstance()
-            switch session.recordPermission {
-            case .granted:
-                self.audioQueue.async { [weak self] in
-                    self?.configureMicRecording(enabled: true)
+        voiceRequest &+= 1
+        let request = voiceRequest
+        guard enabled else {
+            audioQueue.async { [weak self] in self?.configureMicRecording(enabled: false) }
+            return
+        }
+        guard MugoatVoiceIsMicEnabled(), UIApplication.shared.applicationState == .active else {
+            MugoatVoiceSetMicEnabled(false); touchControls.updateVisibility(); return
+        }
+        let finish: (Bool) -> Void = { [weak self] granted in
+            DispatchQueue.main.async {
+                guard let self, self.voiceRequest == request, MugoatVoiceIsMicEnabled() else { return }
+                guard granted, UIApplication.shared.applicationState == .active else {
+                    MugoatVoiceSetMicEnabled(false)
+                    self.touchControls.updateVisibility()
+                    if !granted { self.showCheatToast("Microphone access is off. Enable it for ZGTA V in iOS Settings to speak.") }
+                    return
                 }
-            case .denied:
-                appendLog("[Voice] Microphone permission is denied in iOS Settings")
-                MugoatVoiceSetMicEnabled(false)
-                touchControls.updateVisibility()
-            case .undetermined:
-                session.requestRecordPermission { [weak self] granted in
-                    DispatchQueue.main.async {
-                        guard let self = self else { return }
-                        if granted {
-                            self.audioQueue.async { [weak self] in
-                                self?.configureMicRecording(enabled: true)
-                            }
-                        } else {
-                            self.appendLog("[Voice] Microphone permission denied")
-                            MugoatVoiceSetMicEnabled(false)
-                            self.touchControls.updateVisibility()
-                        }
-                    }
-                }
-            @unknown default:
-                break
+                self.audioQueue.async { [weak self] in self?.configureMicRecording(enabled: true) }
             }
-        } else {
-            audioQueue.async { [weak self] in
-                self?.configureMicRecording(enabled: false)
-            }
+        }
+        let session = AVAudioSession.sharedInstance()
+        switch session.recordPermission {
+        case .granted: finish(true)
+        case .denied: finish(false)
+        case .undetermined: session.requestRecordPermission(finish)
+        @unknown default: finish(false)
         }
     }
 
+    /// Serialized on audioQueue. Switching Voice I/O requires a stopped engine.
+    /// The game source remains attached, so muting voice never mutes game audio.
     private func configureMicRecording(enabled: Bool) {
-        let session = AVAudioSession.sharedInstance()
-        if enabled {
-            do {
-                // .defaultToSpeaker already uses the loudspeaker instead of the earpiece; forcing
-                // .speaker would also bypass connected headphones and feed the voice back into the mic.
-                try session.setCategory(.playAndRecord, mode: .voiceChat, options: [.defaultToSpeaker, .allowBluetooth, .allowBluetoothA2DP])
+        guard audioSource != nil else { return }
+        if enabled && (!MugoatVoiceIsMicEnabled() || audioInterrupted) { return }
+        if !enabled && !isMicTapInstalled { return }
+        audioEngine.stop()
+        let input = audioEngine.inputNode
+        if isMicTapInstalled { input.removeTap(onBus: 0); isMicTapInstalled = false }
+        if audioInterrupted { try? input.setVoiceProcessingEnabled(false); return }
+        do {
+            let session = AVAudioSession.sharedInstance()
+            if enabled {
+                try session.setCategory(.playAndRecord, mode: .voiceChat, options: [.defaultToSpeaker, .allowBluetooth])
+                try session.setPreferredSampleRate(48000)
                 try session.setActive(true)
-            } catch {
-                appendLog("[Voice] AVAudioSession setup failed: \(error.localizedDescription)")
-            }
-
-            let inputNode = audioEngine.inputNode
-            let bus = 0
-            if isMicTapInstalled {
-                inputNode.removeTap(onBus: bus)
-                isMicTapInstalled = false
-            }
-
-            let inputFormat = inputNode.inputFormat(forBus: bus)
-            let outputFormat = inputNode.outputFormat(forBus: bus)
-            let tapFormat = inputFormat.sampleRate > 0 && inputFormat.channelCount > 0 ? inputFormat
-                : (outputFormat.sampleRate > 0 && outputFormat.channelCount > 0 ? outputFormat : nil)
-            // No microphone route yet (0 channels): installing a tap would raise an Objective-C exception.
-            guard let tapFormat else {
-                appendLog("[Voice] No microphone is available; microphone disabled")
-                MugoatVoiceSetMicEnabled(false)
-                DispatchQueue.main.async { self.touchControls.updateVisibility() }
-                restoreGameAudio(micActive: false)
-                return
-            }
-
-            inputNode.installTap(onBus: bus, bufferSize: 1024, format: tapFormat) { buffer, _ in
-                guard let channelData = buffer.floatChannelData?[0] else { return }
-                let frameCount = Int(buffer.frameLength)
-                let sampleRate = buffer.format.sampleRate
-                guard frameCount > 0, sampleRate > 0 else { return }
-                if abs(sampleRate - 48000.0) < 1.0 {
-                    MugoatVoiceSubmitMicAudio(channelData, UInt32(frameCount))
-                } else {
-                    let ratio = 48000.0 / sampleRate
-                    let targetCount = Int(Double(frameCount) * ratio)
-                    if targetCount > 0 {
-                        var resampled = [Float](repeating: 0, count: targetCount)
-                        for i in 0..<targetCount {
-                            let srcIndex = Double(i) / ratio
-                            let idx0 = Int(srcIndex)
-                            let idx1 = min(idx0 + 1, frameCount - 1)
-                            let frac = Float(srcIndex - Double(idx0))
-                            resampled[i] = channelData[idx0] * (1.0 - frac) + channelData[idx1] * frac
-                        }
-                        resampled.withUnsafeBufferPointer { ptr in
-                            if let base = ptr.baseAddress {
-                                MugoatVoiceSubmitMicAudio(base, UInt32(targetCount))
-                            }
-                        }
-                    }
+                try input.setVoiceProcessingEnabled(true)
+                let format = input.outputFormat(forBus: 0)
+                guard format.sampleRate > 0, format.channelCount > 0,
+                      let mono = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: 48000, channels: 1, interleaved: false),
+                      let converter = AVAudioConverter(from: format, to: mono),
+                      let converted = AVAudioPCMBuffer(pcmFormat: mono, frameCapacity: 16384) else {
+                    throw NSError(domain: "ZGTAVVoice", code: 1, userInfo: [NSLocalizedDescriptionKey: "No microphone audio route is available"])
                 }
+                input.installTap(onBus: 0, bufferSize: 1024, format: format) { buffer, _ in
+                    guard MugoatVoiceIsMicEnabled() else { return }
+                    var supplied = false
+                    repeat {
+                        converted.frameLength = 0
+                        var error: NSError?
+                        let result = converter.convert(to: converted, error: &error) { _, status in
+                            if supplied { status.pointee = .noDataNow; return nil }
+                            supplied = true; status.pointee = .haveData; return buffer
+                        }
+                        if error != nil { return }
+                        if let samples = converted.floatChannelData?[0], converted.frameLength > 0 {
+                            MugoatVoiceSubmitMicAudio(samples, converted.frameLength)
+                        }
+                        if result != .haveData { break }
+                    } while converted.frameLength > 0
+                }
+                isMicTapInstalled = true
+            } else {
+                try input.setVoiceProcessingEnabled(false)
+                try session.setCategory(.playback, mode: .default, options: [])
+                try session.setActive(true)
             }
-            isMicTapInstalled = true
             startAudioEngine()
-            appendLog("[Voice] Microphone enabled; switching to voice audio")
-        } else {
-            if isMicTapInstalled {
-                audioEngine.inputNode.removeTap(onBus: 0)
-                isMicTapInstalled = false
-            }
+            appendLog(enabled ? "[Voice] Microphone enabled with echo cancellation" : "[Voice] Microphone off; game audio restored")
+        } catch {
+            MugoatVoiceSetMicEnabled(false)
+            if isMicTapInstalled { input.removeTap(onBus: 0); isMicTapInstalled = false }
+            try? input.setVoiceProcessingEnabled(false)
             restoreGameAudio(micActive: false)
-            appendLog("[Voice] Microphone disabled; restoring game audio")
+            DispatchQueue.main.async { [weak self] in
+                self?.touchControls.updateVisibility()
+                self?.showCheatToast("Couldn’t start the microphone. Check your audio route and try again.")
+            }
+            appendLog("[Voice] Microphone unavailable: \(error.localizedDescription)")
         }
     }
 
     @objc private func handleAudioEngineConfigurationChange(_ notification: Notification) {
         appendLog("[Audio] Audio configuration changed; restarting audio...")
-        audioQueue.async { [weak self] in self?.restoreGameAudio(micActive: MugoatVoiceIsMicEnabled()) }
+        audioQueue.async { [weak self] in
+            guard let self else { return }
+            if MugoatVoiceIsMicEnabled() {
+                if !self.audioEngine.isRunning { self.configureMicRecording(enabled: true) }
+            } else { self.restoreGameAudio(micActive: false) }
+        }
     }
 
     /// Puts the session back for game sound (or voice chat) and makes sure the engine runs.
@@ -970,6 +987,7 @@ final class NativePortViewController: UIViewController, MTKViewDelegate {
     /// devices then refuse to start it, leaving the game silent. Fall back to play-and-record
     /// without voice processing (normal loudspeaker volume) so game sound always comes back.
     private func startAudioEngine() {
+        guard !audioInterrupted, !engineFailed else { audioEngine.stop(); return }
         guard !audioEngine.isRunning else { return }
         do {
             audioEngine.prepare()

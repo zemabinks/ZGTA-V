@@ -50,7 +50,8 @@ class SessionRejoin(unittest.IsolatedAsyncioTestCase):
             env=dict(os.environ,CARGO_HOME=str(tool/'cargo'),RUSTUP_HOME=str(tool/'rustup'),CARGO_NET_OFFLINE='true',RUSTUP_AUTO_INSTALL='0')
             build=subprocess.run([str(tool/'cargo/bin/cargo'),'build','--offline','--locked','--manifest-path',str(ROOT/'Cargo.toml'),'--target-dir',str(p/'rust')],env=env,capture_output=True,text=True,timeout=90)
             if build.returncode:raise AssertionError(build.stderr)
-            args+=['-D','REAL_BACKEND','-I',str(ROOT),str(ROOT/'EngineLanBindings.swift'),str(p/'rust/debug/libzema_engine_lan.a')]
+            subprocess.run(['/usr/bin/clang','-std=c11','-O2','-c',str(ROOT/'ZemaVoice.c'),'-o',str(p/'voice.o')],check=True,capture_output=True)
+            args+=['-D','REAL_BACKEND','-I',str(ROOT),str(ROOT/'EngineLanBindings.swift'),str(p/'voice.o'),str(p/'rust/debug/libzema_engine_lan.a')]
         args+=['-o',str(cls.binary)]
         r = subprocess.run(args,capture_output=True,text=True,timeout=90)
         if r.returncode: raise AssertionError(r.stderr)

@@ -1,12 +1,12 @@
 Package: com.zema.zgta-v.trollstore
 Name: ZGTA V (TrollStore installer)
-Version: 0.107-3
+Version: 0.109-2
 Architecture: all
 Section: Applications
 Maintainer: ZEMA
 Author: zema
 Depends: firmware (>= 15.0), curl, coreutils
-Description: ZGTA V Build107 with cleaner TrollStore installation output
+Description: ZGTA V beta 4 Build109; TrollStore installer for the owner-tested app
 Icon: https://zemabinks.github.io/repo/assets/zgta-v.png
 SileoDepiction: https://zemabinks.github.io/repo/depictions/zgta-v.json
 Homepage: https://zemabinks.github.io/repo/#zgta-v

@@ -1,5 +1,6 @@
 module ZemaLanBackend {
   header "ZemaLanBackend.h"
   header "ZemaProfile.h"
+  header "ZemaVoice.h"
   export *
 }

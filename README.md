@@ -1,4 +1,4 @@
-# ZGTA V 2.0 beta 3
+# ZGTA V 2.0 beta 4
 
 ### By zema · zemabinks
 
@@ -6,7 +6,7 @@
 
 Your own matching prepared game files are required. No commercial game content is included.
 
-**[Download beta 3](https://github.com/zemabinks/ZGTA-V/releases/tag/v2.0.0-beta.3)** · **[Install and update](docs/START-HERE.md)** · **[What's new](docs/RELEASE-NOTES-beta3.md)** · **[Play guide](docs/PLAY-GUIDE.md)**
+**[Download beta 4](https://github.com/zemabinks/ZGTA-V/releases/tag/v2.0.0-beta.4)** · **[Install and update](docs/START-HERE.md)** · **[What's new](docs/RELEASE-NOTES-beta4.md)** · **[Play guide](docs/PLAY-GUIDE.md)**
 
 ## Start screens
 
@@ -20,22 +20,22 @@ Your own matching prepared game files are required. No commercial game content i
 
 | Platform | Package | Status |
 |---|---|---|
-| iPhone / iPad — iOS / iPadOS 15.0+ | [Build 107 IPA](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.3/ZGTA-V-Build107-Memory-UI-Audit-TrollStore.ipa) | Owner-tested on iPhone 15 Pro with TrollStore. Other installation routes remain experimental. |
-| Mac | [Build 107.1 DMG](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.3/ZGTA-V-Build107.1-Mac.dmg) | Drag into Applications. Intel tested; Apple Silicon execution untested. Ad-hoc signed, not Apple-notarized. |
-| Mac / Linux browser | [Build 107 ZIP](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.3/ZGTA-V-Build107-Browser-Mac-Linux.zip) | Requires installed Python 3.9+ and a compatible browser. Linux gameplay untested. |
-| Windows x64 | [Build 107 ZIP](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.3/ZGTA-V-Build107-Windows-x64.zip) | Bundled Python; Windows execution untested. |
-| Android | [Build 107 Termux ZIP](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.3/ZGTA-V-Build107-Android-Termux.zip) | Experimental browser version; no APK. Android execution untested. |
+| iPhone / iPad — iOS / iPadOS 15.0+ | [Build 109 IPA](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.4/ZGTA-V-Build109-VoiceDistance-TrollStore.ipa) | Owner-tested on iPhone 15 Pro with TrollStore. Other installation routes remain experimental. |
+| Mac | [Build 109.1 DMG](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.4/ZGTA-V-Build109.1-Mac.dmg) | Mac browser voice/gameplay tested; package checks pass. New109.1 drag-install not repeated; Apple Silicon untested. Ad-hoc signed, not notarized. |
+| Mac / Linux browser | [Build 109 ZIP](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.4/ZGTA-V-Build109-Browser-Mac-Linux.zip) | Requires installed Python 3.9+ and a compatible browser. Linux gameplay untested. |
+| Windows x64 | [Build 109 ZIP](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.4/ZGTA-V-Build109-Windows-x64.zip) | Bundled Python; Windows execution untested. |
+| Android | [Build 109 Termux ZIP](https://github.com/zemabinks/ZGTA-V/releases/download/v2.0.0-beta.4/ZGTA-V-Build109-Android-Termux.zip) | Experimental browser version; no APK. Android execution untested. |
 
-Read the **[installation guide](docs/START-HERE.md)** before downloading. The Mac launcher requires Chrome and compatible prepared game files; it is not a native Mac game engine. Sileo users can add **[Zema's Repo](https://zemabinks.github.io/repo/)**. TrollStore installer **0.107-3** delivers the same Build107 IPA with cleaner successful install output; AppSync remains 0.107-2. See the [installer update notes](https://github.com/zemabinks/ZGTA-V/releases/tag/sileo-installer-0.107-3). Previous releases remain available.
+Read the **[installation guide](docs/START-HERE.md)** before downloading. The Mac launcher includes Python and requires Chrome plus your compatible game files. Sileo users can add **[Zema’s Repo](https://zemabinks.github.io/repo/)**. Installer **0.109-2** delivers the unchanged owner-tested Build 109 IPA through the public download URL. AppSync is experimental. Keep your existing app, game files and saves when updating; previous releases remain available.
 
-## What's improved
+## What's new in beta 4
 
-- Buildings remain stable at the previously affected camera angles.
-- Automatic, Standard and Reduced memory management are separate from graphics presets, resolution and FPS.
-- Heat safeguards preserve saved settings; reports identify the active session settings.
-- Nearby LAN browsing uses announced ports, and updated managed hosts appear before the first player joins.
-- Browser Graphics, Controls, Mods, Saves and Support share the main navigation.
-- Mac installation now supports dragging the app from the DMG into Applications.
+- Proximity voice between iPhone and browser multiplayer players, using the existing microphone and speaker controls.
+- Voices become progressively quieter with distance and silent beyond 35 metres; movement changes are smoothed.
+- Microphone and nearby-voice mute are separate from game audio.
+- Matching iOS109, browser109 and Mac 109.1 downloads preserve your existing game files and data.
+
+The building-rendering fixes, independent memory controls, integrated browser navigation and LAN browsing from beta3 remain included. This voice update makes no new device-performance claim.
 
 ## Guides
 

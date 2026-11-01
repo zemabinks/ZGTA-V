@@ -1,3 +1,22 @@
+# Beta4 verification
+
+## Current scope — 1 November 2026
+
+- **Owner iPhone and Intel Mac/Chrome:**  exact Build 109 installation with existing data, speech in both directions, clear smooth distance reduction, out-of-range silence, nearby return and iPhone microphone mute passed. The human distance estimates were not instrumented measurements.
+- **Native/browser audio:** 14 compiled mixer/transport methods pass. PCM levels, smoothing and native/browser parity were measured at 44.1, 48 and 96 kHz. A real Chrome 96 kHz AudioWorklet test also passed with synthetic audio; that does not establish every physical audio route.
+- **iOS controls:** current production views were inspected in iPhone 15 Pro and SE 2020 Simulator layouts on iOS 26.3 using an engine-free fixture. This checks layout, not physical 3 GB performance.
+- **Mac 109.1:** exact owner-tested browser 109 payload; unchanged 107.1 launcher sources and Python runtime pins; disk-image, strict mounted signature/hash, relocated Intel Python and production native-layout checks pass. The new 109.1 drag-install was not repeated.
+- **Portable packages:** Windows/Android archive CRC, complete manifest hashes and static entry-point checks pass. Their hardware execution remains untested.
+- **Sileo:** public0.109-2 uses the tested109 IPA with public URL/version/description changes. Existing installation methods, package/app identities and old package versions are preserved. The public wrapper was not separately installed; AppSync remains untested.
+
+## Current limits
+
+Bluetooth/interruption handling, simultaneous speakerphone echo, Windows/Android/Linux and Apple Silicon execution are unverified. No new physical 3 GB/A13 performance, thermal or long-session bound is claimed. The Mac app is ad-hoc signed and not Apple-notarized. LAN discovery still needs a compatible advertised host and reachable private networking; no worldwide directory is added.
+
+[BETA4-MANIFEST.json](BETA4-MANIFEST.json) records package sizes/hashes and the final publication approval. Older results below retain their original version and meaning.
+
+## Historical beta3 and earlier evidence
+
 # Beta 3 verification
 
 ## Current scope — 31 October 2026

@@ -34,7 +34,10 @@ def once(text,old,new):
     return text.replace(old,new)
 
 def engine_patch(text):
-    text=once(text,'#include "MugoatOnline.h"','#include "MugoatOnline.h"\n#include "ZemaExperimental.h"')
+    text=once(text,'#include "MugoatOnline.h"','#include "MugoatOnline.h"\n#include "ZemaExperimental.h"\n#include "ZemaVoice.h"')
+    text=once(text,'#include "NativeWorldTools.inc"','#include "NativeWorldTools.inc"\n#include "NativeVoicePosition.inc"')
+    text=once(text,'    pg_process_vehicle_availability(instance);','    pg_process_voice_position(instance);\n    pg_process_vehicle_availability(instance);')
+    text=once(text,'  MugoatVoiceMixAudio(left, right, count);','  if(ZemaLabEnabled())ZemaVoiceMixAudio(left,right,count);else MugoatVoiceMixAudio(left,right,count);')
     text=once(text,'void PGSetBackBufferSize(int width,int height){',
         'void PGSetBackBufferSize(int width,int height){\n  if(ZemaLabEnabled()){pg_log("Engine LAN: back-buffer size is fixed for this session; resolution changes apply next launch.");return;}')
     text=once(text,'  wasm2c_game_instantiate(&env.game, &env, &wasi);','  wasm2c_game_instantiate(&env.game, &env, &wasi);\n  if(ZemaLabEnabled()&&!ZemaLabAttach(&env.game)){pg_log("Engine LAN startup refused: typed host unavailable.");return NULL;}')
@@ -46,6 +49,7 @@ def engine_patch(text):
     return text.replace('MugoatOnlineEnabled()', 'ZemaGameIsOnline()')
 
 def controller_patch(text):
+    text=once(text,'    private func logHealth() {', '    private func logHealth() {\n        if ZemaLabEnabled() != 0 { appendLog(EngineVoice.diagnosticSummary) }')
     text=once(text,'    private var thermalScale = 1.0',
         '    private var thermalScale = 1.0\n    private var lanThermalGraphics = EngineLanThermalGraphics()')
     text=once(text,'        bootedBackend = MugoatOnlineEnabled() ? "legacy-bridge" : "offline"',
@@ -107,8 +111,6 @@ def app_patch(name,text):
         text=once(text,'    var onVoiceMicChanged: ((Bool) -> Void)?', '    var onVoiceMicChanged: ((Bool) -> Void)?\n    var unavailableAction: ((String) -> Void)?')
         text=once(text,'    private func press(_ button: ControlButton, touch: UITouch, at point: CGPoint) {',
             '    private func press(_ button: ControlButton, touch: UITouch, at point: CGPoint) {\n        if let message = EngineLanFeaturePolicy.unavailableMessage(button: button.name, engineLAN: ZemaLabEnabled() != 0) {\n            DispatchQueue.main.async { self.unavailableAction?(message) }\n            return\n        }')
-        text=once(text,'            let spkOn = MugoatVoiceIsSpeakerEnabled()', '            let spkOn = ZemaLabEnabled() == 0 && MugoatVoiceIsSpeakerEnabled()')
-        text=once(text,'            let micOn = MugoatVoiceIsMicEnabled()', '            let micOn = ZemaLabEnabled() == 0 && MugoatVoiceIsMicEnabled()')
         text=once(text,'            button.isAccessibilityElement = isShown',
             '            button.isAccessibilityElement = isShown\n            if let message = EngineLanFeaturePolicy.unavailableMessage(button: button.name, engineLAN: ZemaLabEnabled() != 0) { button.accessibilityHint = message }')
     if name=='HomeView.swift':
@@ -116,6 +118,9 @@ def app_patch(name,text):
             '        label.font = Theme.body(15, .semibold)\n        label.adjustsFontSizeToFitWidth = true\n        label.minimumScaleFactor = 0.65')
     if name=='SettingsViewController.swift':
         text=once(text,'MugoatOnlineEnabled() || OnlineSettings.enabled','(ZemaGameIsOnline() != 0)')
+    if name in ('TouchControlsView.swift','NativePortViewController.swift'):
+        for before,after in [('MugoatVoiceIsSpeakerEnabled()', 'EngineVoice.isSpeakerEnabled()'),('MugoatVoiceIsMicEnabled()', 'EngineVoice.isMicEnabled()'),('MugoatVoiceSetSpeakerEnabled(', 'EngineVoice.setSpeakerEnabled('),('MugoatVoiceSetMicEnabled(', 'EngineVoice.setMicEnabled('),('MugoatVoiceSubmitMicAudio(', 'EngineVoice.submit(')]:
+            text=text.replace(before,after)
     return text.replace('MugoatOnlineEnabled()', '(ZemaGameIsOnline() != 0)')
 
 
@@ -156,7 +161,7 @@ def add_ui(spec):
 
 def configure_identity(spec):
     props=spec['targets']['PlayGTA5Native']['info']['properties']
-    props.update(CFBundleDisplayName='ZGTA V',CFBundleVersion='107',NSBonjourServices=['_zgtav._tcp'],NSLocalNetworkUsageDescription='Host or join ZGTA V multiplayer on your local network, and access your optional game-file server.')
+    props.update(CFBundleDisplayName='ZGTA V',CFBundleVersion='109',NSBonjourServices=['_zgtav._tcp'],NSLocalNetworkUsageDescription='Host or join ZGTA V multiplayer on your local network, and access your optional game-file server.')
     return spec
 
 def stage_stipple_resources(app):
@@ -229,7 +234,7 @@ def stage(cached,output,engine):
         raise ValueError('Native poll import was not implemented in the stage')
     (app/'EngineLAN').mkdir()
     for p in ROOT.iterdir():
-        if p.suffix in ('.h','.swift') or p.name in ['EngineLanHost.c','OnlineBindings.c','OnlineCallbacks.c','ExperimentalHost.c','EngineLanMode.c','BroadcastOverlay.c','module.modulemap']:shutil.copy2(p,app/'EngineLAN'/p.name)
+        if p.suffix in ('.h','.swift') or p.name in ['ZemaVoice.c','NativeVoicePosition.inc','EngineLanHost.c','OnlineBindings.c','OnlineCallbacks.c','ExperimentalHost.c','EngineLanMode.c','BroadcastOverlay.c','module.modulemap']:shutil.copy2(p,app/'EngineLAN'/p.name)
     (app/'Source/Native-Bridging-Header.h').open('a').write('\n#include "ZemaExperimental.h"\n')
     yaml=subprocess.check_output(['/usr/bin/ruby','-rjson','-ryaml','-e','puts JSON.generate(YAML.load_file(ARGV[0]))',str(APP/'project.yml')],text=True);spec=json.loads(yaml)
     settings=spec['settings']['base'];settings['HEADER_SEARCH_PATHS']+=['$(SRCROOT)/EngineLAN'];settings['SWIFT_INCLUDE_PATHS']=['$(SRCROOT)/EngineLAN']

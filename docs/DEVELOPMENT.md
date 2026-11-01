@@ -1,3 +1,13 @@
+# Current beta4 source and package identity
+
+The owner approved public publication on 1 November 2026 after exact Build 109 iPhone/Mac voice tests. iOS/browser source is `3648065f50928fb8cd147d04bb17363f4b1e4b05`; Mac 109.1 wrapper source is `4bbf3dfb9dbbb51b1a42b68111fd2e9664054cf2`. [SOURCE-AUDIT.json](SOURCE-AUDIT.json) maps the curated public snapshot to those frozen inputs.
+
+The five application downloads preserve their approved bytes. Their internal build manifests and START HERE files can identify the original private development provenance; public updates and current instructions are the links in this public repository. No private login is required to use the published packages. Installer0.109-2 changes the public download metadata while pinning that same IPA.
+
+No private Git history, raw phone logs, recorded voice, active-controller captures, signing keys or game data are exported. Production source units and packaged helpers are byte-preserved; limited test/provenance examples use neutral addresses. The original SOURCE_VERSION record remains historical.
+
+## Historical source notes
+
 # Build information
 
 The public source contains the native iOS app, browser host, multiplayer and bridge code, plus local build/test tools. [SOURCE-AUDIT.json](SOURCE-AUDIT.json) records the source snapshot checks. Tests use `ZGTA_GAME_MIRROR` for an external prepared game folder.

@@ -1,13 +1,13 @@
 Package: com.zema.zgta-v.appsync
 Name: ZGTA V (AppSync installer - experimental)
-Version: 0.107-2
+Version: 0.109-2
 Architecture: iphoneos-arm
 Section: Applications
 Maintainer: ZEMA
 Author: zema
 Depends: firmware (>= 15.0), firmware (<= 18.2), curl, coreutils, ai.akemi.appsyncunified (>= 116.0), ai.akemi.appinst (>= 2.1.1)
 Conflicts: com.zema.zgta-v.trollstore
-Description: ZGTA V 2.0 beta 3 Build107; experimental AppSync installer
+Description: ZGTA V beta 4 Build109; experimental AppSync installer
 Icon: https://zemabinks.github.io/repo/assets/zgta-v.png
 SileoDepiction: https://zemabinks.github.io/repo/depictions/zgta-v-appsync.json
 Homepage: https://zemabinks.github.io/repo/#zgta-v

@@ -137,12 +137,13 @@ class SocketTests(unittest.IsolatedAsyncioTestCase):
         cls.temp=tempfile.TemporaryDirectory(prefix='zema-engine-lan-fixture-')
         cls.directory=Path(cls.temp.name).resolve();cls.binary=cls.directory/'native-fixture';cls.fixture=cls.directory/'fixture.json'
         write_fixture(cls.fixture)
+        subprocess.run(['/usr/bin/clang','-std=c11','-O2','-c',str(ROOT/'ZemaVoice.c'),'-o',str(cls.directory/'voice.o')],check=True,capture_output=True)
         library=Path(os.environ.get('ZEMA_TEST_LAN_LIBRARY',str(ROOT.parent/'app/Build/EngineLAN/RustHost/debug/libzema_engine_lan.a')))
         result=subprocess.run(['/usr/bin/clang','-std=c11','-Wall','-Wextra','-Werror','-c',str(ROOT/'tests/native_fixture.c'),'-o',str(cls.directory/'fixture.o')],capture_output=True,text=True,timeout=30)
         if result.returncode:raise RuntimeError(result.stderr)
         result=subprocess.run(['/usr/bin/swiftc','-warnings-as-errors','-I',str(ROOT),'-I',str(ROOT/'tests'),
             '-module-cache-path',str(cls.directory/'swift-cache'),str(ROOT/'EngineLanSession.swift'),str(ROOT/'EngineLanBindings.swift'),
-            str(ROOT/'tests/native_fixture.swift'),str(cls.directory/'fixture.o'),str(library),
+            str(ROOT/'tests/native_fixture.swift'),str(cls.directory/'fixture.o'),str(cls.directory/'voice.o'),str(library),
             '-Xlinker','-lresolv','-Xlinker','-liconv','-o',str(cls.binary)],capture_output=True,text=True,timeout=90)
         if result.returncode:raise RuntimeError(result.stderr)
 

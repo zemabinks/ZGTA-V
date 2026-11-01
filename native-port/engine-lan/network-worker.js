@@ -1,7 +1,7 @@
 /* The game blocks its runtime worker. Keep all WebSocket I/O in this separate
  * worker, sharing bounded queues with the engine and every pthread. */
 'use strict';
-importScripts('engine-lan-browser.js');
+importScripts('voice-core.js','engine-lan-browser.js');
 let client=null,lan=null,resuming=null;
 self.onmessage=async function(event){
   const m=event.data;
@@ -10,6 +10,7 @@ self.onmessage=async function(event){
     if(m.type==='connect'){
       if(client)throw Error('LAN worker already configured');
       lan=new ZemaEngineLan.SharedLan();client=new ZemaEngineLan.Client(m.url,m.room,m.name,lan);
+      client.voice=new ZemaVoiceCore.Shared(m.voice);client.voiceFrame=new Uint8Array(ZemaVoiceCore.LENGTH);
       client.status=(state,message)=>{if(resuming&&state==='disconnected')return;self.postMessage({type:"status",state,message});};
       const result=await client.connect();
       self.postMessage({type:'joined',vip:result.vip,context:{version:ZemaEngineLan.PROTOCOL,buffer:lan.buffer}});

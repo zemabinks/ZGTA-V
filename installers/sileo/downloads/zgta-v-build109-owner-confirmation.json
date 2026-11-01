@@ -1,0 +1,22 @@
+{
+  "format": "zgta-owner-release-confirmation-v2",
+  "date": "2026-11-01",
+  "release": "v2.0.0-beta.4",
+  "build": 109,
+  "ipa_sha256": "5ae11dfbae9677ffbfb86fbe24df3326667ac29f08c9d943dc51704daffec832",
+  "ipa_bytes": 117784570,
+  "owner_publication_choice": "YES_PUBLISH",
+  "owner_results": {
+    "iphone109_installation_existing_data": "PASS",
+    "iphone_to_mac_voice": "PASS",
+    "mac_to_iphone_voice": "PASS",
+    "smooth_distance_reduction_range_silence_return_both_directions": "PASS",
+    "iphone_microphone_mute": "PASS"
+  },
+  "estimated_test_distances": true,
+  "additional_echo_check": "UNTESTED_NOT_FAILED_NO_FURTHER_REQUEST",
+  "public_installer_0_109_2": "PUBLIC_URL_VERSION_DESCRIPTION_ONLY_SAME_TESTED_IPA; not separately installed on phone",
+  "AppSync_installation": "UNTESTED",
+  "raw_phone_logs_or_audio_included": false,
+  "source": "3648065f50928fb8cd147d04bb17363f4b1e4b05"
+}

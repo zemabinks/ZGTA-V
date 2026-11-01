@@ -59,11 +59,11 @@ impl Lan {
         self.outgoing.clear(); self.queues.values_mut().for_each(VecDeque::clear); self.queued = 0;
     }
     pub fn bind(&mut self, mut port: u16) -> Option<(u32,u16)> {
-        if !self.connected || self.ports.len() >= MAX_HANDLES { return None; }
+        if !self.connected || port == 65534 || self.ports.len() >= MAX_HANDLES { return None; }
         if port == 0 {
             for _ in 0..15536 {
                 self.ephemeral = if self.ephemeral < 50000 || self.ephemeral == u16::MAX { 50000 } else { self.ephemeral + 1 };
-                if !self.queues.contains_key(&self.ephemeral) { port = self.ephemeral; break; }
+                if self.ephemeral != 65534 && !self.queues.contains_key(&self.ephemeral) { port = self.ephemeral; break; }
             }
             if port == 0 { return None; }
         }

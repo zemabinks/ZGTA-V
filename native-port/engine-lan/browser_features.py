@@ -209,7 +209,7 @@ def stage(engine,lan_stage,output):
     prefix="importScripts(new URL('session-restart.js',self.location.href).href,new URL('blip_sprites.js',self.location.href).href,new URL('gamer_tags.js',self.location.href).href,new URL('script_bank.js',self.location.href).href,new URL('text_fallback.js',self.location.href).href,new URL('memory_filename.js',self.location.href).href,new URL('browser-features.js',self.location.href).href,new URL('browser-trainer.js',self.location.href).href);\n"
     copied['game.js']=(prefix+game).encode();copied['loader.js']=once(loader,"'use strict';","'use strict';\n"+prefix).encode()
     copied['engine-lan-browser.js']=(ROOT/'browser.js').read_bytes()
-    for name in ('session-restart.js','network-worker.js','browser-features.js','browser-trainer.js','online.js','profile-rpc.js','profile-worker.js','memory_filename.js','text_fallback.js','script_bank.js','gamer_tags.js','blip_sprites.js'):copied[name]=(ROOT/name).read_bytes()
+    for name in ('voice-core.js','voice-worklet.js','session-restart.js','network-worker.js','browser-features.js','browser-trainer.js','online.js','profile-rpc.js','profile-worker.js','memory_filename.js','text_fallback.js','script_bank.js','gamer_tags.js','blip_sprites.js'):copied[name]=(ROOT/name).read_bytes()
     copied['engine-lan-browser.js']=(ROOT/'browser.js').read_bytes()
     old_meta.update(patched_sha256=online_meta['patched_sha256'],features=online_meta)
     copied['engine-lan-module.js']=('globalThis.ZemaEngineLanModule='+json.dumps(old_meta)+';\n').encode()

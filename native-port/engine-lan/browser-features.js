@@ -58,7 +58,7 @@
    if(loading){if(memory.buffer.byteLength<loading.address+4)throw Error('Loading state bounds');const w=words(context.pad),active=Atomics.load(new Int32Array(memory.buffer),loading.address/4)!==0;Atomics.store(w,14,active?1:0);if(active)Atomics.store(w,15,1);Atomics.add(w,18,1);}
    if(mode==='lan'&&observation){const now=performance.now();if(now-lastObservation>=250){lastObservation=now;const s=observeSession(memory),w=words(context.pad);Atomics.add(w,21,1);Atomics.store(w,19,s.state);Atomics.store(w,20,s.players);Atomics.add(w,21,1);}}
    restart?.tick();
-   root.ZemaTrainer.apply(memory,instance.exports,context.trainer,mode,pad);
+   root.ZemaTrainer.apply(memory,instance.exports,context.trainer,mode,pad,undefined,context.voice);
   };
   const callbacks={pad_update:callback},mh=metadata.memory_file_name;
   if(mh){if(mh.index!==1652||mh.body_sha256!=='3bf0f7632417fac9a02fa60cfb1e5fdee80c87d8955ee8124c61fdab1f3c9da6'||mh.slot!==metadata.hook.slot+1||!root.ZemaMemoryFilename)throw Error('Memory filename hook pin/helper mismatch');callbacks.memory_file_name=root.ZemaMemoryFilename.callback(memory);}

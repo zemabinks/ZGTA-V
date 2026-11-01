@@ -4,7 +4,7 @@ const selected=ZemaLaunchSettings.decode(location.search);
 selected.mode=location.pathname.split('/').pop();
 const runtimeSettings=ZemaLaunchSettings.normalize(selected);
 window.ZemaRuntime={settings:runtimeSettings,query:ZemaLaunchSettings.query(runtimeSettings,{width:innerWidth,height:innerHeight})};
-window.ZemaRuntime.features={mode:runtimeSettings.mode,pad:ZemaBrowserFeatures.createPad(),trainer:ZemaTrainer.createShared()};
+window.ZemaRuntime.features={mode:runtimeSettings.mode,pad:ZemaBrowserFeatures.createPad(),trainer:ZemaTrainer.createShared(),voice:new SharedArrayBuffer(25984)};
 window.ZemaGameReady=false;
 ZemaBrowserFeatures.publish(window.ZemaRuntime.features.pad,null,runtimeSettings);
 addEventListener('pagehide',()=>{ZemaTrainer.cancel(window.ZemaRuntime.features.trainer);ZemaBrowserFeatures.publish(window.ZemaRuntime.features.pad,null,runtimeSettings);const session=/^\/session\/([a-f0-9]{32})\//.exec(location.pathname);if(session&&window.ZemaLaunchLease)fetch('/zema-lab/session/release',{method:'POST',headers:{'Content-Type':'application/json','X-Zema-Lab':'1'},body:JSON.stringify({id:session[1],lease:window.ZemaLaunchLease}),keepalive:true}).catch(()=>{});});

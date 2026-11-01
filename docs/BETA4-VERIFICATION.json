@@ -1,0 +1,13 @@
+{
+  "format": "beta4-public-local-verification-v1",
+  "public_voice_methods": 14,
+  "mocked_installer_methods": 26,
+  "signed_stable_index_fingerprint": "369B9D41D3BCEA2520B22C2BD9AD1897295C6D05",
+  "all34_pool_stanzas_full_hashes": "PASS",
+  "all4_compressed_index_and_release_hash_algorithms": "PASS",
+  "all32_prior_stanzas_preserved": true,
+  "unrelated_relayrace_payload_unchanged": true,
+  "approved_application_artifact_bytes_unchanged": true,
+  "raw_phone_logs_or_audio_exported": false,
+  "publication_approved": true
+}

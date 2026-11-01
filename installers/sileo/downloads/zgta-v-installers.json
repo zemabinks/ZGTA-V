@@ -1,27 +1,33 @@
 {
   "archive_checks_pass": true,
-  "local_test_methods_passed": 22,
+  "local_test_methods_passed": 26,
   "tests_are_mocked": true,
   "packages": [
     {
-      "file": "com.zema.zgta-v.trollstore_0.107-3_all.deb",
-      "bytes": 3036,
-      "sha256": "1b371d93061c220329a08a595ad4b6275e6bb067c72c853ced90c31b9d4be3f6",
+      "flavor": "trollstore",
+      "file": "com.zema.zgta-v.trollstore_0.109-2_all.deb",
+      "bytes": 3072,
+      "sha256": "e805b65f930abddb49a37295932c6ea9ba6dc4e71d0ec134348e7033f98a392d",
+      "builder": "Debian 'dpkg-deb' package archive backend version 1.22.22 (arm64).",
       "source_inputs_sha256": {
-        "control": "f6aaaadf42619a5bd47c19a96bef3b597deafb5f06ba27b8a7c463572df41fc7",
-        "postinst": "094f7b2b7169833df26ca76fcb9cb5bf7e370ddec25c47d9db6cb39c1d45d3b9"
+        "control": "060bc4016ba5beb481406bcdec6a8841c42c34154e5d47ceaa2eee93e2bd6ce4",
+        "postinst": "269ab704c6cc870af5695a074f53414d9fc8f6f27ab81eccf5c1a0a2bacb7c29"
       },
-      "device_install_verified": true
+      "device_install_verified": false,
+      "wrapper_phone_test": "NOT_REPEATED; same tested109 IPA and existing public script template"
     },
     {
-      "file": "com.zema.zgta-v.appsync_0.107-2_iphoneos-arm.deb",
-      "bytes": 2804,
-      "sha256": "0de2abcf46aaf833fe58116608b82dc5c90104d92764979fd37f12599dd5a245",
+      "flavor": "appsync",
+      "file": "com.zema.zgta-v.appsync_0.109-2_iphoneos-arm.deb",
+      "bytes": 2788,
+      "sha256": "a6f5b6c6ca289f2648776f38369592dc28964913ad2f50774a92d1418dacd9c3",
+      "builder": "Debian 'dpkg-deb' package archive backend version 1.22.22 (arm64).",
       "source_inputs_sha256": {
-        "control": "aa107d698421521acb56f705bcd28ba3d4f29a02f86e99f800de130c58bb96c4",
-        "postinst": "f8effeb43d8e813f83ed6463bbd96eb5da6e015748246310bfc2ac0f3c4c46dc"
+        "control": "51e8a541c2673084a7c1d89fe76e617d8e42c09b216ac5a96dc90e5c092374b9",
+        "postinst": "d894c4feb009dcde4cec4dcd536f4511507e016251437c3873710497a52cb93d"
       },
-      "device_install_verified": false
+      "device_install_verified": false,
+      "wrapper_phone_test": "NOT_REPEATED; same tested109 IPA and existing public script template"
     }
   ],
   "original_relayrace_metadata_byte_preserved": true,
@@ -29,8 +35,8 @@
   "phone_install_test_pending": false,
   "AppSync_dependency_server": "https://cydia.akemi.ai timed out from the Mac; availability unverified",
   "appsync_upstream_commit": "235aca6cddfbdc9fa87fcb5b2aec2df37ed6d65a",
-  "app_build_source_commit": "ad973f1beb1584c2cc9ea952c53bd979d8fee60a",
-  "app_ipa_sha256": "9918682d7917f8ebb1f00d7c4822bfc281729eb71824ed92cb90554fe919ae54",
+  "app_build_source_commit": "3648065f50928fb8cd147d04bb17363f4b1e4b05",
+  "app_ipa_sha256": "5ae11dfbae9677ffbfb86fbe24df3326667ac29f08c9d943dc51704daffec832",
   "observed_device_failure": {
     "version": "0.88-1",
     "stage": "helper discovery before download",
@@ -42,25 +48,25 @@
   "roothide_developer_commit": "c53cc199f1bab7d7ea2fd70f0a14e215b1f3461b",
   "physical_verification": "downloads/zgta-v-device-install.json",
   "previous_device_confirmation": "Build90 Sileo/TrollStore app replacement and folder scanning confirmed from owner logs; provider archive read fails with EPERM",
-  "current_build": 107,
-  "current_installer_version": "0.107-3",
+  "current_build": 109,
+  "current_installer_version": "0.109-2",
   "current_phone_install_test_pending": false,
-  "installer_template_tests": "19 refreshed TrollStore methods plus 2 catalog and 1 index methods pass on Mac; exact tested archive, rendered script, preserved versions and compressed indexes verified.",
+  "installer_template_tests": "26 mocked public installer/catalog/index methods passed. Both0.109-2 archives, exact rendered scripts, old stanzas and compressed indexes checked.",
   "observed_archive_read_failure": {
     "build": 90,
     "errno": "EPERM / Operation not permitted",
     "stage": "source read before extraction",
     "build91_provider_retest_pending": false
   },
-  "current_phone_install_test_scope": "Owner confirms0.107-3 TrollStore/RootHide upgrade from0.107-1, clean output, GTA relaunch and existing data. AppSync unchanged and untested.",
+  "current_phone_install_test_scope": "Owner confirmed private0.109-1 installation/data and exact Build109 iPhone/Mac voice, distance/range/return and microphone mute. Public0.109-2 version/URL/description wrapper not separately phone-tested. AppSync remains untested.",
   "previous_owner_archive_confirmation": "downloads/zgta-v-build91-owner-confirmation.json",
-  "local_test_environment": "Intel Mac: 19 refreshed TrollStore methods, 2 catalog methods and 1 index method pass. Existing AppSync source/package bytes are retained; its earlier Linux fixture result is historical, and physical AppSync remains untested.",
-  "upgrade_version_comparison": "0.107-3 >0.107-2 and0.107-1 PASS",
+  "local_test_environment": "Intel Mac:26 mocked public installer/catalog/index checks pass. Actual archives built by the existing unprivileged Linux dpkg-deb1.22.22. No additional phone test requested.",
+  "upgrade_version_comparison": "0.109-2 >0.109-1 and0.107-3 PASS",
   "previous106_target_scene": "Owner confirmed buildings stable at parking/highway on29October2026; broader current107acceptance pending.",
-  "current_owner_confirmation": "downloads/zgta-v-build107-owner-confirmation.json",
+  "current_owner_confirmation": "downloads/zgta-v-build109-owner-confirmation.json",
   "public_promotion_approved": true,
-  "current_trollstore_installer_version": "0.107-3",
-  "current_appsync_installer_version": "0.107-2",
+  "current_trollstore_installer_version": "0.109-2",
+  "current_appsync_installer_version": "0.109-2",
   "AppSync_phone_install_test_pending": true,
-  "current_installer_confirmation": "downloads/zgta-v-installer1073-owner-confirmation.json"
+  "current_installer_confirmation": "downloads/zgta-v-build109-owner-confirmation.json"
 }

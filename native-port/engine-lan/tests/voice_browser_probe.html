@@ -1,0 +1,29 @@
+<!doctype html><meta charset="utf-8"><title>ZGTA voice 109 private verification</title>
+<style>body{background:#0c141d;color:#f4f7fb;font:16px system-ui;padding:32px}button{font:inherit;padding:14px 20px;border-radius:12px;border:0;background:#46e7c2}pre{white-space:pre-wrap}a{color:#46e7c2}</style>
+<h1>Private proximity voice verification</h1><p>Synthetic 440 Hz audio through two real WebSocket clients and AudioWorklets. No microphone access.</p>
+<button id="start">Run audio verification</button><pre id="result">Ready</pre><a href="/voice108-ui">Inspect production voice controls</a>
+<script src="/b/8b0b5899ed/voice-core.js"></script><script src="/b/8b0b5899ed/engine-lan-browser.js"></script>
+<script>
+start.onclick=async()=>{
+ start.disabled=true;let context,clients=[],timer;
+ try{
+  const V=ZemaVoiceCore,L=ZemaEngineLan,base='/b/8b0b5899ed/';
+  const endpoint=await(await fetch('/voice108-endpoint')).text(),a=new V.Shared(),b=new V.Shared();
+  for(const [shared,name] of [[a,'ChromeVoiceA'],[b,'ChromeVoiceB']]){const c=new L.Client(endpoint,'VOICE108-CHROME',name,new L.SharedLan());c.voice=shared;c.voiceFrame=new Uint8Array(V.LENGTH);await c.connect();clients.push(c);shared.setSpeaker(true);}
+  let distance=1;timer=setInterval(()=>{a.publish([100,100,20]);b.publish([100+distance,100,20]);},30);a.publish([100,100,20]);b.publish([101,100,20]);
+  context=new AudioContext({latencyHint:'interactive'});await context.audioWorklet.addModule(base+'voice-worklet.js');await context.resume();
+  const nodes=[a,b].map(s=>new AudioWorkletNode(context,'zgta-proximity-voice',{numberOfInputs:1,numberOfOutputs:1,outputChannelCount:[2],processorOptions:{buffer:s.buffer}}));
+  const silent=context.createGain();silent.gain.value=0;silent.connect(context.destination);nodes.forEach(n=>n.connect(silent));
+  const oscillator=context.createOscillator(),level=context.createGain();oscillator.frequency.value=440;level.gain.value=.2;oscillator.connect(level).connect(nodes[0]);a.setMic(true);oscillator.start();
+  const analyser=context.createAnalyser();analyser.fftSize=2048;nodes[1].connect(analyser);analyser.connect(silent);const samples=new Float32Array(2048);
+  const wait=ms=>new Promise(r=>setTimeout(r,ms));
+  const rms=async()=>{let sum=0;for(let n=0;n<6;n++){await wait(60);analyser.getFloatTimeDomainData(samples);sum+=Math.sqrt(samples.reduce((a,v)=>a+v*v,0)/samples.length);}return sum/6;};
+  result.textContent='Measuring distance levels…';await wait(1000);const near=await rms(),levels={};for(const d of [5,10,20,30]){distance=d;await wait(400);levels[d]=await rms();}distance=40;await wait(400);const far=await rms();distance=1;await wait(500);b.setSpeaker(false);await wait(200);const muted=await rms();
+  clients[0].disconnect();await wait(100);const disconnectedMicOff=!a.mic;
+  const ratios=Object.fromEntries(Object.entries(levels).map(([d,n])=>[d,n/near]));
+  const proof={build:109,near,levels,ratios,far,muted,disconnectedMicOff,sampleRate:context.sampleRate,microphoneUsed:false,pass:near>.08&&ratios[5]>.76&&ratios[5]<.89&&ratios[10]>.51&&ratios[10]<.64&&ratios[20]>.17&&ratios[20]<.25&&ratios[30]>.01&&ratios[30]<.04&&far<.0001&&muted<.0001&&disconnectedMicOff};
+  result.textContent=JSON.stringify(proof,null,2);
+  await fetch('/voice108-result',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(proof)});
+ }catch(error){result.textContent=String(error.stack||error);}finally{if(timer)clearInterval(timer);clients.forEach(c=>c.disconnect());if(context)await context.close();start.disabled=false;}
+};
+</script>

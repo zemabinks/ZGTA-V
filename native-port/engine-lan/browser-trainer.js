@@ -81,7 +81,7 @@
  function status(buffer){const w=sharedWords(buffer);return {sequence:Atomics.load(w,0),ack:Atomics.load(w,4),result:Atomics.load(w,3),detail:Atomics.load(w,5),ready:Atomics.load(w,6)===1,type:Atomics.load(w,1),cleanupPending:Atomics.load(w,8)!==0,replacementPending:pendingReplacement(w)&&Atomics.load(w,11)!==0,phase:Atomics.load(w,9)};}
  function cancel(buffer){const w=sharedWords(buffer);if(pendingReplacement(w))replacement(w,0);Atomics.add(w,7,1);const sequence=Atomics.load(w,0),ack=Atomics.load(w,4);if(sequence!==ack&&Atomics.compareExchange(w,4,ack,sequence)===ack){Atomics.store(w,5,0);Atomics.store(w,3,-5);}}
  function offline(mode){return mode==='story'||mode==='sandbox'||mode==='freeroam';}
- function create({memory,exports,shared,mode,now=()=>performance.now()}){
+ function create({memory,exports,shared,mode,voice,now=()=>performance.now()}){
   const w=sharedWords(shared);Atomics.store(w,14,0);for(let at=PROBE_FIRST;at<128;at++)Atomics.store(w,at,0);Atomics.add(w,13,1);let job=null,vectors=0,disposed=false,pendingCleanup=null,cancelled=Atomics.load(w,7);
   const fn=name=>{const f=exports[PREFIX+name];if(typeof f!=='function')throw Error('Missing engine export '+name);return f;};
   function view(){return new DataView(memory.buffer);}
@@ -164,8 +164,16 @@
     for(let n=0;n<PROBE_SLOTS&&done<8;n++){const at=PROBE_FIRST+n*4;if(Atomics.load(w,at+1)!==1)continue;const hash=Atomics.load(w,at)|0;let state=5;try{state=!fn('IsModelInCdImage')(hash)?2:fn('IsModelAVehicle')(hash)?3:4;}catch(_){}Atomics.store(w,at+1,state);done++;}
    });if(!ready)Atomics.store(w,14,0);
   }
+  const voiceWords=voice instanceof SharedArrayBuffer&&voice.byteLength===25984?new Int32Array(voice,0,16):null;
+  const voiceView=voiceWords?new DataView(voice):null;let lastVoice=0;
+  function voicePosition(t){
+   if(!voiceWords||mode!=='lan'||t-lastVoice<100)return;lastVoice=t;let pos=null;
+   try{if(Atomics.load(new Int32Array(memory.buffer),LOADING/4)===0)activeScript(()=>{const ped=fn('PlayerPedId')()>>>0;if(!ped||!fn('DoesEntityExist')(ped))return;storage();fn('GetEntityCoords')(BigInt(vectors+96),ped,1);const d=view();const x=d.getFloat32(vectors+96,true),y=d.getFloat32(vectors+104,true),z=d.getFloat32(vectors+112,true);if(valid(x,y,z))pos=[x,y,z];});}catch(_){}
+   Atomics.add(voiceWords,4,1);for(let i=0;i<3;i++)voiceView.setFloat32(20+i*4,pos?.[i]||0,true);Atomics.store(voiceWords,8,Date.now()|0);Atomics.store(voiceWords,9,pos?1:0);Atomics.add(voiceWords,4,1);
+  }
   function tick(pad=PAD){
    if(disposed||Number(pad)!==PAD)return;const t=now();if(!Number.isFinite(t))return;Atomics.store(w,6,1);
+   voicePosition(t);
    try{probeModels();}catch(_){Atomics.store(w,14,0);}
    const swap=readReplacement(w);
    if(swap){
@@ -202,6 +210,6 @@
   }
   return {tick,dispose(){if(job){if(job.type===1){try{setPad(PAD,0);}catch(_){}}finish(-3);}cleanup();disposed=true;Atomics.store(w,6,0);}};
  }
- function apply(memory,exports,buffer,mode,pad=PAD,now){let state=states.get(buffer);if(state&&(state.memory!==memory||state.exports!==exports||state.mode!==mode)){state.engine.dispose();state=null;}if(!state){state={memory,exports,mode,engine:create({memory,exports,shared:buffer,mode,now})};states.set(buffer,state);}state.engine.tick(pad);}
+ function apply(memory,exports,buffer,mode,pad=PAD,now,voice){let state=states.get(buffer);if(state&&(state.memory!==memory||state.exports!==exports||state.mode!==mode)){state.engine.dispose();state=null;}if(!state){state={memory,exports,mode,engine:create({memory,exports,shared:buffer,mode,now,voice})};states.set(buffer,state);}state.engine.tick(pad);}
  const api={SIZE,PAD,catalog,vehicles,availability,required,spawnRequired,waypointRequired,createShared,request,status,cancel,joaat,modelHash,create,apply};root.ZemaTrainer=api;if(typeof module==='object')module.exports=api;
 })(globalThis);

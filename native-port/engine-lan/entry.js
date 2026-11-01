@@ -54,10 +54,12 @@
       profile.onmessage=event=>{if(closed)return;if(event.data.type==='profile-status'){saveStatus=event.data;showSave();onSaveStatus();if(saveStatus.state==='error')window.ZemaConnectionPanel?.render('profile-error');}};
       profile.onerror=()=>{if(closed)return;saveStatus={state:'error'};showSave();onSaveStatus();window.ZemaConnectionPanel?.render('profile-error');};
       network=new Worker(ZemaLaunchChannels.url(base+'network-worker.js'));
-      const context=await expect(network,'joined',{type:'connect',url:settings.relay,room,name:profileContext.name});
+      const context=await expect(network,'joined',{type:'connect',url:settings.relay,room,name:profileContext.name,voice:window.ZemaRuntime.features.voice});
       if(closed)return;context.profile=profileContext;
       const connectionUI=ZemaConnectionUI.mount(settings);
       window.ZemaConnectionPanel=connectionUI;
+      const voiceUI=ZemaVoiceUI.mount(window.ZemaRuntime.features.voice,connectionUI.root,base);
+      addEventListener('pagehide',()=>voiceUI.destroy(),{once:true});
       const {live,reconnect,rejoin,hostDetails,hostButton,stopHost}=connectionUI;
       saveOutput=connectionUI.saveOutput;showSave();
       if(saveStatus.state==='error')connectionUI.render('profile-error');

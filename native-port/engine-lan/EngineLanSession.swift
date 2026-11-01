@@ -10,6 +10,7 @@ final class EngineLanSession: NSObject, @unchecked Sendable {
         let connected: (Bool) -> Void
         let deliver: (Data) -> Void
         let outgoing: () -> Data?
+        var voiceOutgoing: (() -> Data?)? = nil
     }
     private let backend: Backend
     private let queue = DispatchQueue(label: "zema.engine-lan.transport")
@@ -181,9 +182,17 @@ final class EngineLanSession: NSObject, @unchecked Sendable {
                 self.stop(); self.status?("Local engine-LAN send timed out."); return
             }
             // At most 16 in-flight frames, each <=2048 bytes. No unbounded self.send backlog.
-            while self.pending.count < 16, let frame = self.backend.outgoing() {
+            let engineLimit = self.backend.voiceOutgoing == nil ? 16 : 14
+            while self.pending.count < engineLimit, let frame = self.backend.outgoing() {
                 guard (16...2048).contains(frame.count) else { self.stop(); self.status?("Local engine-LAN message was invalid; reconnect the same session."); return }
                 self.send(.data(frame), socket, token)
+            }
+            // Voice has a separate 100 ms queue and at most two send slots;
+            // stale speech cannot build up behind engine traffic.
+            var voiceFrames = 0
+            while self.pending.count < 16, voiceFrames < 2, let frame = self.backend.voiceOutgoing?() {
+                guard frame.count == 356 else { break }
+                self.send(.data(frame), socket, token); voiceFrames += 1
             }
             if now - self.lastPing > 10, self.pending.count < 16 {
                 self.lastPing = now; self.send(.string("{\"type\":\"ping\"}"), socket, token)
