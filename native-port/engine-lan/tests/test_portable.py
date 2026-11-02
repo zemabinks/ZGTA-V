@@ -144,9 +144,44 @@ class Portable(unittest.TestCase):
         private={'user':'S-1-5-21-123','owner':'S-1-5-21-123','allow':['S-1-5-21-123','S-1-5-18','S-1-5-32-544']}
         self.assertTrue(security.valid_acl(private))
         for change in [{'owner':'S-1-5-18'},{'allow':[]},{'allow':['S-1-1-0']},{'allow':['S-1-5-21-123','S-1-5-32-545']}]:self.assertFalse(security.valid_acl(dict(private,**change)))
+        # Windows keeps an inheritance-free folder private with OWNER RIGHTS (S-1-3-4)
+        # instead of the owner's SID; that must not block launcher startup.
+        owner_rights=dict(private,allow=['S-1-3-4','S-1-5-18','S-1-5-32-544'])
+        self.assertTrue(security.valid_acl(owner_rights))
+        self.assertTrue(security.valid_acl(dict(owner_rights,allow=['S-1-3-0','S-1-3-4','S-1-5-18'])))
+        self.assertTrue(security.valid_acl(dict(owner_rights,allow='S-1-5-21-123')))
+        for change in [{'allow':['S-1-3-4','S-1-1-0']},{'allow':['S-1-3-4','S-1-5-21-999']},{'owner':'S-1-5-18'}]:self.assertFalse(security.valid_acl(dict(owner_rights,**change)))
         run=Mock(return_value=Mock(stdout=json.dumps(private).encode()))
         with patch.object(security.subprocess,'run',run):security.windows_private(Path('a folder'),new=False)
-        args=run.call_args[0][0];self.assertNotIn('-ExecutionPolicy',args);self.assertNotIn('Set-Acl',args[-1]);self.assertEqual(run.call_args.kwargs['env']['ZGTA_PRIVATE_PATH'],'a folder')
+        args=run.call_args[0][0];self.assertNotIn('-ExecutionPolicy',args);self.assertNotIn('Set-Acl',args[-1]);self.assertEqual(run.call_args.kwargs['env']['ZGTA_PRIVATE_PATH'],'a folder');self.assertEqual(run.call_count,1)
+
+    def test_windows_owned_folder_with_inherited_access_is_repaired(self):
+        # An earlier launcher created the data folder with inherited permissions.
+        shared={'user':'S-1-5-21-123','owner':'S-1-5-21-123','allow':['S-1-5-21-123','S-1-1-0','S-1-5-32-545']}
+        private={'user':'S-1-5-21-123','owner':'S-1-5-21-123','allow':['S-1-5-21-123']}
+        scripts=[]
+        def run(args,**kwargs):
+            scripts.append(args[-1]);return Mock(stdout=json.dumps(private if len(scripts)>1 else shared).encode())
+        with patch.object(security.subprocess,'run',side_effect=run):security.windows_private(Path('a folder'),new=False)
+        self.assertEqual(len(scripts),2)
+        self.assertNotIn('Set-Acl',scripts[0]);self.assertIn('Set-Acl',scripts[1])
+        # A folder owned by another account is reported and never rewritten.
+        foreign={'user':'S-1-5-21-123','owner':'S-1-5-32-544','allow':['S-1-5-32-544']}
+        run=Mock(return_value=Mock(stdout=json.dumps(foreign).encode()))
+        with patch.object(security.subprocess,'run',run):
+            with self.assertRaisesRegex(ValueError,'owned by another account.*Owner S-1-5-32-544'):security.windows_private(Path('a folder'),new=False)
+        self.assertEqual(run.call_count,1)
+
+    def test_windows_permission_failures_are_reported_without_a_traceback(self):
+        for error in [subprocess.CalledProcessError(1,'powershell.exe'),subprocess.TimeoutExpired('powershell.exe',1),FileNotFoundError('powershell.exe')]:
+            with patch.object(security.subprocess,'run',side_effect=error):
+                with self.assertRaisesRegex(ValueError,'could not read'):security.windows_private(Path('a folder'))
+        for output in [b'not json',b'x'*8193]:
+            with patch.object(security.subprocess,'run',Mock(return_value=Mock(stdout=output))):
+                with self.assertRaises(ValueError):security.windows_private(Path('a folder'))
+        fresh=Mock(return_value=Mock(stdout=json.dumps({'user':'S-1-5-21-123','owner':'S-1-5-21-123','allow':['S-1-5-21-123']}).encode()))
+        with patch.object(security.subprocess,'run',fresh):security.windows_private(Path('a folder'),new=True)
+        self.assertEqual(fresh.call_count,1);self.assertIn('Set-Acl',fresh.call_args[0][0][-1])
 
     def test_integrity_refuses_changed_and_escaping_package_paths(self):
         with tempfile.TemporaryDirectory() as folder:

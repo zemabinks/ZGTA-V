@@ -24,10 +24,11 @@ def private_folder(path):
     path = Path(path)
     if path.is_symlink():
         raise ValueError('A launcher installation folder is a symbolic link.')
+    new = not path.exists()
     path.mkdir(mode=0o700, parents=True, exist_ok=True)
     if os.name == 'nt':
         from portable_security import windows_private
-        windows_private(path)
+        windows_private(path, new=new)
     elif path.stat().st_uid != os.getuid() or path.stat().st_mode & 0o077:
         raise ValueError('Launcher installation requires an owned private folder.')
     return path
