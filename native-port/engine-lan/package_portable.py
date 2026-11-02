@@ -16,7 +16,7 @@ import zipfile
 
 ROOT=Path(__file__).resolve().parent
 SOURCE_ROOT=ROOT.parents[1]
-BROWSER_REVISION='109'
+BROWSER_REVISION='110'
 PYTHON_URL='https://www.python.org/ftp/python/3.13.16/python-3.13.16-embed-amd64.zip'
 PYTHON_SHA='97dae5274cc54867065e8d5a3226e48c35017ed332a0fdb0e27d5b5821961297'
 
@@ -75,6 +75,8 @@ def build(stage,output,platform,python_archive=None,revision=None,allow_dirty=Fa
     if dirty.stdout and not allow_dirty:raise ValueError('Commit the frozen source before release packaging; dirty source is allowed only with --allow-dirty for disposable checks')
     tracked=set(subprocess.run(['git','ls-files','-z'],cwd=SOURCE_ROOT,capture_output=True,check=True).stdout.decode().split('\0'))
     source_files={}
+    product=json.loads((SOURCE_ROOT/'VERSION.json').read_text())
+    if product.get('product_name')!='ZGTA 5' or product.get('version')!='1.2':raise ValueError('Expected the frozen 1.2 product metadata')
     output.mkdir(mode=0o700,parents=True);package=output/'ZGTA-V';code=package/'native-port/engine-lan';code.mkdir(parents=True)
     def copy_source(source,target):
         rel=source.relative_to(SOURCE_ROOT).as_posix()
@@ -83,6 +85,7 @@ def build(stage,output,platform,python_archive=None,revision=None,allow_dirty=Fa
         digest=sha256(target)
         if sha256(source)!=digest:raise ValueError('Package source changed while copying: '+rel)
         source_files[target.relative_to(package).as_posix()]={'source':rel,'sha256':digest}
+    copy_source(SOURCE_ROOT/'VERSION.json',package/'VERSION.json')
     for rel in sorted(tracked):
         f=SOURCE_ROOT/rel
         if f.parent==ROOT and f.suffix in ('.py','.js','.html','.css'):copy_source(f,code/f.name)
@@ -239,7 +242,7 @@ Linux execution and game/GPU/controller behavior still need community tests.
         updates='Source and updates: '+channel['source_repository']
     else:
         updates='Update channel unspecified; use the source_revision in portable-manifest.json.'
-    (package/'START HERE.txt').write_text(instructions+'\n'+updates+'\nPublic worldwide discovery is not enabled. LAN/Tailscale hosts are private.\n')
+    (package/'START HERE.txt').write_text('ZGTA 5 — '+product['display_version']+'\n\n'+instructions+'\n'+updates+'\nPublic worldwide discovery is not enabled. LAN/Tailscale hosts are private.\n')
     files={str(f.relative_to(package)).replace('\\','/'):sha256(f) for f in sorted(package.rglob('*')) if f.is_file()}
     for record in source_files.values():
         if sha256(SOURCE_ROOT/record['source'])!=record['sha256']:raise ValueError('Package source changed during build: '+record['source'])
@@ -247,15 +250,15 @@ Linux execution and game/GPU/controller behavior still need community tests.
     final_dirty=subprocess.run(['git','status','--porcelain=v1'],cwd=ROOT,capture_output=True,text=True,check=True).stdout
     if final_revision!=source_revision or (not allow_dirty and final_dirty):raise ValueError('Frozen source changed during packaging')
     if checked_runtime(runtime)!=runtime_provenance:raise ValueError('Runtime changed while copying')
-    manifest={'format':'zgta-portable-v1','build':int(revision.split('.')[0]),'browser_revision':revision,'platform':platform,'source_revision':source_revision,'source_worktree_dirty':bool(dirty.stdout or final_dirty),'source_files':source_files,'runtime_provenance':runtime_provenance,'game_files_included':False,'physical_platform_validation':'PENDING','python_source':PYTHON_URL if platform=='Windows-x64' else ('EXISTING_TERMUX_PYTHON' if platform=='Android-Termux' else 'SYSTEM_PYTHON'),**channel,'python_archive_sha256':PYTHON_SHA if platform=='Windows-x64' else None,'files':files}
+    manifest={'format':'zgta-portable-v1','build':int(revision.split('.')[0]),'browser_revision':revision,'product_name':product['product_name'],'product_version':product['version'],'display_version':product['display_version'],'platform':platform,'source_revision':source_revision,'source_worktree_dirty':bool(dirty.stdout or final_dirty),'source_files':source_files,'runtime_provenance':runtime_provenance,'game_files_included':False,'physical_platform_validation':'PENDING','python_source':PYTHON_URL if platform=='Windows-x64' else ('EXISTING_TERMUX_PYTHON' if platform=='Android-Termux' else 'SYSTEM_PYTHON'),**channel,'python_archive_sha256':PYTHON_SHA if platform=='Windows-x64' else None,'files':files}
     (package/'portable-manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
-    archive=output/('ZGTA-V-Build'+revision+'-'+platform+'.zip')
+    archive=output/('ZGTA-5-'+product['version']+'-'+platform+'.zip')
     with zipfile.ZipFile(archive,'x',zipfile.ZIP_DEFLATED,compresslevel=6) as z:
         for f in sorted(package.rglob('*')):
             if f.is_file():z.write(f,str(f.relative_to(output)))
     with zipfile.ZipFile(archive) as z:
         if z.testzip() is not None:raise ValueError('Package CRC failure')
-    receipt={'platform':platform,'build':revision,'source_revision':source_revision,'source_worktree_dirty':manifest['source_worktree_dirty'],'archive':str(archive),'sha256':sha256(archive),'bytes':archive.stat().st_size,'files':len(files),'game_data_included':False,'archive_crc':'PASS','physical_platform_validation':'PENDING'}
+    receipt={'platform':platform,'product_version':product['version'],'build':revision,'source_revision':source_revision,'source_worktree_dirty':manifest['source_worktree_dirty'],'archive':str(archive),'sha256':sha256(archive),'bytes':archive.stat().st_size,'files':len(files),'game_data_included':False,'archive_crc':'PASS','physical_platform_validation':'PENDING'}
     (output/'package-verification.json').write_text(json.dumps(receipt,indent=2)+'\n');return receipt
 
 if __name__=='__main__':

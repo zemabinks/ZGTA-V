@@ -40,3 +40,42 @@ body.desktop-launcher{--night:#0b0f12;--panel:#10161b;--stroke:#2b333b;--seconda
 /* Settings use the same header and page surface as Story and Multiplayer. */
 .desktop-launcher .settings-page{max-width:1120px;margin:0 auto}
 .desktop-launcher .topbar{position:sticky;top:0;z-index:50}
+
+/* Native Pure Black palette. Keep desktop grids, spacing and control placement. */
+body.desktop-launcher{--night:#050605;--panel:#101310;--stroke:#4b554b;--secondary:#b8bfb8;--round:15px;background:var(--night);color:#fff}
+.desktop-launcher .shell{isolation:isolate}
+.desktop-launcher .shell::before{display:block;opacity:.46;filter:grayscale(1) brightness(.55) contrast(11);mask-image:linear-gradient(90deg,transparent,#0009 65%,#000b)}
+.desktop-launcher .topbar{background:#050605f5;border-bottom-color:#4b554b80}
+.desktop-launcher .brand small,.desktop-launcher .desktop-footer,.desktop-launcher .desktop-footer .build-pill{color:var(--secondary)}
+.desktop-launcher .brand strong{min-inline-size:82px}
+.desktop-launcher .desktop-nav-item{color:var(--secondary)}
+.desktop-launcher .desktop-nav-item:hover{background:#191e19;color:#fff}
+.desktop-launcher .desktop-mode-options{background:var(--panel);border-color:var(--stroke);border-radius:12px}
+.desktop-launcher .desktop-mode-options button:hover,.desktop-launcher .desktop-mode-options button[aria-pressed=true]{background:#191e19}
+.desktop-launcher .glass,.desktop-launcher .desktop-setup,.desktop-launcher .desktop-directory{background:#101310f0;border-color:var(--stroke);border-radius:15px}
+.desktop-launcher .desktop-story-art{position:relative;background:transparent;border-radius:15px}
+.desktop-launcher .desktop-story-space{display:block;width:100%;height:clamp(240px,33vw,420px);border:1px solid transparent;border-radius:15px}
+.desktop-launcher .desktop-story-label{position:absolute;left:34px;top:calc(50% - 36px);max-width:60%;font-size:clamp(26px,3vw,46px);font-weight:750;letter-spacing:-1px;color:#fff;pointer-events:none}
+.desktop-launcher .desktop-story-label::before{content:'';display:block;width:34px;height:5px;border-radius:3px;margin-bottom:18px;background:var(--mint)}
+.desktop-launcher .desktop-story-art figcaption{position:relative;background:transparent;color:var(--secondary)}
+.desktop-launcher .desktop-quick-fields .row label,.desktop-launcher .desktop-input-summary,.desktop-launcher .field>span{color:var(--secondary)}
+.desktop-launcher .desktop-input-summary>span:last-child{color:#fff}
+.desktop-launcher .desktop-quick-fields select,.desktop-launcher .field input,.desktop-launcher .content select,.desktop-launcher .content input[type=text]{background:#191e19;border-color:var(--stroke);color:#fff;border-radius:9px}
+.desktop-launcher .primary,.desktop-launcher .play{background:var(--mint);color:#102016;border-radius:9px}
+.desktop-launcher .primary:hover,.desktop-launcher .play:hover{background:#5b9433}
+.desktop-launcher .primary:disabled,.desktop-launcher .play:disabled{background:#ffffff29;color:var(--secondary);opacity:1}
+.desktop-launcher .segmented{background:#050605;border-color:var(--stroke);border-radius:9px}
+.desktop-launcher .segmented button{color:var(--secondary);border-radius:7px}
+.desktop-launcher .segmented button[aria-pressed=true]{background:#191e19;color:var(--mint);box-shadow:inset 0 0 0 1px var(--mint)}
+.desktop-launcher .subtle,.desktop-launcher .secondary-button,.desktop-launcher .lobby-search{background:#191e19!important;border-color:var(--stroke)!important;color:#fff;border-radius:9px!important}
+.desktop-launcher .server-card,.desktop-launcher .settings-surface,.desktop-launcher .sheet,.desktop-launcher .sheet-header,.desktop-launcher .content,.desktop-launcher #tabs{background:var(--panel);border-color:var(--stroke);border-radius:15px}
+.desktop-launcher .server-card h3,.desktop-launcher .empty-state h3{color:#fff}
+.desktop-launcher .empty-state .note,.desktop-launcher .directory-status,.desktop-launcher .help-box,.desktop-launcher .field>small{color:var(--secondary)}
+.desktop-launcher #friends-launch{background:#101310;box-shadow:0 -8px 12px #101310}
+.desktop-launcher .preset-card{background:#191e19;border-color:var(--stroke)}
+.desktop-launcher .preset-card[aria-pressed=true]{background:#78b84315;border-color:var(--mint)}
+.desktop-launcher .lobby-toolbar>.segmented{background:transparent;border-radius:0}
+.desktop-launcher .lobby-toolbar>.segmented button{background:transparent;border-radius:0}
+.desktop-launcher input[type=text],.desktop-launcher input[type=search],.desktop-launcher select{background:#191e19;border-color:var(--stroke);color:#fff}
+.desktop-launcher input[type=checkbox],.desktop-launcher input[type=range]{accent-color:var(--mint)}
+@media(prefers-reduced-transparency:reduce){.desktop-launcher .glass,.desktop-launcher .desktop-setup,.desktop-launcher .desktop-directory{background:var(--panel)}}

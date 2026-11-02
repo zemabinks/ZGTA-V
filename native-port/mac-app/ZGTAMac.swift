@@ -29,7 +29,7 @@ if CommandLine.arguments.contains("--verify-payload") {
 
 final class LauncherView: NSView {
     let status = NSTextField(wrappingLabelWithString: "Opening your game launcher…")
-    let openButton = NSButton(title: "Open ZGTA V", target: nil, action: nil)
+    let openButton = NSButton(title: "Open ZGTA 5", target: nil, action: nil)
     let folderButton = NSButton(title: "Choose game folder…", target: nil, action: nil)
     override init(frame: NSRect) {
         super.init(frame: frame)
@@ -40,15 +40,15 @@ final class LauncherView: NSView {
         icon.imageScaling = .scaleProportionallyUpOrDown
         icon.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([icon.widthAnchor.constraint(equalToConstant: 66), icon.heightAnchor.constraint(equalToConstant: 66)])
-        let title = NSTextField(labelWithString: "ZGTA V")
+        let title = NSTextField(labelWithString: "ZGTA 5")
         title.font = .systemFont(ofSize: 32, weight: .bold)
         title.textColor = .white
-        let subtitle = NSTextField(labelWithString: "Play your way · by zema")
+        let subtitle = NSTextField(labelWithString: "1.2 · Play your way · by zema")
         subtitle.textColor = .secondaryLabelColor
         let titles = NSStackView(views: [title, subtitle]); titles.orientation = .vertical; titles.alignment = .leading
         let header = NSStackView(views: [icon, titles]); header.spacing = 18
         status.textColor = .white; status.font = .systemFont(ofSize: 15)
-        let hint = NSTextField(wrappingLabelWithString: "Keep ZGTA V open while playing or hosting. Your game files, mods and saves stay in their existing locations.")
+        let hint = NSTextField(wrappingLabelWithString: "Keep ZGTA 5 open while playing or hosting. Your game files, mods and saves stay in their existing locations.")
         hint.textColor = .secondaryLabelColor
         openButton.bezelStyle = .rounded; openButton.keyEquivalent = "\r"; openButton.isEnabled = false
         openButton.contentTintColor = NSColor(calibratedRed: 0.49, green: 0.72, blue: 0.23, alpha: 1)
@@ -73,15 +73,15 @@ final class Launcher: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         let menu = NSMenu(); let item = NSMenuItem(); menu.addItem(item)
-        let appMenu = NSMenu(); appMenu.addItem(withTitle: "Quit ZGTA V", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"); item.submenu = appMenu; NSApp.mainMenu = menu
+        let appMenu = NSMenu(); appMenu.addItem(withTitle: "Quit ZGTA 5", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"); item.submenu = appMenu; NSApp.mainMenu = menu
         window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 590, height: 320), styleMask: [.titled, .closable, .miniaturizable], backing: .buffered, defer: false)
-        window.title = "ZGTA V"; window.appearance = NSAppearance(named: .darkAqua)
+        window.title = "ZGTA 5"; window.appearance = NSAppearance(named: .darkAqua)
         view = LauncherView(frame: NSRect(x: 0, y: 0, width: 590, height: 320)); window.contentView = view
         view.openButton.target = self; view.openButton.action = #selector(openGame)
         view.folderButton.target = self; view.folderButton.action = #selector(chooseFolder)
         window.center()
         if let i = CommandLine.arguments.firstIndex(of: "--render-preview"), CommandLine.arguments.count > i + 1 {
-            view.status.stringValue = "Ready to play. Open ZGTA V in your browser."
+            view.status.stringValue = "Ready to play. Open ZGTA 5 in your browser."
             view.openButton.isEnabled = true
             view.layoutSubtreeIfNeeded()
             let rep = view.bitmapImageRepForCachingDisplay(in: view.bounds)!
@@ -101,7 +101,7 @@ final class Launcher: NSObject, NSApplicationDelegate {
                 try check.run(); let output = pipe.fileHandleForReading.readDataToEndOfFile(); check.waitUntilExit()
                 guard check.terminationStatus == 0, let result = try JSONSerialization.jsonObject(with: output) as? [String: Any], let identity = result["identity"] as? [String: Any] else { throw CocoaError(.fileReadCorruptFile) }
                 DispatchQueue.main.async { self.verifying = false; self.expected = identity; self.view.folderButton.isEnabled = true; self.inspectExisting() }
-            } catch { DispatchQueue.main.async { self.verifying = false; self.fail("This app copy could not be verified. Copy ZGTA V from the disk image again.") } }
+            } catch { DispatchQueue.main.async { self.verifying = false; self.fail("This app copy could not be verified. Copy ZGTA 5 from the disk image again.") } }
         }
     }
     func requestStatus(_ reply: @escaping ([String: Any]?) -> Void) {
@@ -126,7 +126,7 @@ final class Launcher: NSObject, NSApplicationDelegate {
         }
     }
     @objc func chooseFolder() {
-        guard ownedHost == nil else { fail("Quit ZGTA V before choosing a different game folder."); return }
+        guard ownedHost == nil else { fail("Quit ZGTA 5 before choosing a different game folder."); return }
         let panel = NSOpenPanel(); panel.canChooseDirectories = true; panel.canChooseFiles = false; panel.allowsMultipleSelection = false
         panel.message = "Choose the prepared game folder containing index.html, data and b. Your files stay where they are."
         guard panel.runModal() == .OK, let folder = panel.url else { return }
@@ -152,12 +152,12 @@ final class Launcher: NSObject, NSApplicationDelegate {
                 if !process.isRunning { self.ownedHost = nil; self.fail("The launcher could not start. Check your game folder, then try again."); return }
                 self.requestStatus { value in
                     if let identity = value?["identity"] as? [String: Any], NSDictionary(dictionary: identity).isEqual(to: self.expected) { self.ready() }
-                    else if self.attempts > 60 { self.fail("The launcher is taking longer than expected. Quit ZGTA V and try again.") }
+                    else if self.attempts > 60 { self.fail("The launcher is taking longer than expected. Quit ZGTA 5 and try again.") }
                 }
             }
-        } catch { fail("ZGTA V could not open its private data folder. Your game files have been preserved.") }
+        } catch { fail("ZGTA 5 could not open its private data folder. Your game files have been preserved.") }
     }
-    func ready() { guard !didOpen else { return }; didOpen = true; timer?.invalidate(); view.status.stringValue = "Ready to play. Open ZGTA V in your browser."; view.openButton.isEnabled = true; view.folderButton.isEnabled = false; openGame() }
+    func ready() { guard !didOpen else { return }; didOpen = true; timer?.invalidate(); view.status.stringValue = "Ready to play. Open ZGTA 5 in your browser."; view.openButton.isEnabled = true; view.folderButton.isEnabled = false; openGame() }
     @objc func openGame() {
         if let chrome = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.google.Chrome") { NSWorkspace.shared.open([homeURL], withApplicationAt: chrome, configuration: NSWorkspace.OpenConfiguration()) }
         else { NSWorkspace.shared.open(homeURL) }

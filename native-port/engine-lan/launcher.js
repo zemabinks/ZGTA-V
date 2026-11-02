@@ -92,7 +92,7 @@ vehicleTools=ZemaTrainerUI.mount(tools,{mode:()=>settings.mode});
 const device=section('device','Game files & support','This launcher serves your existing local mirror and makes no changes to the original Intel build folder.');
 row(device,'Game files / asset server','This local launcher reads your selected game mirror. Your original files are preserved.');
 row(device,'Playing with friends','Choose Join or create, or Find lobby. Review your setup, then press the green Play Multiplayer or Host Multiplayer button. LAN needs the same Wi-Fi or local network. Remote needs Tailscale connected on every device.');
-row(device,'Can’t find a lobby?','Ask the host to keep ZGTA V open and share an invite. Save their invite as a favorite in Find lobbies. Check Local Network permission on iPhone, or Tailscale for Remote.');
+row(device,'Can’t find a lobby?','Ask the host to keep ZGTA 5 open and share an invite. Save their invite as a favorite in Find lobbies. Check Local Network permission on iPhone, or Tailscale for Remote.');
 row(device,'Automatic character saves','Keep using the same browser profile and launcher address. Export backups only when you want an extra copy or a character transfer. Do not share one character identity between devices playing together.');
 
 const diagnostics=element('pre');device.append(diagnostics);const download=element('button','Download launcher diagnostics','subtle');download.type='button';device.append(download);

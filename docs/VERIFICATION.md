@@ -1,3 +1,19 @@
+# ZGTA 5 1.2 verification
+
+## Current browser / Mac scope — 1 November 2026
+
+- **Owner Intel Mac:** exact 1.2 DMG installed into Applications; design/navigation and game startup with existing data confirmed. The public DMG retains those exact bytes.
+- **Browser UI:** all eight integrated views inspected in actual Chrome from the packaged launcher. Fourteen existing controls retained their placement within one pixel; the monochrome map and native-style surfaces were visually checked.
+- **Local checks:** 27 focused UI, desktop-identity and portable test methods passed, plus JavaScript syntax checks. All three portable source/runtime manifests, archive CRCs and extracted HTTP verification passed on Mac. Windows Python headers and full archive bytes matched their pinned input; Windows was not executed.
+- **Mac package:** disk-image validation, deep strict ad-hoc signatures, all 3,521 mounted member hashes, relocated Intel Python and actual production AppKit layout passed. The DMG includes an Applications shortcut.
+- **iOS / Sileo:** unchanged 1.1 beta 1 / Build 109; no replacement IPA or DEB. Existing iPhone/Mac voice and native Simulator layout results remain below.
+
+[RELEASE-1.2-MANIFEST.json](RELEASE-1.2-MANIFEST.json) identifies the exact four packages and the owner's publication choice. [SOURCE-AUDIT.json](SOURCE-AUDIT.json) maps the public source to its frozen inputs.
+
+Apple Silicon, Windows, Linux and Android execution remain untested. The Mac app is ad-hoc signed, not notarized. Android remains the experimental Termux/browser starter, not an APK. No new renderer, voice, memory-policy, FPS, thermal or physical 3 GB-device improvement is claimed.
+
+## Historical 1.1 beta 1 evidence
+
 # Beta4 verification
 
 ## Current scope — 1 November 2026
@@ -7,7 +23,7 @@
 - **iOS controls:** current production views were inspected in iPhone 15 Pro and SE 2020 Simulator layouts on iOS 26.3 using an engine-free fixture. This checks layout, not physical 3 GB performance.
 - **Mac 109.1:** exact owner-tested browser 109 payload; unchanged 107.1 launcher sources and Python runtime pins; disk-image, strict mounted signature/hash, relocated Intel Python and production native-layout checks pass. The new 109.1 drag-install was not repeated.
 - **Portable packages:** Windows/Android archive CRC, complete manifest hashes and static entry-point checks pass. Their hardware execution remains untested.
-- **Sileo:** public0.109-2 uses the tested109 IPA with public URL/version/description changes. Existing installation methods, package/app identities and old package versions are preserved. The public wrapper was not separately installed; AppSync remains untested.
+- **Sileo:** public1.1~beta1 uses the tested109 IPA with public URL/version/description changes. Existing installation methods, package/app identities and old package versions are preserved. The public wrapper was not separately installed; AppSync remains untested.
 
 ## Current limits
 
@@ -117,7 +133,7 @@ Changes are limited to desktop entry installation, preferred Chrome opening on m
 
 Nine desktop-focused tests pass: exact iOS icon provenance; Mac bundle creation and executable syntax; private installed-copy survival after removing the temporary original download; repeat launches; update recovery; preservation of unrelated apps and symlink targets; Windows shortcut argument contracts; and graceful behavior when Desktop access fails. Windows COM execution and real Finder double-click remain separate device/UI acceptance checks. No Windows environment is attached to this Mac.
 
-The first successful Mac/Windows setup installs a desktop entry. It starts the existing local server in a visible Terminal/console window. The URL is available only while that process is running; no login item or service is installed. Repeated startup reuses an existing ZGTA V server. Existing browser profile/origin and game-folder selection are retained.
+The first successful Mac/Windows setup installs a desktop entry. It starts the existing local server in a visible Terminal/console window. The URL is available only while that process is running; no login item or service is installed. Repeated startup reuses an existing ZGTA 5 server. Existing browser profile/origin and game-folder selection are retained.
 
 Package integrity and real localhost HTTP/startup results for revision 93 are recorded in the release verification asset. These checks do not establish full game compatibility or reboot persistence.
 

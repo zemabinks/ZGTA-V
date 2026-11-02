@@ -22,8 +22,9 @@
   soloMenu.addEventListener('keydown',event=>{if(event.key==='Escape'){setMenu(false);soloToggle.focus();}if(event.key==='ArrowDown'&&event.target===soloToggle){event.preventDefault();setMenu(true);soloOptions.querySelector('button').focus();}});
   soloOptions.addEventListener('focusout',event=>{if(event.relatedTarget&&!soloMenu.contains(event.relatedTarget))setMenu(false);});
 
-  const art=make('figure','desktop-story-art'),image=make('img');image.src='/zema-lab/desktop-city.png';image.alt='Sunset city artwork';image.width=1672;image.height=941;
-  const caption=make('figcaption');art.append(image,caption);by('home-game').before(art);
+  const art=make('figure','desktop-story-art'),image=make('div','desktop-story-space');image.setAttribute('aria-hidden','true');
+  const artLabel=make('span','desktop-story-label');artLabel.setAttribute('aria-hidden','true');
+  const caption=make('figcaption');art.append(image,artLabel,caption);by('home-game').before(art);
   function setup(title){const panel=make('aside','desktop-setup'),heading=make('h2','',title),fields=make('div','desktop-quick-fields'),links=make('div','desktop-setup-links');
    for(const [tab,text]of [['graphics','Graphics'],['controls','Controls']])links.append(button(text,'desktop-link',()=>showSettings(tab)));
    const input=make('div','desktop-input-summary'),inputLabel=make('span','','Input'),inputValue=make('span');input.append(inputLabel,inputValue);
@@ -48,7 +49,7 @@
    const mode=s.mode==='lan'?soloToggle.dataset.lastMode||'story':s.mode;soloToggle.dataset.lastMode=mode;soloToggle.textContent=(mode==='sandbox'?'Free roam':'Story mode')+' ▾';
    const panel=document.body.dataset.settingsPanel;for(const [item,selected] of [[soloToggle,!panel&&!isFriends],[multiplayer,!panel&&isFriends],...Array.from(nav.querySelectorAll('[data-settings-tab]'),item=>[item,item.dataset.settingsTab===panel])]){if(selected)item.setAttribute('aria-current','page');else item.removeAttribute('aria-current');}
    for(const b of soloOptions.children)b.setAttribute('aria-pressed',String(b.dataset.soloMode===mode));
-   by('solo-title').textContent=mode==='sandbox'?'Free roam':'Story mode';caption.textContent=mode==='sandbox'?'Explore Los Santos at your pace.':'Play the story using your saves.';
+   by('solo-title').textContent=mode==='sandbox'?'Free roam':'Story mode';artLabel.textContent=by('solo-title').textContent;caption.textContent=mode==='sandbox'?'Explore Los Santos at your pace.':'Play the story using your saves.';
    by('friends-title').textContent='Private multiplayer';
    if(s.mode==='story')by('play').querySelector('span').textContent=s.newgame?'Start New Story':'Play Story Mode';
    const status=by('status');if(!by('play').disabled&&!status.classList.contains('error'))status.textContent='';

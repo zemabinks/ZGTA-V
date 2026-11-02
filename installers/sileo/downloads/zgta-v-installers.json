@@ -4,30 +4,32 @@
   "tests_are_mocked": true,
   "packages": [
     {
+      "channel": "stable",
       "flavor": "trollstore",
-      "file": "com.zema.zgta-v.trollstore_0.109-2_all.deb",
-      "bytes": 3072,
-      "sha256": "e805b65f930abddb49a37295932c6ea9ba6dc4e71d0ec134348e7033f98a392d",
-      "builder": "Debian 'dpkg-deb' package archive backend version 1.22.22 (arm64).",
+      "file": "com.zema.zgta-v.trollstore_1.1~beta1_all.deb",
+      "bytes": 3080,
+      "sha256": "2fede428edf60cea2bcf4a1fe40a91d283e063dfcd8e01d2bd03f2b35c443022",
       "source_inputs_sha256": {
-        "control": "060bc4016ba5beb481406bcdec6a8841c42c34154e5d47ceaa2eee93e2bd6ce4",
-        "postinst": "269ab704c6cc870af5695a074f53414d9fc8f6f27ab81eccf5c1a0a2bacb7c29"
+        "control": "32f8cfbd8fd0b5d92c6cb47eb1dfe34d0b0e457161ef4519301aad02ccd51ea4",
+        "postinst": "ed24f94cfc932adc7f851d1fc5d59c73d57abb7f571bb77b1d5517303a9b3277"
       },
       "device_install_verified": false,
-      "wrapper_phone_test": "NOT_REPEATED; same tested109 IPA and existing public script template"
+      "ipa_sha256": "5ae11dfbae9677ffbfb86fbe24df3326667ac29f08c9d943dc51704daffec832",
+      "change_scope": "Naming-only wrapper; unchanged existing installer method and owner-tested IPA"
     },
     {
+      "channel": "stable",
       "flavor": "appsync",
-      "file": "com.zema.zgta-v.appsync_0.109-2_iphoneos-arm.deb",
-      "bytes": 2788,
-      "sha256": "a6f5b6c6ca289f2648776f38369592dc28964913ad2f50774a92d1418dacd9c3",
-      "builder": "Debian 'dpkg-deb' package archive backend version 1.22.22 (arm64).",
+      "file": "com.zema.zgta-v.appsync_1.1~beta1_iphoneos-arm.deb",
+      "bytes": 2800,
+      "sha256": "dbec15bf1c77207b67bc0657c028f642e0a8e205f0bde035d4c2130cd4bdb27a",
       "source_inputs_sha256": {
-        "control": "51e8a541c2673084a7c1d89fe76e617d8e42c09b216ac5a96dc90e5c092374b9",
-        "postinst": "d894c4feb009dcde4cec4dcd536f4511507e016251437c3873710497a52cb93d"
+        "control": "706e1c1d57fe68abca6e0169e81ddf2f95361422add36adabecaa41c61bc97eb",
+        "postinst": "fb4ab2632ed3addb7de66e455ce1afe0effabf7f1890fe1105ed838787cc267b"
       },
       "device_install_verified": false,
-      "wrapper_phone_test": "NOT_REPEATED; same tested109 IPA and existing public script template"
+      "ipa_sha256": "5ae11dfbae9677ffbfb86fbe24df3326667ac29f08c9d943dc51704daffec832",
+      "change_scope": "Naming-only wrapper; unchanged existing installer method and owner-tested IPA"
     }
   ],
   "original_relayrace_metadata_byte_preserved": true,
@@ -49,8 +51,8 @@
   "physical_verification": "downloads/zgta-v-device-install.json",
   "previous_device_confirmation": "Build90 Sileo/TrollStore app replacement and folder scanning confirmed from owner logs; provider archive read fails with EPERM",
   "current_build": 109,
-  "current_installer_version": "0.109-2",
-  "current_phone_install_test_pending": false,
+  "current_installer_version": "1.1~beta1",
+  "current_phone_install_test_pending": true,
   "installer_template_tests": "26 mocked public installer/catalog/index methods passed. Both0.109-2 archives, exact rendered scripts, old stanzas and compressed indexes checked.",
   "observed_archive_read_failure": {
     "build": 90,
@@ -58,15 +60,23 @@
     "stage": "source read before extraction",
     "build91_provider_retest_pending": false
   },
-  "current_phone_install_test_scope": "Owner confirmed private0.109-1 installation/data and exact Build109 iPhone/Mac voice, distance/range/return and microphone mute. Public0.109-2 version/URL/description wrapper not separately phone-tested. AppSync remains untested.",
+  "current_phone_install_test_scope": "Legacy private0.109-1 installation/data and exact Build109 voice passed; new1.1~beta1 metadata wrapper is not separately phone-tested. AppSync untested.",
   "previous_owner_archive_confirmation": "downloads/zgta-v-build91-owner-confirmation.json",
   "local_test_environment": "Intel Mac:26 mocked public installer/catalog/index checks pass. Actual archives built by the existing unprivileged Linux dpkg-deb1.22.22. No additional phone test requested.",
-  "upgrade_version_comparison": "0.109-2 >0.109-1 and0.107-3 PASS",
+  "upgrade_version_comparison": "PASS: old packages <1.1~beta1 <1.1~beta2 <1.1 <1.2~beta1",
   "previous106_target_scene": "Owner confirmed buildings stable at parking/highway on29October2026; broader current107acceptance pending.",
   "current_owner_confirmation": "downloads/zgta-v-build109-owner-confirmation.json",
   "public_promotion_approved": true,
-  "current_trollstore_installer_version": "0.109-2",
-  "current_appsync_installer_version": "0.109-2",
+  "current_trollstore_installer_version": "1.1~beta1",
+  "current_appsync_installer_version": "1.1~beta1",
   "AppSync_phone_install_test_pending": true,
-  "current_installer_confirmation": "downloads/zgta-v-build109-owner-confirmation.json"
+  "current_installer_confirmation": "downloads/zgta-v-build109-owner-confirmation.json",
+  "versioning_update": {
+    "version": "1.1~beta1",
+    "display_version": "1.1 beta 1",
+    "legacy_trollstore_owner_test": "0.109-1",
+    "new_wrapper_phone_test": "NOT_RUN",
+    "unchanged_ipa_sha256": "5ae11dfbae9677ffbfb86fbe24df3326667ac29f08c9d943dc51704daffec832"
+  },
+  "device_acceptance": "Legacy private0.109-1 installation/data and exact Build109 voice passed; new1.1~beta1 metadata wrapper is not separately phone-tested. AppSync untested."
 }

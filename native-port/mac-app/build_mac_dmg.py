@@ -6,6 +6,7 @@ import json
 from pathlib import Path, PurePosixPath
 import plistlib
 import posixpath
+import re
 import shutil
 import subprocess
 import sys
@@ -60,12 +61,12 @@ def runtime(arch, pin, release, cache, destination):
 def run(*args):
     subprocess.run(list(map(str,args)), check=True)
 
-def build(payload, output, cache):
+def build(payload, output, cache, expected_source):
     if output.exists() or output.is_symlink():
         raise ValueError('Use a new output folder')
     manifest = verify_package(payload)
-    if manifest['build'] != 109 or manifest['source_revision'] != '3648065f50928fb8cd147d04bb17363f4b1e4b05':
-        raise ValueError('This Mac wrapper expects the checked Build109 payload')
+    if not re.fullmatch(r'[0-9a-f]{40}',expected_source) or manifest['build'] != 110 or manifest.get('product_version') != '1.2' or manifest['source_revision'] != expected_source:
+        raise ValueError('Expected the exact frozen 1.2 candidate payload and source revision')
     if subprocess.check_output(['git','status','--porcelain=v1'],cwd=REPO):
         raise ValueError('Commit wrapper source before candidate packaging')
     revision = subprocess.check_output(['git','rev-parse','HEAD'],cwd=REPO,text=True).strip()
@@ -80,10 +81,10 @@ def build(payload, output, cache):
     pins = json.loads((HERE/'python-runtimes.json').read_text())
     runtimes = resources/'Python'; runtimes.mkdir()
     provenance = [runtime(arch,pin,pins['release'],cache,runtimes/arch) for arch,pin in pins['architectures'].items()]
-    info = {'CFBundleIdentifier':'com.zemabinks.zgtav.mac','CFBundleName':'ZGTA V','CFBundleDisplayName':'ZGTA V',
+    info = {'CFBundleIdentifier':'com.zemabinks.zgtav.mac','CFBundleName':'ZGTA 5','CFBundleDisplayName':'ZGTA 5',
             'CFBundleExecutable':'ZGTA-V','CFBundlePackageType':'APPL','CFBundleIconFile':'ZGTA-V.icns',
-            'CFBundleShortVersionString':'2.0','CFBundleVersion':'109.1','LSMinimumSystemVersion':'13.0',
-            'NSHighResolutionCapable':True,'NSLocalNetworkUsageDescription':'Find and join your private ZGTA V lobbies.',
+            'CFBundleShortVersionString':'1.2','CFBundleVersion':'110','LSMinimumSystemVersion':'13.0',
+            'NSHighResolutionCapable':True,'NSLocalNetworkUsageDescription':'Find and join your private ZGTA 5 lobbies.',
             'NSPrincipalClass':'NSApplication'}
     (contents/'Info.plist').write_bytes(plistlib.dumps(info))
     for arch in ['x86_64','arm64']:
@@ -101,11 +102,11 @@ def build(payload, output, cache):
     verify_package(resources/'Payload')
     run(contents/'MacOS/ZGTA-V','--verify-payload')
     (volume/'Applications').symlink_to('/Applications',target_is_directory=True)
-    (volume/'Install ZGTA V.txt').write_text('Drag ZGTA V.app to Applications, then open it from Applications.\n\nThis private candidate includes its own Python runtime for Intel and Apple Silicon Macs. Chrome and your own prepared game files are still required. Choose the existing game folder on first launch; it is not copied into the app. Keep the app open while playing or hosting. Quit ZGTA V to stop only the helper it started. Existing saves, mods and settings remain outside the app.\n\nAn older launcher is never silently replaced while running. If another version is active, quit it and open this app again.\n\nPrivate test candidate: ad-hoc signed, not Apple Developer ID signed or notarized. No Gatekeeper setting is changed. Public distribution remains gated on owner testing and approval.\n')
-    dmg=output/'ZGTA-V-Build109.1-Mac.dmg'
-    run('hdiutil','create','-volname','ZGTA V','-srcfolder',volume,'-format','UDZO','-ov',dmg)
+    (volume/'Install ZGTA V.txt').write_text('Drag ZGTA V.app to Applications, then open it from Applications.\n\nThis private candidate includes its own Python runtime for Intel and Apple Silicon Macs. Chrome and your own prepared game files are still required. Choose the existing game folder on first launch; it is not copied into the app. Keep the app open while playing or hosting. Quit ZGTA 5 to stop only the helper it started. Existing saves, mods and settings remain outside the app.\n\nAn older launcher is never silently replaced while running. If another version is active, quit it and open this app again.\n\nPrivate test candidate: ad-hoc signed, not Apple Developer ID signed or notarized. No Gatekeeper setting is changed. Public distribution remains gated on owner testing and approval.\n')
+    dmg=output/'ZGTA-5-1.2-Mac.dmg'
+    run('hdiutil','create','-volname','ZGTA 5 1.2','-srcfolder',volume,'-format','UDZO','-ov',dmg)
     run('hdiutil','verify',dmg)
-    receipt={'format':'zgta-mac-dmg-v1','app_build':'109.1','game_payload_build':109,'wrapper_source_revision':revision,
+    receipt={'format':'zgta-mac-dmg-v1','product_version':'1.2','app_build':'110','game_payload_build':110,'wrapper_source_revision':revision,
              'game_payload_source_revision':manifest['source_revision'],'payload_manifest_sha256':sha256(payload/'portable-manifest.json'),
              'architectures':['x86_64','arm64'],'runtimes':provenance,'file':dmg.name,'bytes':dmg.stat().st_size,'sha256':sha256(dmg),
              'signature':'AD_HOC_STRICT_DEEP_PASS','notarized':False,'public_promotion_approved':False,
@@ -114,5 +115,5 @@ def build(payload, output, cache):
     print(json.dumps(receipt,indent=2))
 
 if __name__ == '__main__':
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--payload',type=Path,required=True);p.add_argument('--output',type=Path,required=True);p.add_argument('--cache',type=Path,required=True)
-    a=p.parse_args();build(a.payload.resolve(strict=True),a.output.absolute(),a.cache.absolute())
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--payload',type=Path,required=True);p.add_argument('--output',type=Path,required=True);p.add_argument('--cache',type=Path,required=True);p.add_argument('--payload-source',required=True,help='Exact frozen source commit used to package the browser payload')
+    a=p.parse_args();build(a.payload.resolve(strict=True),a.output.absolute(),a.cache.absolute(),a.payload_source)

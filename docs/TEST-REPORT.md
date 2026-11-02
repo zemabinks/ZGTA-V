@@ -1,5 +1,6 @@
-# ZGTA V 2.0 beta report
+# ZGTA 5 problem report
 
+- Product version (browser/Mac 1.2 or iOS 1.1 beta 1):
 - Platform / OS version:
 - Device / CPU / GPU / RAM:
 - Package filename and SHA-256 (if checked):

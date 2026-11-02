@@ -1,0 +1,56 @@
+[
+  {
+    "channel": "stable",
+    "package_stanzas": 36,
+    "all_pool_hashes": "PASS",
+    "compressed_indexes": "PASS",
+    "signatures": {
+      "format": "version11-stable-sileo-signatures-v1",
+      "valid_fingerprint": "369B9D41D3BCEA2520B22C2BD9AD1897295C6D05",
+      "compressed_indexes_match": true,
+      "signing_key_exported": false,
+      "global_trust_or_service_configuration_changed": false,
+      "files": {
+        "Release": {
+          "bytes": 1817,
+          "sha256": "5254fbc9a96f2c4adf7f84d70f1897ed7c31a76eec56614777ebcd84ad2d446d"
+        },
+        "Release.gpg": {
+          "bytes": 228,
+          "sha256": "005eb7a525e060cff4418f24b04c532b8e75d1a417802df00269ffa3d3257b17"
+        },
+        "InRelease": {
+          "bytes": 2094,
+          "sha256": "4117c7a8b9f591d0eba1910fa117526fc4a67fa9412e1873373bf3c865616d73"
+        }
+      }
+    }
+  },
+  {
+    "channel": "dev",
+    "package_stanzas": 40,
+    "all_pool_hashes": "PASS",
+    "compressed_indexes": "PASS",
+    "signatures": {
+      "format": "version11-dev-sileo-signatures-v1",
+      "valid_fingerprint": "369B9D41D3BCEA2520B22C2BD9AD1897295C6D05",
+      "compressed_indexes_match": true,
+      "signing_key_exported": false,
+      "global_trust_or_service_configuration_changed": false,
+      "files": {
+        "Release": {
+          "bytes": 1844,
+          "sha256": "dc86aa19ce5ab496b808b06a6ebdcbfe18a3695c41b01d390d78b9cedb04663c"
+        },
+        "Release.gpg": {
+          "bytes": 228,
+          "sha256": "fa3747c1f63971c0e8ab1023486d60c23a3adf6270493e3588dc58a43a244313"
+        },
+        "InRelease": {
+          "bytes": 2121,
+          "sha256": "d702af5763833beca48501d4bbc3ed8dc5ede89ce8f7c267fc2261f214ebe39b"
+        }
+      }
+    }
+  }
+]

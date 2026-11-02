@@ -1,0 +1,35 @@
+{
+  "format": "zgta-version11-installer-build-v1",
+  "packages": [
+    {
+      "channel": "stable",
+      "flavor": "trollstore",
+      "file": "com.zema.zgta-v.trollstore_1.1~beta1_all.deb",
+      "bytes": 3080,
+      "sha256": "2fede428edf60cea2bcf4a1fe40a91d283e063dfcd8e01d2bd03f2b35c443022"
+    },
+    {
+      "channel": "stable",
+      "flavor": "appsync",
+      "file": "com.zema.zgta-v.appsync_1.1~beta1_iphoneos-arm.deb",
+      "bytes": 2800,
+      "sha256": "dbec15bf1c77207b67bc0657c028f642e0a8e205f0bde035d4c2130cd4bdb27a"
+    },
+    {
+      "channel": "dev",
+      "flavor": "trollstore",
+      "file": "com.zema.zgta-v.trollstore_1.1~beta1_all.deb",
+      "bytes": 3224,
+      "sha256": "1363583586ecdcd4c27de2e894513fe2c4d95af4ce702f9af30edf2f90e2e847"
+    },
+    {
+      "channel": "dev",
+      "flavor": "appsync",
+      "file": "com.zema.zgta-v.appsync_1.1~beta1_iphoneos-arm.deb",
+      "bytes": 2912,
+      "sha256": "93eac63d59c6331e18cd41cc1d3d667cb7f6ad8cf4a1ba9eba9685d6262a3718"
+    }
+  ],
+  "version_order": "PASS: old packages <1.1~beta1 <1.1~beta2 <1.1 <1.2~beta1",
+  "application_payload_changed": false
+}

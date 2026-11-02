@@ -16,7 +16,7 @@ import sys
 import tempfile
 
 BUNDLE_ID = 'com.zemabinks.zgtav.desktop'
-DESCRIPTION = 'ZGTA V browser launcher'
+DESCRIPTION = 'ZGTA 5 browser launcher'
 ASSETS = Path('native-port/engine-lan/desktop-assets')
 
 
@@ -84,11 +84,11 @@ def mac_entry(installed, data, manifest, desktop=None):
         raise ValueError('The Desktop folder is unavailable.')
     target = desktop / 'ZGTA V.app'
     info = {
-        'CFBundleIdentifier': BUNDLE_ID, 'CFBundleName': 'ZGTA V',
-        'CFBundleDisplayName': 'ZGTA V', 'CFBundlePackageType': 'APPL',
+        'CFBundleIdentifier': BUNDLE_ID, 'CFBundleName': manifest.get('product_name', 'ZGTA V'),
+        'CFBundleDisplayName': manifest.get('product_name', 'ZGTA V'), 'CFBundlePackageType': 'APPL',
         'CFBundleExecutable': 'ZGTA-V', 'CFBundleIconFile': 'ZGTA-V.icns',
         'CFBundleVersion': str(manifest['build']),
-        'CFBundleShortVersionString': '2.0', 'LSMinimumSystemVersion': '10.15',
+        'CFBundleShortVersionString': manifest.get('product_version', '2.0'), 'LSMinimumSystemVersion': '10.15',
         'LSUIElement': True, 'ZGTAOwnedLauncher': True,
     }
     contents = target / 'Contents'

@@ -1,8 +1,6 @@
 {
-  "format": "zgta-public-source-audit-v3",
-  "release": "v2.0.0-beta.4",
-  "compiled_ios_and_browser_source": "3648065f50928fb8cd147d04bb17363f4b1e4b05",
-  "mac_wrapper_source": "4bbf3dfb9dbbb51b1a42b68111fd2e9664054cf2",
+  "format": "zgta-public-source-audit-v4",
+  "release": "v1.2",
   "copied_files": 878,
   "history_or_phone_logs_included": false,
   "production_ios_units_and_packaged_browser_helpers_byte_preserved": true,
@@ -3255,16 +3253,16 @@
     },
     {
       "file": "native-port/engine-lan/desktop-launcher.css",
-      "source_sha256": "3bd2f44295a5fe495ed0da2f8772052407366725e1c29578184c6423dced328f",
-      "public_sha256": "3bd2f44295a5fe495ed0da2f8772052407366725e1c29578184c6423dced328f",
-      "source_revision": "3648065f50928fb8cd147d04bb17363f4b1e4b05",
+      "source_sha256": "8ffd37351c779de55609339ca8357345864ee96d11142bd19afef0a3340741ec",
+      "public_sha256": "8ffd37351c779de55609339ca8357345864ee96d11142bd19afef0a3340741ec",
+      "source_revision": "6084cd63056d0864be0f9245057a9fc6f8c181e7",
       "fixture_changes": []
     },
     {
       "file": "native-port/engine-lan/desktop-launcher.js",
-      "source_sha256": "b905c960cd5868e72fb29b48e836fc21eaf47f9889cd44898b4bcd8da31456fe",
-      "public_sha256": "b905c960cd5868e72fb29b48e836fc21eaf47f9889cd44898b4bcd8da31456fe",
-      "source_revision": "3648065f50928fb8cd147d04bb17363f4b1e4b05",
+      "source_sha256": "3953f163e9e7e943c531e4302411c791b685d38d97308df7ba73a737dc498940",
+      "public_sha256": "3953f163e9e7e943c531e4302411c791b685d38d97308df7ba73a737dc498940",
+      "source_revision": "6084cd63056d0864be0f9245057a9fc6f8c181e7",
       "fixture_changes": []
     },
     {
@@ -3276,9 +3274,9 @@
     },
     {
       "file": "native-port/engine-lan/desktop_launcher.py",
-      "source_sha256": "22bc3f2cd874cb42fe9354c368ffdb21e41847f6d53938d084ba6ea5245617a3",
-      "public_sha256": "22bc3f2cd874cb42fe9354c368ffdb21e41847f6d53938d084ba6ea5245617a3",
-      "source_revision": "3648065f50928fb8cd147d04bb17363f4b1e4b05",
+      "source_sha256": "54b5617c40df840e9811329f080f72840666bd766239f0fed0c2fd45f4914f30",
+      "public_sha256": "54b5617c40df840e9811329f080f72840666bd766239f0fed0c2fd45f4914f30",
+      "source_revision": "6084cd63056d0864be0f9245057a9fc6f8c181e7",
       "fixture_changes": []
     },
     {
@@ -3689,16 +3687,16 @@
     },
     {
       "file": "native-port/engine-lan/launcher.html",
-      "source_sha256": "893f0a8cbd1a5402471d68e4edc1a418ceb4d36ece5b0544d2b0fde05c4b3257",
-      "public_sha256": "893f0a8cbd1a5402471d68e4edc1a418ceb4d36ece5b0544d2b0fde05c4b3257",
-      "source_revision": "3648065f50928fb8cd147d04bb17363f4b1e4b05",
+      "source_sha256": "b5f6e97f69f96fbf0f6cee22e8db374d6055b210fd9467b13397d5a8d5b634c5",
+      "public_sha256": "b5f6e97f69f96fbf0f6cee22e8db374d6055b210fd9467b13397d5a8d5b634c5",
+      "source_revision": "6084cd63056d0864be0f9245057a9fc6f8c181e7",
       "fixture_changes": []
     },
     {
       "file": "native-port/engine-lan/launcher.js",
-      "source_sha256": "9a2cbdac2a38262e71ef6c3fe7112b78d91d40fba2681f9959580afb9c09d172",
-      "public_sha256": "9a2cbdac2a38262e71ef6c3fe7112b78d91d40fba2681f9959580afb9c09d172",
-      "source_revision": "3648065f50928fb8cd147d04bb17363f4b1e4b05",
+      "source_sha256": "1e4bd17d98593f1a7c27241ceaf5f5dae2edf72971cc8908a0db43034b59a112",
+      "public_sha256": "1e4bd17d98593f1a7c27241ceaf5f5dae2edf72971cc8908a0db43034b59a112",
+      "source_revision": "6084cd63056d0864be0f9245057a9fc6f8c181e7",
       "fixture_changes": []
     },
     {
@@ -3710,9 +3708,9 @@
     },
     {
       "file": "native-port/engine-lan/lobby-ui.js",
-      "source_sha256": "9aa0cf74182c945901fd5a184f23b4c9aaae7f0b617a580d13dcd5c1dd82d5b9",
-      "public_sha256": "9aa0cf74182c945901fd5a184f23b4c9aaae7f0b617a580d13dcd5c1dd82d5b9",
-      "source_revision": "3648065f50928fb8cd147d04bb17363f4b1e4b05",
+      "source_sha256": "8e3504602b2395ab0aee7fe49bc9cc386a56cc6b21f0d1c42125c7a85a654659",
+      "public_sha256": "8e3504602b2395ab0aee7fe49bc9cc386a56cc6b21f0d1c42125c7a85a654659",
+      "source_revision": "6084cd63056d0864be0f9245057a9fc6f8c181e7",
       "fixture_changes": []
     },
     {
@@ -3878,9 +3876,9 @@
     },
     {
       "file": "native-port/engine-lan/package_portable.py",
-      "source_sha256": "66bf2e27a8061e007d27953b739b064ebc50e9c5005d6bd4d7b868ab2a37ae52",
-      "public_sha256": "66bf2e27a8061e007d27953b739b064ebc50e9c5005d6bd4d7b868ab2a37ae52",
-      "source_revision": "3648065f50928fb8cd147d04bb17363f4b1e4b05",
+      "source_sha256": "19315cf8736bef6dd99b0d4b0a26abafd8477f38accbe286176fbe651f5188e5",
+      "public_sha256": "19315cf8736bef6dd99b0d4b0a26abafd8477f38accbe286176fbe651f5188e5",
+      "source_revision": "6084cd63056d0864be0f9245057a9fc6f8c181e7",
       "fixture_changes": []
     },
     {
@@ -5585,9 +5583,9 @@
     },
     {
       "file": "native-port/engine-lan/tests/test_portable.py",
-      "source_sha256": "e8f7f8158e3d95e75c7af64a9ab984c4421e67cc873fe4f79a6e48ca80a6c95c",
-      "public_sha256": "e8f7f8158e3d95e75c7af64a9ab984c4421e67cc873fe4f79a6e48ca80a6c95c",
-      "source_revision": "3648065f50928fb8cd147d04bb17363f4b1e4b05",
+      "source_sha256": "2f27e9cddf2057c11c65281244283c3cddfa304fd229a4a88be33387ddb7b2b8",
+      "public_sha256": "2f27e9cddf2057c11c65281244283c3cddfa304fd229a4a88be33387ddb7b2b8",
+      "source_revision": "6084cd63056d0864be0f9245057a9fc6f8c181e7",
       "fixture_changes": []
     },
     {
@@ -6077,16 +6075,16 @@
     },
     {
       "file": "native-port/mac-app/ZGTAMac.swift",
-      "source_sha256": "febe80a574e8e14c4393592b3317180d71c88e76325b5082ef68bbcfd531566a",
-      "public_sha256": "febe80a574e8e14c4393592b3317180d71c88e76325b5082ef68bbcfd531566a",
-      "source_revision": "3648065f50928fb8cd147d04bb17363f4b1e4b05",
+      "source_sha256": "dc9cec1e6ce2e834e6afbad14d8be560c3b558d786f0b118b3f2be9dd41dfb6c",
+      "public_sha256": "dc9cec1e6ce2e834e6afbad14d8be560c3b558d786f0b118b3f2be9dd41dfb6c",
+      "source_revision": "6084cd63056d0864be0f9245057a9fc6f8c181e7",
       "fixture_changes": []
     },
     {
       "file": "native-port/mac-app/build_mac_dmg.py",
-      "source_sha256": "1971f3aba85a2c7fa0faadcc4c4e5528215a613b6b364164e30f574d86822b56",
-      "public_sha256": "1971f3aba85a2c7fa0faadcc4c4e5528215a613b6b364164e30f574d86822b56",
-      "source_revision": "4bbf3dfb9dbbb51b1a42b68111fd2e9664054cf2",
+      "source_sha256": "8ed5b4a6ccdf3eb5ea491df18d1a81369e77fb79d69c5ec3f9064fdd9f8d9af3",
+      "public_sha256": "8ed5b4a6ccdf3eb5ea491df18d1a81369e77fb79d69c5ec3f9064fdd9f8d9af3",
+      "source_revision": "6084cd63056d0864be0f9245057a9fc6f8c181e7",
       "fixture_changes": []
     },
     {
@@ -6173,5 +6171,10 @@
     "sha256": "980036bb3bab8895c27349cb1848190df90488bf7715f6f62c972cb038175b54"
   },
   "bounded_secret_owner_path_network_scan": "PASS; bounded patterns are not proof of absence of every secret",
-  "exported_voice_methods_passed": 14
+  "exported_voice_methods_passed": 14,
+  "ios_source": "3648065f50928fb8cd147d04bb17363f4b1e4b05",
+  "browser_mac_source": "6084cd63056d0864be0f9245057a9fc6f8c181e7",
+  "prior_compiled_ios_and_browser_source": "3648065f50928fb8cd147d04bb17363f4b1e4b05",
+  "prior_mac_wrapper_source": "4bbf3dfb9dbbb51b1a42b68111fd2e9664054cf2",
+  "current_scope": "Browser styling/branding and Mac packaging metadata only; iOS, renderer, voice and memory policy unchanged."
 }
